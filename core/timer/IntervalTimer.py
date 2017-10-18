@@ -17,6 +17,7 @@ class IntervalTimer(threading._Timer):
         self.timerTuple = args
         self.timerIndex = index
         self.dumpFlag = True
+        self.funcResult = None#回调函数的返回值
 
     def run(self):
         '''override run function'''
@@ -27,10 +28,14 @@ class IntervalTimer(threading._Timer):
                     self.finished.set()
                     break
                 self.dump()
-                self.function(*self.args, **self.kwargs)
+                self.funcResult = self.function(*self.args, **self.kwargs)
                 self.timerIndex += 1
         except Exception,e:
             print "Exception: "+e.Message
+
+    def getCBFuncResult(self):
+        """获取回调函数返回值"""
+        return self.funcResult
 
     def queryChainNode(self):
         return self.timerIndex
