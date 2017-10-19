@@ -43,6 +43,3 @@ class DataScrape():
         return [infoDict[u'"p"'],infoDict[u'"b"'],infoDict[u'"h"'],infoDict[u'"l"'],\
          time.strftime("%Y-%m-%d %H:%M:%S",time.localtime(float(infoDict[u'"t"'])))]
 
-    def set_dump(self,flag):
-        self.dumpFlag = flag
-

@@ -15,7 +15,7 @@ class LoopTimer(threading._Timer):
     """
     def __init__(self, interval, function, args=[], kwargs={}):
         threading._Timer.__init__(self, interval, function, args=[], kwargs={})
-        self.dumpFlag = False
+        self.dumpFlag = True
         self.funcResult = None#回调函数的返回值
 
     def run(self):

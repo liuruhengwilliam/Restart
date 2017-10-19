@@ -14,7 +14,7 @@ def main():
     core4DS.init_quotation_db()
 
     #数据抓取模块挂载到定时器线程
-    tm = TimerMotor(core4DS.work_DS2Quotaion, core4DS.idiot, core4DS.idiot)
+    tm = TimerMotor(core4DS.work_DS2QDB_record, core4DS.work_QDB_update, core4DS.idiot)
     #定时器线程启动
     tm.start_timer()
 
