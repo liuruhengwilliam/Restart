@@ -33,8 +33,8 @@ class DataSource():
     def __init__(self):
         self.dataSource = self.FX678_XAG_URL #as default
 
-    def querySource(self):
+    def get_source(self):
         return self.dataSource
 
-    def changeSource(self,source):
+    def set_source(self,source):
         self.dataSource = source

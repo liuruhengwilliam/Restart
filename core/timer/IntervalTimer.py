@@ -31,16 +31,16 @@ class IntervalTimer(threading._Timer):
                 self.funcResult = self.function(*self.args, **self.kwargs)
                 self.timerIndex += 1
         except Exception,e:
-            print "Exception: "+e.Message
+            print "Interval Timer Exception: "+e.Message
 
-    def getCBFuncResult(self):
+    def get_cb_func_result(self):
         """获取回调函数返回值"""
         return self.funcResult
 
-    def queryChainNode(self):
+    def get_chain_node(self):
         return self.timerIndex
 
-    def setDump(self,flag):
+    def set_dump(self,flag):
         self.dumpFlag = flag
 
     def dump(self):

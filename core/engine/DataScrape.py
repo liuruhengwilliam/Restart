@@ -9,14 +9,14 @@ import re
 class DataScrape():
     """ 数据抓取类 """
     def __init__(self):
-        self.dumpFlag = True
+        self.dumpFlag = False
         self.dataSource = DataSource()
 
-    def queryInfo(self):
+    def query_info(self):
         """ 获取某网站相关信息 """
-        #每个数据源采集的字典结构(基本都)可能会不同
+        #每个数据源采集的字典结构可能(基本都)会不同
         infoDict = {}
-        url = self.dataSource.querySource()
+        url = self.dataSource.get_source()
 
         #每个网站采集到的信息格式不同，需要加以区分
         if url == self.dataSource.FX678_XAG_URL:
@@ -43,8 +43,6 @@ class DataScrape():
         return [infoDict[u'"p"'],infoDict[u'"b"'],infoDict[u'"h"'],infoDict[u'"l"'],\
          time.strftime("%Y-%m-%d %H:%M:%S",time.localtime(float(infoDict[u'"t"'])))]
 
-    def setDump(self,flag):
+    def set_dump(self,flag):
         self.dumpFlag = flag
 
-    def idiot(self):
-        print "idiot"

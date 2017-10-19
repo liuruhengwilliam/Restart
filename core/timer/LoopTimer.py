@@ -15,7 +15,7 @@ class LoopTimer(threading._Timer):
     """
     def __init__(self, interval, function, args=[], kwargs={}):
         threading._Timer.__init__(self, interval, function, args=[], kwargs={})
-        self.dumpFlag = True
+        self.dumpFlag = False
         self.funcResult = None#回调函数的返回值
 
     def run(self):
@@ -28,17 +28,11 @@ class LoopTimer(threading._Timer):
             self.dump()
             #记录回调函数返回值
             self.funcResult = self.function(*self.args, **self.kwargs)
-            print self.funcResult
 
-    def getCBFuncResult(self):
+    def get_cb_func_result(self):
         """获取回调函数返回值"""
-        print type(self.funcResult)
-        print self.funcResult
         return self.funcResult
-
-    def setDump(self,flag):
-        self.dumpFlag = flag
 
     def dump(self):
         if self.dumpFlag:
-         print "Timer expired at %s" % datetime.datetime.now()
+            print "Timer %s"%threading.currentThread().getName()+" expired at %s" % datetime.datetime.now()

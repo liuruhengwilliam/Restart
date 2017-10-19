@@ -21,39 +21,35 @@ class TimerMotor():
         self.fastTimerFunc = fastTimerFunc
         self.slowTimerFunc = slowTimerFunc
         self.chainTimerFunc = chainTimerFunc
-        self.fastTMResult = self.slowTMResult = self.chainTMResult = None
 
-    def startTimer(self):
+    def start_timer(self):
         """  启动定时器 """
         self.fastTimer = LoopTimer(FAST_LOOP_PERIOD, self.fastTimerFunc)
         self.fastTimer.start()
-        #self.fastTMResult = self.fastTimer.getCBFuncResult()
 
         self.slowTimer = LoopTimer(SLOW_LOOP_PERIOD, self.slowTimerFunc)
         self.slowTimer.start()
-        #self.slowTMResult = self.slowTimer.getCBFuncResult()
 
         self.chainTimer = IntervalTimer(0, self.chainTimerFunc,CHAIN_PERIOD)
         self.chainTimer.start()
-        #self.chainTMResult = self.chainTimer.getCBFuncResult()
 
-    def getFastTimer(self):
+    def get_fast_timer(self):
         return self.fastTimer
 
-    def getFastTMCBFuncResult(self):
+    def get_fastTM_cbfunc_result(self):
         """获取快速定时器回调函数返回值"""
-        return self.fastTimer.getCBFuncResult()#self.fastTMResult
+        return self.fastTimer.get_cb_func_result()
 
-    def getSlowTimer(self):
+    def get_slow_timer(self):
         return self.slowTimer
 
-    def getSlowTMCBFuncResult(self):
+    def get_slowTM_cbfunc_result(self):
         """获取慢速定时器回调函数返回值"""
-        return self.slowTMResult
+        return self.slowTimer.get_cb_func_result()
 
-    def getChainTimer(self):
+    def get_chain_timer(self):
         return self.chainTimer
 
-    def getChainTMCBFuncResult(self):
+    def get_chainTM_cbfunc_result(self):
         """获取链式定时器回调函数返回值"""
-        return self.chainTMResult
+        return self.chainTimer.get_cb_func_result()
