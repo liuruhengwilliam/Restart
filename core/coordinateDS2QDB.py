@@ -25,7 +25,7 @@ class coordinateDS2QDB():
         #创建缓冲记录字典
         self.dbQuotationDBHdl.create_record_dict()
         #Quotation DB file name(with path)
-        self.dbQuotationFile = self.dbQuotationDBHdl.create_file()
+        self.dbQuotationDBHdl.create_file()
 
         #行情数据库线程挂载回调函数并等待event消息驱动
         thrdQuotationDB = threading.Thread(target=self.thrd_quotation_db_func)
@@ -37,7 +37,7 @@ class coordinateDS2QDB():
         while True:
             self.event.wait()
             #if self.event.isSet():
-            self.dbQuotationDBHdl.db_quotation_insert(self.dbQuotationFile, self.recordTuple)
+            self.dbQuotationDBHdl.db_quotation_insert(self.recordTuple)
             self.event.clear()
 
     def work_DS2QDB_record(self):
