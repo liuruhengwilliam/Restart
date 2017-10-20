@@ -13,7 +13,8 @@ def main():
     core4DS.init_data_scrape()
     core4DS.init_quotation_db()
 
-    #数据抓取模块挂载到定时器线程
+    #数据抓取模块挂载到快速定时器
+    #行情数据库模块挂载到慢速定时器
     tm = TimerMotor(core4DS.work_DS2QDB_record, core4DS.work_QDB_update, core4DS.idiot)
     #定时器线程启动
     tm.start_timer()
