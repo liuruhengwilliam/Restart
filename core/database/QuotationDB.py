@@ -18,10 +18,12 @@ QUOTATION_DB_INSERT = 'insert into quotation (startPrice,realPrice,maxPrice,minP
     values(?, ?, ?, ?, ?)'
 
 class QuotationDB():
-    """"""
+    """ 行情数据库 """
     def __init__(self):
         # 调试打印开关
         self.dumpFlag = True
+        # 收盘期间标志
+        self.closingQuotation = False
         # 数据库文件路径及文件名
         self.fileQDB = None
         # 快速定时器中缓冲字典.数据结构与QDB数据库每行相同.
@@ -33,6 +35,12 @@ class QuotationDB():
 
     def update_record_dict(self,infoTuple):
         """ 快速定时器回调函数。更新缓冲字典--行情数据库二级缓冲中的第一级 """
+        # 全球市场结算期间不更新缓冲字典
+        if self.recordDict['time'] == infoTuple[4]:
+            self.isClosingQuotation = True
+            return
+        else: self.isClosingQuotation = False
+
         for i in list(infoTuple):
             #对于"startPrice"和"realPrice"项暂时不做处理.即只处理infoTuple中第三/四项.
             self.recordDict['startPrice'] = infoTuple[0]
@@ -91,6 +99,9 @@ class QuotationDB():
 
     def db_quotation_insert(self, priceList):
         """行情数据库插入操作"""
+        # 全球市场结算时间不更新数据库
+        if self.isClosingQuotation == True: return
+
         db = sqlite3.connect(self.fileQDB)
         dbCursor = db.cursor()
         #First: file should be existed

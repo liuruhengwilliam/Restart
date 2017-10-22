@@ -15,9 +15,6 @@ class coordinateDS2QDB():
 
     def init_quotation_db(self):
         """ 行情数据库线程准备 """
-        # 创建线程
-        self.event = threading.Event()
-
         # 对应数据库准备
         self.dbQuotationDBHdl = QuotationDB()#Quotation DB Handle
         #创建缓冲记录字典
@@ -28,7 +25,7 @@ class coordinateDS2QDB():
     # 以下是定时器回调函数:
     def work_QDB_update(self):
         """ 慢速定时器回调函数 : 更新行情数据库 """
-        self.dbQuotationDBHdl.insert_record()
+        self.dbQuotationDBHdl.db_quotation_insert(self.infoTuple)
 
     def work_DS2QDB_record(self):
         """ 快速定时器回调函数 : 数据抓取模块和行情数据库线程(缓冲字典)之间协同工作函数 """
