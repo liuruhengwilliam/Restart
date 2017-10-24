@@ -3,8 +3,9 @@
 import threading
 from database import QuotationDB
 from engine import DataScrape
-from timer import TimerMotor
 from coordinateDS2QDB import *
+from timer.TimerMotor import TimerMotor
+from resource import Configuration
 
 def main():
     """执行模块"""
@@ -13,11 +14,20 @@ def main():
     core4DS.init_data_scrape()
     core4DS.init_quotation_db()
 
-    #数据抓取模块挂载到快速定时器
-    #行情数据库模块挂载到慢速定时器
-    tm = TimerMotor(core4DS.work_DS2QDB_record, core4DS.work_QDB_update, core4DS.idiot)
-    #定时器线程启动
-    tm.start_timer()
+    funcList = [] # 回调函数列表
+    # 数据抓取模块和行情数据库模块挂载到周期定时器
+    funcList.append(core4DS.work_DS2QDB_heartbeat)
+    funcList.extend([core4DS.work_DS2QDB_operate]*10)
+
+    timerMotorHdl = TimerMotor()
+    # 初始化固定周期定时器
+    timerMotorHdl.init_fasten_timer(funcList, Configuration.QUOTATION_DB_PERIOD)
+
+    #ER数据库
+    #......
+
+    # 定时器线程启动
+    timerMotorHdl.start_timer()
 
 if __name__ == '__main__':
     main()
