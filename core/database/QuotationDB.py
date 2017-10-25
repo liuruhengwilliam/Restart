@@ -34,32 +34,37 @@ class QuotationDB():
             self.recordPeriodDict.update(itemPeriod)
 
     def update_dict_record(self,infoTuple):
-        """ 外部接口API: 心跳定时器回调函数。更新缓冲字典和周期字典。 """
-        # 全球市场结算期间不更新缓冲字典
+        """ 外部接口API: 心跳定时器回调函数。更新缓冲记录。 """
+        # 全球市场结算期间不更新缓冲记录
         if self.recordPeriodDict[Configuration.QUOTATION_DB_PREFIX[0]]['time'] == infoTuple[4]:
             self.isClosingQuotation = True
             return
         else:
             self.isClosingQuotation = False
 
+        #用最快定时器（心跳定时器）来更新其他周期行情数据记录
         for i in range(len(Configuration.QUOTATION_DB_PERIOD)):
             dictItem = self.recordPeriodDict[Configuration.QUOTATION_DB_PREFIX[i]]
+            dictItem['time'] = infoTuple[4]
+
             self.updateLock[i].acquire()
-            #每次行情数据库更新后且各周期定时器首次到期时"startPrice"应该等于"realPrice"项，并且不再后续不更新。
-            #对于'10sec'定时器，忽略该设置。
+            #每次行情数据库更新后各周期定时器首次到期时，开盘价/最高/最低都等于实时价格，且开盘价后续不更新。
+            #对于最快定时器（暂定10秒），忽略该设置。
             if self.updatePeriodFlag[i] == True:
-                dictItem['startPrice'] = infoTuple[1]
+                dictItem['startPrice'] = dictItem['realPrice'] = \
+                    dictItem['maxPrice'] = dictItem['minPrice'] = infoTuple[1]
                 self.updatePeriodFlag[i] = False
+                self.updateLock[i].release()
+                continue
+            else:
+                dictItem['realPrice'] = infoTuple[1]
             self.updateLock[i].release()
 
-            dictItem['realPrice'] = infoTuple[1]
-
-            if(dictItem['maxPrice'] < infoTuple[2]):
-                dictItem['maxPrice'] = infoTuple[2]
-            if(dictItem['minPrice'] > infoTuple[3] or dictItem['minPrice'] == 0):
-                dictItem['minPrice'] = infoTuple[3]
-
-            dictItem['time'] = infoTuple[4]
+            #实时价格和最高/最低价格进行比较。bug fix only for FX678URL source. 2017-10-25
+            if(dictItem['maxPrice'] < infoTuple[1]):
+                dictItem['maxPrice'] = infoTuple[1]
+            elif(dictItem['minPrice'] > infoTuple[1]):
+                dictItem['minPrice'] = infoTuple[1]
 
     def create_period_db_file(self, filePath):
         """ 外部接口API: 创建数据库文件：行情数据库 (ER数据库可仿效) """
