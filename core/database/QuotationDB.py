@@ -1,9 +1,7 @@
 #coding=utf-8
 
-import datetime
 import sqlite3
-import re, os
-import platform
+import os
 import threading
 from copy import deepcopy
 from resource import Configuration
@@ -16,9 +14,7 @@ class QuotationDB():
         self.dumpFlag = True
         # 结算期间标志
         self.isClosingQuotation = False
-        # 数据库文件路径及文件名
-        self.fileQDBPath = None
-
+        self.filePath = None
         # 开盘和收盘记录的更新标志位。快速定时器和慢速定时器竞争资源，需要锁机制进行保护。
         self.updatePeriodFlag = [True]*len(Configuration.QUOTATION_DB_PERIOD)
         # 锁资源。与定时器数目对应。
@@ -40,14 +36,11 @@ class QuotationDB():
     def update_dict_record(self,infoTuple):
         """ 外部接口API: 心跳定时器回调函数。更新缓冲字典和周期字典。 """
         # 全球市场结算期间不更新缓冲字典
-        if self.recordPeriodDict['10sec']['time'] == infoTuple[4]:
+        if self.recordPeriodDict[Configuration.QUOTATION_DB_PREFIX[0]]['time'] == infoTuple[4]:
             self.isClosingQuotation = True
             return
         else:
             self.isClosingQuotation = False
-
-        tmName = threading.currentThread().getName()
-        index = (tmName.split('-'))[1]
 
         for i in range(len(Configuration.QUOTATION_DB_PERIOD)):
             dictItem = self.recordPeriodDict[Configuration.QUOTATION_DB_PREFIX[i]]
@@ -68,33 +61,13 @@ class QuotationDB():
 
             dictItem['time'] = infoTuple[4]
 
-    def create_period_db_path(self):
-        """ 内部接口API: 生成文件名及文件路径 """
-        # 寻找当前周数并生成文件名前缀
-        dt = datetime.datetime.now()
-        year,week = dt.strftime('%Y'),dt.strftime('%U')
-        fileNamePrefix = year+'-'+week
-
-        #生成文件路径(依据不同操作系统)
-        sysName = platform.system()
-        if (sysName == "Windows"):
-            self.fileQDBPath = 'D:/mess/future/'+fileNamePrefix
-        elif (sysName == "Linux"):
-            self.fileQDBPath = '~/mess/future/'+fileNamePrefix
-        else :# 未知操作系统
-            self.fileQDBPath = fileNamePrefix
-
-        if not os.path.exists(self.fileQDBPath):
-            # 创建当周数据库文件夹
-            os.makedirs(self.fileQDBPath)
-
-    def create_period_db_file(self):
+    def create_period_db_file(self, filePath):
         """ 外部接口API: 创建数据库文件：行情数据库 (ER数据库可仿效) """
-        self.create_period_db_path()
+        self.filePath = filePath
         for tagPeriod in list(Configuration.QUOTATION_DB_PREFIX):
             # 生成各周期时间数据库文件。10sec.db数据库文件冗余（忽略）。
-            isExist = os.path.exists(self.fileQDBPath+'/'+tagPeriod+'.db')
-            db = sqlite3.connect(self.fileQDBPath+'/'+tagPeriod+'.db')
+            isExist = os.path.exists(filePath+'/'+tagPeriod+'.db')
+            db = sqlite3.connect(filePath+'/'+tagPeriod+'.db')
             dbCursor = db.cursor()
             #First: create db if empty
             if not isExist:
@@ -130,7 +103,7 @@ class QuotationDB():
         dbName = threading.currentThread().getName()
         index = int((dbName.split('-'))[1]) - 1
         #组装对应数据库文件路径
-        dbFile = self.fileQDBPath+'/'+Configuration.QUOTATION_DB_PREFIX[index]+'.db'
+        dbFile = self.filePath+'/'+Configuration.QUOTATION_DB_PREFIX[index]+'.db'
         #挑取对应周期字典项
         priceDict = self.recordPeriodDict[Configuration.QUOTATION_DB_PREFIX[index]]
         #字典项转换成列表项

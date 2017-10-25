@@ -4,11 +4,14 @@ import sys
 from engine.DataScrape import *
 from timer.TimerMotor import *
 from database.QuotationDB import *
-from resource import Configuration
+from resource.Configuration import *
 
 class coordinateDS2QDB():
     def __init__(self):
         self.dumpFlag = True
+        self.dtScrp = None
+        self.dbQuotationDBHdl = None
+        self.cnfHdl = None
 
     def init_data_scrape(self):
         """ 初始化数据抓取模块 """
@@ -17,11 +20,13 @@ class coordinateDS2QDB():
     def init_quotation_db(self):
         """ 行情数据库线程准备 """
         # 对应数据库准备
+        self.cnfHdl = Configuration()
+
         self.dbQuotationDBHdl = QuotationDB() # Quotation DB Handle
         # 创建记录字典
         self.dbQuotationDBHdl.create_record_dict()
         # 创建行情数据库文件
-        self.dbQuotationDBHdl.create_period_db_file()
+        self.dbQuotationDBHdl.create_period_db_file(self.cnfHdl.create_db_path())
 
     # 以下是定时器回调函数:
     def work_DS2QDB_heartbeat(self):
