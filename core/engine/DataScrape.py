@@ -38,7 +38,8 @@ class DataScrape():
                 if self.dumpFlag: print infoDict
 
             except (Exception),e:
-                print "DataScrape Exception: "+e.message
+                print "DataScrape class Exception:"
+                print e
 
         return [infoDict[u'"p"'],infoDict[u'"b"'],infoDict[u'"h"'],infoDict[u'"l"'],\
          time.strftime("%Y-%m-%d %H:%M:%S",time.localtime(float(infoDict[u'"t"'])))]
