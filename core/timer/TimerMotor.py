@@ -1,7 +1,5 @@
 #coding=utf-8
 
-import sys
-import datetime
 from LoopTimer import LoopTimer
 from IntervalTimer import IntervalTimer
 
