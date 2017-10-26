@@ -5,6 +5,7 @@ import time
 from DataSource import *
 import requests
 import re
+import traceback
 
 class DataScrape():
     """ 数据抓取类 """
@@ -41,8 +42,8 @@ class DataScrape():
                 retList = [infoDict[u'"p"'],infoDict[u'"b"'],infoDict[u'"h"'],infoDict[u'"l"'],\
                         time.strftime("%Y-%m-%d %H:%M:%S",time.localtime(float(infoDict[u'"t"'])))]
             except (Exception),e:
-                print "DataScrape class Exception:"
-                print e
+                exc_type,exc_value,exc_tb = sys.exc_info()
+                traceback.print_exception(exc_type, exc_value, exc_tb)
             finally:
                 return retList
 
