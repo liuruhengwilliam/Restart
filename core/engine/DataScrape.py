@@ -13,9 +13,10 @@ class DataScrape():
         self.dataSource = DataSource()
 
     def query_info(self):
-        """ 获取某网站相关信息 """
+        """ 外部接口API：获取某网站相关信息 """
         #每个数据源采集的字典结构可能(基本都)会不同
         infoDict = {}
+        retList = [] # 待返回的数据列表
         url = self.dataSource.get_source()
 
         #每个网站采集到的信息格式不同，需要加以区分
@@ -37,10 +38,12 @@ class DataScrape():
 
                 if self.dumpFlag: print infoDict
 
+                retList = [infoDict[u'"p"'],infoDict[u'"b"'],infoDict[u'"h"'],infoDict[u'"l"'],\
+                        time.strftime("%Y-%m-%d %H:%M:%S",time.localtime(float(infoDict[u'"t"'])))]
             except (Exception),e:
                 print "DataScrape class Exception:"
                 print e
+            finally:
+                return retList
 
-        return [infoDict[u'"p"'],infoDict[u'"b"'],infoDict[u'"h"'],infoDict[u'"l"'],\
-         time.strftime("%Y-%m-%d %H:%M:%S",time.localtime(float(infoDict[u'"t"'])))]
 

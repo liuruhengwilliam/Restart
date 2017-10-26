@@ -32,9 +32,10 @@ class coordinateDS2QDB():
     def work_DS2QDB_heartbeat(self):
         """ 快速定时器(心跳定时器)回调函数 : 数据抓取模块和行情数据库线程(缓冲字典)之间协同工作函数 """
         # 数据抓取并筛选
-        infoTuple = self.dtScrp.query_info()
-        if self.dumpFlag: print infoTuple
-        self.dbQuotationDBHdl.update_dict_record(infoTuple)
+        infoList = self.dtScrp.query_info()
+        if self.dumpFlag: print infoList
+        if len(infoList) != 0:
+            self.dbQuotationDBHdl.update_dict_record(infoList)
 
     def work_DS2QDB_operate(self):
         """ 慢速定时器组回调函数 : 更新行情数据库 """
