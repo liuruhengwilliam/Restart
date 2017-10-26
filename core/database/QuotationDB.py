@@ -12,8 +12,6 @@ class QuotationDB():
     def __init__(self):
         # 调试打印开关
         self.dumpFlag = True
-        # 结算期间标志
-        self.isClosingQuotation = False
         self.filePath = None
         # 开盘和收盘记录的更新标志位。快速定时器和慢速定时器竞争资源，需要锁机制进行保护。
         self.updatePeriodFlag = [True]*len(Configuration.QUOTATION_DB_PERIOD)
@@ -35,12 +33,6 @@ class QuotationDB():
 
     def update_dict_record(self,infoTuple):
         """ 外部接口API: 心跳定时器回调函数。更新缓冲记录。 """
-        # 全球市场结算期间不更新缓冲记录
-        if self.recordPeriodDict[Configuration.QUOTATION_DB_PREFIX[0]]['time'] == infoTuple[4]:
-            self.isClosingQuotation = True
-            return
-        else:
-            self.isClosingQuotation = False
 
         #用最快定时器（心跳定时器）来更新其他周期行情数据记录
         for i in range(len(Configuration.QUOTATION_DB_PERIOD)):
@@ -101,9 +93,7 @@ class QuotationDB():
 
     def update_period_db(self):
         """ 外部接口API: 定时器回调函数--行情数据库更新。对各周期数据库进行更新。"""
-        # 全球市场结算时间不更新数据库
-        if self.isClosingQuotation == True:
-            return
+
         #根据定时器线程名称中的编号找到对应数据库文件
         dbName = threading.currentThread().getName()
         index = int((dbName.split('-'))[1]) - 1
