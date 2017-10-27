@@ -6,6 +6,7 @@ from timer.TimerMotor import *
 from database.QuotationDB import *
 from resource.Configuration import *
 from resource.Constant import *
+from resource.ExceptDeal import *
 
 class coordinateDS2QDB():
     def __init__(self):
@@ -13,6 +14,7 @@ class coordinateDS2QDB():
         self.dtScrp = None
         self.dbQuotationDBHdl = None
         self.cnstHdl = Constant()
+        self.excptHdl = ExceptDeal()
         self.cnfHdl = Configuration()
 
     def init_data_scrape(self):
@@ -34,6 +36,9 @@ class coordinateDS2QDB():
         # 全球市场结算期间不更新缓冲记录
         if self.cnstHdl.is_closing_market():
             return
+        if self.excptHdl.is_weekend():
+            sys.exit()
+
         # 数据抓取并筛选
         infoList = self.dtScrp.query_info()
         if len(infoList) != 0:
@@ -43,7 +48,8 @@ class coordinateDS2QDB():
         """ 慢速定时器组回调函数 : 更新行情数据库 """
         # 全球市场结算时间不更新数据库
         if self.cnstHdl.is_closing_market():
-            print "closing market!"
             return
+        if self.excptHdl.is_weekend():
+            sys.exit()
 
         self.dbQuotationDBHdl.update_period_db()
