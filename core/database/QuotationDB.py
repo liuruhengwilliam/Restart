@@ -31,32 +31,32 @@ class QuotationDB():
             itemPeriod = {tagPeriod: deepcopy(atomicDictItem)}
             self.recordPeriodDict.update(itemPeriod)
 
-    def update_dict_record(self,infoTuple):
+    def update_dict_record(self,infoList):
         """ 外部接口API: 心跳定时器回调函数。更新缓冲记录。 """
 
         #用最快定时器（心跳定时器）来更新其他周期行情数据记录
         for i in range(len(Configuration.QUOTATION_DB_PERIOD)):
             dictItem = self.recordPeriodDict[Configuration.QUOTATION_DB_PREFIX[i]]
-            dictItem['time'] = infoTuple[4]
+            dictItem['time'] = infoList[4]
 
             self.updateLock[i].acquire()
             #每次行情数据库更新后各周期定时器首次到期时，开盘价/最高/最低都等于实时价格，且开盘价后续不更新。
-            #对于最快定时器（暂定10秒），忽略该设置。
+            #对于最快定时器（暂定6秒），忽略该设置。
             if self.updatePeriodFlag[i] == True:
                 dictItem['startPrice'] = dictItem['realPrice'] = \
-                    dictItem['maxPrice'] = dictItem['minPrice'] = infoTuple[1]
+                    dictItem['maxPrice'] = dictItem['minPrice'] = infoList[1]
                 self.updatePeriodFlag[i] = False
                 self.updateLock[i].release()
                 continue
             else:
-                dictItem['realPrice'] = infoTuple[1]
+                dictItem['realPrice'] = infoList[1]
             self.updateLock[i].release()
 
             #实时价格和最高/最低价格进行比较。bug fix only for FX678URL source. 2017-10-25
-            if(dictItem['maxPrice'] < infoTuple[1]):
-                dictItem['maxPrice'] = infoTuple[1]
-            elif(dictItem['minPrice'] > infoTuple[1]):
-                dictItem['minPrice'] = infoTuple[1]
+            if(dictItem['maxPrice'] < infoList[1]):
+                dictItem['maxPrice'] = infoList[1]
+            elif(dictItem['minPrice'] > infoList[1]):
+                dictItem['minPrice'] = infoList[1]
 
     def create_period_db_file(self, filePath):
         """ 外部接口API: 创建数据库文件：行情数据库 (ER数据库可仿效) """
@@ -104,6 +104,8 @@ class QuotationDB():
         #字典项转换成列表项
         priceList = [priceDict['startPrice'],priceDict['realPrice'],priceDict['maxPrice'],\
                      priceDict['minPrice'],priceDict['time']]
+
+        self.dumpInfo(priceList)
         self.insert_period_db_opera(dbFile, priceList)
 
         # 设置数据库更新标志
@@ -112,5 +114,10 @@ class QuotationDB():
         # 记录最小周期行情定时器到期
         self.updateLock[index].release()
 
-
+    def dumpInfo(self,infoList):
+        """ 内部接口API: 打印价格和时间列表 """
+        if not self.dumpFlag: return
+        if(len(infoList) != len(Configuration.QUOTATION_STRUCTURE)):
+            return
+        print infoList[0],infoList[1],infoList[2],infoList[3],infoList[4]
 
