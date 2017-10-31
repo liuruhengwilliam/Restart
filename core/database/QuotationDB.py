@@ -35,14 +35,14 @@ class QuotationDB():
             dbCursor.close()
             db.close()
 
-    def insert_period_db_opera(self, dbFilePath, priceList):
+    def insert_period_db_opera(self, dbFile, priceList):
         """ 内部接口API: 更新各周期行情数据库 """
-        db = sqlite3.connect(dbFilePath)
+        db = sqlite3.connect(dbFile)
         dbCursor = db.cursor()
         #First: file should be existed
         #Second: insert some information
         try:
-            db.execute(Primitive.QUOTATION_DB_INSERT, priceList)
+            dbCursor.execute(Primitive.QUOTATION_DB_INSERT, priceList)
         except (Exception),e:
             print "insert item to quotation db Exception: " + e.message
 
@@ -72,6 +72,26 @@ class QuotationDB():
         self.updatePeriodFlag[index] = True
         # 记录最小周期行情定时器到期
         self.updateLock[index].release()
+
+    def query_period_db(self,periodName):
+        """ 外部接口API: periodName 是数据库文件前缀名 """
+        ret = []
+        dbFile = self.filePath+'/'+periodName+'.db'
+        db = sqlite3.connect(dbFile)
+        dbCursor = db.cursor()
+        try:
+            results = dbCursor.execute(Primitive.QUOTATION_DB_QUERY)
+            ret = results.fetchall()
+        except (Exception),e:
+            print "query in quotation db Exception: " + e.message
+        db.commit()
+        dbCursor.close()
+        db.close()
+        return ret
+
+    def get_period_db_count(self):
+        rlt = self.query_period_db('5min')
+        print (rlt)
 
     def dump_info(self,infoList):
         """ 内部接口API: 打印价格和时间列表 """
