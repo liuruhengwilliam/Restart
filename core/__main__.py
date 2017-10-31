@@ -11,8 +11,8 @@ def main():
     """执行模块"""
     # 数据抓取和行情数据库相关初始化
     core4DS = coordinateDS2QDB()
-    core4DS.init_data_scrape()
-    core4DS.init_quotation_db()
+
+    core4DS.init_quotation()
 
     funcList = [] # 回调函数列表
     # 数据抓取模块和行情数据库模块挂载到周期定时器

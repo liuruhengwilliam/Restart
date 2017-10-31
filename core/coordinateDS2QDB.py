@@ -4,6 +4,7 @@ import sys
 from engine.DataScrape import *
 from timer.TimerMotor import *
 from database.QuotationDB import *
+from database.QuotationRecord import *
 from resource.Configuration import *
 from resource.Constant import *
 from resource.ExceptDeal import *
@@ -11,24 +12,27 @@ from resource.ExceptDeal import *
 class coordinateDS2QDB():
     def __init__(self):
         self.dumpFlag = True
-        self.dtScrp = None
-        self.dbQuotationDBHdl = None
+
         self.cnstHdl = Constant()
         self.excptHdl = ExceptDeal()
         self.cnfHdl = Configuration()
 
-    def init_data_scrape(self):
-        """ 初始化数据抓取模块 """
-        self.dtScrp = DataScrape()
+        self.dtScrp = DataScrape() # 初始化数据抓取模块
+        # Quotation record Handle
+        self.recordHdl = QuotationRecord(self.cnfHdl.get_update_flag(),\
+                                         self.cnfHdl.get_update_lock())
+        # Quotation DB Handle
+        self.dbQuotationHdl = QuotationDB(self.cnfHdl.get_update_flag(),\
+                                          self.cnfHdl.get_update_lock(),\
+                                          self.recordHdl.get_record_dict())
 
-    def init_quotation_db(self):
-        """ 行情数据库线程准备 """
-        # 对应数据库准备
-        self.dbQuotationDBHdl = QuotationDB() # Quotation DB Handle
+    def init_quotation(self):
+        """ 外部接口API:行情数据库线程准备 """
+        self.cnstHdl.get_version_info()
         # 创建记录字典
-        self.dbQuotationDBHdl.create_record_dict()
+        self.recordHdl.create_record_dict()
         # 创建行情数据库文件
-        self.dbQuotationDBHdl.create_period_db_file(self.cnfHdl.create_db_path())
+        self.dbQuotationHdl.create_period_db(self.cnfHdl.create_db_path())
 
     # 以下是定时器回调函数:
     def work_DS2QDB_heartbeat(self):
@@ -42,7 +46,7 @@ class coordinateDS2QDB():
         # 数据抓取并筛选
         infoList = self.dtScrp.query_info()
         if len(infoList) != 0:
-            self.dbQuotationDBHdl.update_dict_record(infoList)
+            self.recordHdl.update_dict_record(infoList)
 
     def work_DS2QDB_operate(self):
         """ 慢速定时器组回调函数 : 更新行情数据库 """
@@ -52,4 +56,4 @@ class coordinateDS2QDB():
         if self.excptHdl.is_weekend():
             sys.exit()
 
-        self.dbQuotationDBHdl.update_period_db()
+        self.dbQuotationHdl.update_period_db()

@@ -3,6 +3,7 @@
 import os
 import datetime
 import platform
+import threading
 
 # 行情数据库中记录项
 QUOTATION_STRUCTURE = ('startPrice','realPrice','maxPrice','minPrice','time')
@@ -21,6 +22,18 @@ class Configuration():
     def __init__(self):
         """ 初始化 """
         self.dbPath = None
+        # 开盘和收盘记录的更新标志位。快速定时器和慢速定时器竞争资源，需要锁机制进行保护。
+        self.updatePeriodFlag = [True]*len(QUOTATION_DB_PERIOD)
+        # 锁资源。与定时器数目对应。
+        self.updateLock = [threading.RLock()]*len(QUOTATION_DB_PERIOD)
+
+    def get_update_flag(self):
+        """ 外部接口API:获取更新标志列表 """
+        return self.updatePeriodFlag
+
+    def get_update_lock(self):
+        """ 外部接口API:获取更新锁列表 """
+        return self.updateLock
 
     def create_db_path(self):
         """ 外部接口API: 生成数据库文件路径 """
