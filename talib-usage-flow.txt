@@ -1,0 +1,43 @@
+Windows7 64bit 安装流程记录   liuruheng 20171031
+
+1. 下载TA_Lib-0.4.10-cp27-cp27m-win_amd64.whl文件
+   https://www.lfd.uci.edu/~gohlke/pythonlibs/   # Windows环境中的python（第三方）资源库URL
+   
+2. 执行安装命令
+   pip install TA_Lib-0.4.10-cp27-cp27m-win_amd64.whl
+   注：前提是需要安装Anaconda2工具
+
+
+Ubuntu 14.04 安装流程记录   liuruheng 20171102
+
+1. 编译ta-lib源码包生成so动态库文件
+   以下内容摘自TA-Lib-0.4.10压缩包中的README。
+   Download [ta-lib-0.4.0-src.tar.gz](http://prdownloads.sourceforge.net/ta-lib/ta-lib-0.4.0-src.tar.gz) and:
+   ```
+   $ untar and cd
+   $ ./configure --prefix=/usr
+   $ make
+   $ sudo make install
+   ```
+
+2. 安装相关依赖工具和库
+   sudo apt-get install python-dev
+   sudo apt-get install pip
+   sudo pip install numpy
+
+3. 解压TA-Lib-0.4.10.tar.gz文件
+
+4. 安装ta-lib库前需拷贝相关.h头文件和调整相关.c源文件
+   copy some header file ( from source code ta_lib folder ) to folder TA-Lib-0.4.10 with suffix xxx.h
+   copy libta_lib.so to some environment folder (e.g: /user/local/lib)
+   vi talib/common.c, talib/func.c ... ( while excute 'sudo python setup.py install' in folder TA-Lib-0.4.10 )
+   modified some header file path
+   
+5. 在TA-Lib-0.4.10目录下执行sudo python setup.py install
+
+6. 安装完毕之后在/usr/local/lib/python2.7/dist-packages/目录下会存在以下文件（夹）
+   talib
+   TA_Lib-0.4.10.egg-info
+
+
+
