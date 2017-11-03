@@ -15,7 +15,7 @@ class Constant():
 
     def get_version_info(self):
         """ 外部接口API: """
-        print "Version Code: V0.2.3\n"+"Build Time: %s"%time.strftime("%Y-%m-%d %H:%M",time.localtime())
+        print "Version Code: V0.2.4\n"+"Build Time: %s"%time.strftime("%Y-%m-%d %H:%M",time.localtime())
 
     def is_closing_market(self):
         """ 外部接口API:判断当前时间是否为闭市时间 """
