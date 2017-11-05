@@ -1,8 +1,6 @@
 #coding=utf-8
 
 import threading
-from database import QuotationDB
-from engine import DataScrape
 from coordinateDS2QDB import *
 from timer.TimerMotor import TimerMotor
 from resource import Configuration
