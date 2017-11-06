@@ -40,4 +40,8 @@ Ubuntu 14.04 安装流程记录   liuruheng 20171102
    TA_Lib-0.4.10.egg-info
 
 
+talib库接口API使用说明   liuruheng 20171103
+1. 在PyCharm开发环境中导入talib库，然后点击该类某方法，将跳转到talib库的func.py文件中。
+2. 更加详细的接口API说明可以参阅TA-Lib-0.4.10.tar.gz解压目录中的func.pyx。
+   该文件有对应的Cython伪码，可以更加深刻理解函数API的调用过程。
 
