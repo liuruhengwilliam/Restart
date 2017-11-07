@@ -2,22 +2,38 @@
 
 import time
 
-# 夏令时和冬令时的闭市时间应该有所区别
-CLOSING_BEGIN_TIME=4
-CLOSING_END_TIME=6
-
 # 数据抓取模块应该设定在每周一凌晨6点开始启动。这样能够兼顾到各周期记录（不遗漏）。
 # 软件版本，行业相关术语等定义
-
+VERSION_CODE = 'V0.3.0'
 def get_version_info():
     """ 外部接口API: """
-    print "Version Code: V0.3.0\n"+"Build Time: %s"%time.strftime("%Y-%m-%d %H:%M",time.localtime())
+    print VERSION_CODE+"\n"+"Build Time: %s"%time.strftime("%Y-%m-%d %H:%M",time.localtime())
+
+# 夏令时(Daylight saving time)和冬令时(standard time)
+# 夏令时定义：3月最后一个星期日开始，10月最后一个星期日结束。
+# time类中"tm_isdst"貌似有点水土不服！
+# 夏令时每日结算时间:5点到6点(6点整开盘)
+DAYLIGHT_SETTLEMENT_BEGIN_TIME=5
+DAYLIGHT_SETTLEMENT_END_TIME=6
+# 冬令时每日结算时间:6点到7点(7点整开盘)
+STANDARD_SETTLEMENT_BEGIN_TIME=6
+STANDARD_SETTLEMENT_END_TIME=7
+
+def is_standard_time():
+    """当前时间是否属于冬令时"""
+    return True
+    #return False
 
 def is_closing_market():
     """ 外部接口API:判断当前时间是否为闭市时间 """
     # 每工作日凌晨5点到6点为结算时间
     hour = time.strftime("%H",time.localtime())
-    if int(hour) > CLOSING_BEGIN_TIME and int(hour) < CLOSING_END_TIME:
-        return True
+
+    if is_standard_time() == True:#冬令时
+        if int(hour) > STANDARD_SETTLEMENT_BEGIN_TIME and int(hour) < STANDARD_SETTLEMENT_END_TIME:
+            return True
+    else:#夏令时
+        if int(hour) > DAYLIGHT_SETTLEMENT_BEGIN_TIME and int(hour) < DAYLIGHT_SETTLEMENT_END_TIME:
+            return True
 
     return False
