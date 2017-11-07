@@ -6,7 +6,7 @@ import platform
 import threading
 
 # 行情数据库中记录项
-QUOTATION_STRUCTURE = ('startPrice','realPrice','maxPrice','minPrice','time')
+QUOTATION_STRUCTURE = ('open','high','low','close','time')
 
 #循环定时器周期
 # 行情数据库记录项周期: 6sec(不生成db文件),5min,15min,30min,1hour,2hour,4hour,6hour,12hour,1day,1week

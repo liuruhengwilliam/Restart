@@ -61,8 +61,11 @@ class QuotationDB():
         #挑取对应周期字典项
         priceDict = self.recordPeriodDict[Configuration.QUOTATION_DB_PREFIX[index]]
         #字典项转换成列表项
-        priceList = [priceDict['startPrice'],priceDict['realPrice'],priceDict['maxPrice'],\
-                     priceDict['minPrice'],priceDict['time']]
+        priceList = [priceDict[Configuration.QUOTATION_STRUCTURE[0]],\
+                     priceDict[Configuration.QUOTATION_STRUCTURE[1]],\
+                     priceDict[Configuration.QUOTATION_STRUCTURE[2]],\
+                     priceDict[Configuration.QUOTATION_STRUCTURE[3]],\
+                     priceDict[Configuration.QUOTATION_STRUCTURE[4]]]
 
         self.dump_info(priceList)
         self.insert_period_db_opera(dbFile, priceList)
