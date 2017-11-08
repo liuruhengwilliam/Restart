@@ -4,7 +4,7 @@ import time
 
 # 数据抓取模块应该设定在每周一凌晨6点开始启动。这样能够兼顾到各周期记录（不遗漏）。
 # 软件版本，行业相关术语等定义
-VERSION_CODE = 'V0.3.0'
+VERSION_CODE = 'V0.3.1'
 def get_version_info():
     """ 外部接口API: """
     print VERSION_CODE+"\n"+"Build Time: %s"%time.strftime("%Y-%m-%d %H:%M",time.localtime())
