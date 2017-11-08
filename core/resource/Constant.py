@@ -13,11 +13,11 @@ def get_version_info():
 # 夏令时定义：3月最后一个星期日开始，10月最后一个星期日结束。
 # time类中"tm_isdst"貌似有点水土不服！
 # 夏令时每日结算时间:5点到6点(6点整开盘)
-DAYLIGHT_SETTLEMENT_BEGIN_TIME=5
-DAYLIGHT_SETTLEMENT_END_TIME=6
+DAYLIGHT_SETTLEMENT_HOUR_TIME=5
+
 # 冬令时每日结算时间:6点到7点(7点整开盘)
-STANDARD_SETTLEMENT_BEGIN_TIME=6
-STANDARD_SETTLEMENT_END_TIME=7
+STANDARD_SETTLEMENT_HOUR_TIME=6
+
 
 def is_standard_time():
     """当前时间是否属于冬令时"""
@@ -30,10 +30,10 @@ def is_closing_market():
     hour = time.strftime("%H",time.localtime())
 
     if is_standard_time() == True:#冬令时
-        if int(hour) > STANDARD_SETTLEMENT_BEGIN_TIME and int(hour) < STANDARD_SETTLEMENT_END_TIME:
+        if int(hour) == STANDARD_SETTLEMENT_HOUR_TIME:
             return True
     else:#夏令时
-        if int(hour) > DAYLIGHT_SETTLEMENT_BEGIN_TIME and int(hour) < DAYLIGHT_SETTLEMENT_END_TIME:
+        if int(hour) == DAYLIGHT_SETTLEMENT_HOUR_TIME:
             return True
 
     return False
