@@ -1,5 +1,8 @@
 #coding=utf-8
 
+# 数据源url枚举的元组。按照优先级（报价精度）由高到低的顺序排列。
+URL_SRC_ENUM = ('Fx678','EastMoney')
+
 """数据源等相关内容的定义和归纳"""
 #金十报价墙
 JIN10_PRICE_WALL = 'https://www.jin10.com/price_wall/index.html'
@@ -30,6 +33,10 @@ FX678_XAG_URL = 'http://api.q.fx678.com/quotes.php?exchName=WGJS&symbol=XAG'
 # 卖出价 --- se
 
 #东方财富网
-EASTMONEY_XAG_URL = 'http://quote.eastmoney.com/globalfuture/SI00Y.html'
+#EASTMONEY_XAG_URL = 'http://quote.eastmoney.com/globalfuture/SI00Y.html'
 #动态抓取报价
+EASTMONEY_URL_FRAGMENT1 = 'http://nufm.dfcfw.com/EM_Finance2014NumericApplication/JS.aspx?type=CT&cmd=C._SG&sty=MPNSBAS&st=c&sr=-1&p=1&ps=5&cb=jQuery'
+EASTMONEY_URL_FRAGMENT2 = '&js=([(x)])&token=7bc05d0d4c3c22ef9fca8c2a912d779c'
+# 未知因素！
+EASTMONEY_URLUNKNOW_TIMESTAMP = "17209736178267005318_"
 #'http://nufm.dfcfw.com/EM_Finance2014NumericApplication/JS.aspx?type=CT&cmd=C._SG&sty=MPNSBAS&cb=jQuery17209079031754561993_1510125297769&js=([(x)])&token=7bc05d0d4c3c22ef9fca8c2a912d779c'

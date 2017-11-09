@@ -29,12 +29,15 @@ class QuotationRecord():
         return self.recordPeriodDict
 
     def update_dict_record(self,infoList):
-        """ 外部接口API: 心跳定时器回调函数。更新缓冲记录。 """
+        """ 外部接口API: 心跳定时器回调函数。更新缓冲记录。
+            入参infoList的数据接口：当前价格，当前时间
+        """
         self.dump_info(infoList)
         #用最快定时器（心跳定时器）来更新其他周期行情数据记录
         for i in range(len(Configuration.QUOTATION_DB_PERIOD)):
             dictItem = self.recordPeriodDict[Configuration.QUOTATION_DB_PREFIX[i]]
-            dictItem[Configuration.QUOTATION_STRUCTURE[4]] = infoList[4]
+            # 设置记录时间
+            dictItem[Configuration.QUOTATION_STRUCTURE[4]] = infoList[1]
 
             self.updateLock[i].acquire()
             #每次行情数据库更新后各周期定时器首次到期时，开盘价/最高/最低都等于实时价格，且开盘价后续不更新。
@@ -43,19 +46,19 @@ class QuotationRecord():
                 dictItem[Configuration.QUOTATION_STRUCTURE[0]] = \
                 dictItem[Configuration.QUOTATION_STRUCTURE[1]] = \
                 dictItem[Configuration.QUOTATION_STRUCTURE[2]] = \
-                dictItem[Configuration.QUOTATION_STRUCTURE[3]] = infoList[1]
+                dictItem[Configuration.QUOTATION_STRUCTURE[3]] = infoList[0]
                 self.updatePeriodFlag[i] = False
                 self.updateLock[i].release()
                 continue
             else:
-                dictItem[Configuration.QUOTATION_STRUCTURE[3]] = infoList[1]
+                dictItem[Configuration.QUOTATION_STRUCTURE[3]] = infoList[0]
             self.updateLock[i].release()
 
             #最新价和最高/最低价格进行比较。bug fix only for FX678URL source. 2017-10-25
-            if(dictItem[Configuration.QUOTATION_STRUCTURE[1]] < infoList[1]):
-                dictItem[Configuration.QUOTATION_STRUCTURE[1]] = infoList[1]
-            elif(dictItem[Configuration.QUOTATION_STRUCTURE[2]] > infoList[1]):
-                dictItem[Configuration.QUOTATION_STRUCTURE[2]] = infoList[1]
+            if(dictItem[Configuration.QUOTATION_STRUCTURE[1]] < infoList[0]):
+                dictItem[Configuration.QUOTATION_STRUCTURE[1]] = infoList[0]
+            elif(dictItem[Configuration.QUOTATION_STRUCTURE[2]] > infoList[0]):
+                dictItem[Configuration.QUOTATION_STRUCTURE[2]] = infoList[0]
 
     def dump_info(self,info):
         """内部接口API: 打印信息"""
