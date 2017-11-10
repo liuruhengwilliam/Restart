@@ -10,8 +10,6 @@ from resource import Primitive
 class QuotationDB():
     """ 行情数据库类 """
     def __init__(self,flagList,updateLock,recordDict):
-        # 调试打印开关
-        self.dumpFlag = True
         self.filePath = None
         self.updatePeriodFlag = flagList
         self.updateLock = updateLock
@@ -98,7 +96,7 @@ class QuotationDB():
 
     def dump_info(self,infoList):
         """ 内部接口API: 打印价格和时间列表 """
-        if not self.dumpFlag: return
+        if False: return
         if(len(infoList) != len(Configuration.QUOTATION_STRUCTURE)):
             return
         print infoList[0],infoList[1],infoList[2],infoList[3],infoList[4]

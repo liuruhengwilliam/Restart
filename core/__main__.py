@@ -4,9 +4,12 @@ import threading
 from coordinateDS2QDB import *
 from timer.TimerMotor import TimerMotor
 from resource import Configuration
+from resource import Misc
 
 def main():
     """执行模块"""
+    Misc.misc_init()#初始化杂项
+
     # 数据抓取和行情数据库相关初始化
     core4DS = coordinateDS2QDB()
 

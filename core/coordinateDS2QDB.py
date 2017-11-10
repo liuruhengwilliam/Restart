@@ -7,14 +7,12 @@ from resource import Configuration
 from resource import Constant
 from resource import ExceptDeal
 from engine.DataScrape import *
-from timer.TimerMotor import *
 
 from quotation.QuotationDB import *
 from quotation.QuotationRecord import *
 
 class coordinateDS2QDB():
     def __init__(self):
-        self.dumpFlag = True
         self.week = (datetime.datetime.now()).strftime('%U')# 本周周数记录
 
         self.dtScrp = DataScrape() # 初始化数据抓取模块
@@ -28,7 +26,6 @@ class coordinateDS2QDB():
 
     def init_quotation(self):
         """ 外部接口API:行情数据库线程准备 """
-        Constant.get_version_info()
         # 创建记录字典
         self.recordHdl.create_record_dict()
         # 创建行情数据库文件

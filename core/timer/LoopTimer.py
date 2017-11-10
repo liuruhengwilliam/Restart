@@ -4,6 +4,7 @@ import threading
 import time
 import sys
 import datetime
+from resource import Trace
 
 class LoopTimer(threading._Timer):
     """ 循环定时器类。该类继承threading._Timer类（详情可查看文件threading.py），并重构run()方法。
@@ -15,7 +16,6 @@ class LoopTimer(threading._Timer):
     """
     def __init__(self, interval, function, args=[], kwargs={}):
         threading._Timer.__init__(self, interval, function, args=[], kwargs={})
-        self.dumpFlag = False
         self.funcResult = None#回调函数的返回值
 
     def run(self):
@@ -34,5 +34,5 @@ class LoopTimer(threading._Timer):
         return self.funcResult
 
     def dump(self):
-        if self.dumpFlag:
-            print "Timer %s"%threading.currentThread().getName()+" expired at %s" % datetime.datetime.now()
+        Trace.output('info',"Timer %s"%threading.currentThread().getName()+\
+                     " expired at %s" % datetime.datetime.now())
