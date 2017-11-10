@@ -28,7 +28,7 @@ def translate_db_into_csv(filePath, lineCnt):
     dbCursor.close()
     db.close()
 
-def tranlate_list_to_csv(fileName,listToDeal):
+def tranlate_list_into_csv(fileName,listToDeal):
     """ 外部接口API:将列表转换成csv文件
         fileName: csv文件名（含文件路径）
         listToDeal: 列表
