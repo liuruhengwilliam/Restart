@@ -5,6 +5,19 @@ import datetime
 import platform
 import threading
 
+#================================================================================
+# 月份和日期对应码
+MONTH_CODE = ('A','B','C','D','E','F','G','H','I','J','K','L')
+DAY_CODE = ('A','B','C','D','E','F','G','H','I','J','K','L','M','N',\
+             'O','P','Q','R','S','T','U','V','W','X','Y','Z','a','b','c','d','e')
+
+def get_date_code():
+    """ 返回月份和日期对应的字母码 """
+    dt = datetime.datetime.now()
+    month,day = dt.strftime('%m'),dt.strftime('%d')
+    return MONTH_CODE[int(month)-1]+DAY_CODE[int(day)-1]
+
+#=================================================================================
 # 行情数据库中记录项
 QUOTATION_STRUCTURE = ('open','high','low','close','time')
 
@@ -20,10 +33,11 @@ CHAIN_PERIOD = (1800,1*3600-1800,2*3600-1*3600,4*3600-2*3600,6*3600-4*3600,\
 
 UPDATE_PERIOD_FLAG = [True]*len(QUOTATION_DB_PERIOD)
 UPDATE_LOCK = [threading.RLock()]*len(QUOTATION_DB_PERIOD)
-DB_PATH = ''
 
-def create_db_path():
-    """ 外部接口API: 生成数据库文件路径 """
+#=====================================================================================
+DIR_PATH = None
+def get_working_directory():
+    """内/外部接口API：获取当前周工作目录"""
     # 寻找当前周数并生成文件名前缀
     dt = datetime.datetime.now()
     year,week = dt.strftime('%Y'),dt.strftime('%U')
@@ -32,14 +46,14 @@ def create_db_path():
     #生成文件路径(依据不同操作系统)
     sysName = platform.system()
     if (sysName == "Windows"):
-        DB_PATH = 'D:/misc/future/'+fileNamePrefix
+        DIR_PATH = 'D:/misc/future/'+fileNamePrefix
     elif (sysName == "Linux"):
-        DB_PATH = '~/mess/future/'+fileNamePrefix
+        DIR_PATH = '~/mess/future/'+fileNamePrefix
     else :# 未知操作系统
-        DB_PATH = fileNamePrefix
+        DIR_PATH = fileNamePrefix
 
-    if not os.path.exists(DB_PATH):
+    if not os.path.exists(DIR_PATH):
         # 创建当周数据库文件夹
-        os.makedirs(DB_PATH)
+        os.makedirs(DIR_PATH)
 
-    return DB_PATH
+    return DIR_PATH

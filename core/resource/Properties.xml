@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<data>
+    <datasource name="web name of source data">
+        <value>Fx678</value>
+    </datasource>
+    <trace name="trace switcher">
+        <value>True</value>    
+    </trace>
+    <loglevel name="log level">
+        <value>info</value>    
+    </loglevel>
+</data>
