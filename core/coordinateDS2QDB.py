@@ -8,7 +8,7 @@ from resource import Constant
 from resource import ExceptDeal
 from engine.DataScrape import *
 from timer.TimerMotor import *
-from quotation import QuotationCSV
+
 from quotation.QuotationDB import *
 from quotation.QuotationRecord import *
 
@@ -32,7 +32,7 @@ class coordinateDS2QDB():
         # 创建记录字典
         self.recordHdl.create_record_dict()
         # 创建行情数据库文件
-        self.dbQuotationHdl.create_period_db(Configuration.create_db_path())
+        self.dbQuotationHdl.create_period_db(Configuration.get_working_directory())
 
     # 以下是定时器回调函数:
     def work_DS2QDB_heartbeat(self):
