@@ -6,6 +6,7 @@ import threading
 from copy import deepcopy
 from resource import Configuration
 from resource import Primitive
+from resource import Trace
 
 class QuotationDB():
     """ 行情数据库类 """
@@ -28,7 +29,7 @@ class QuotationDB():
                 try:
                     dbCursor.execute(Primitive.QUOTATION_DB_CREATE)
                 except (Exception),e:
-                    print "create quotation db file Exception: "+e.message
+                    Trace.output('fatal',"create quotation db file Exception: "+e.message)
             db.commit()
             dbCursor.close()
             db.close()
@@ -42,7 +43,7 @@ class QuotationDB():
         try:
             dbCursor.execute(Primitive.QUOTATION_DB_INSERT, priceList)
         except (Exception),e:
-            print "insert item to quotation db Exception: " + e.message
+            Trace.output('fatal',"insert item to quotation db Exception: " + e.message)
 
         db.commit()
         dbCursor.close()
@@ -84,7 +85,7 @@ class QuotationDB():
             results = dbCursor.execute(Primitive.QUOTATION_DB_QUERY)
             ret = results.fetchall()
         except (Exception),e:
-            print "query in quotation db Exception: " + e.message
+            Trace.output('fatal',"query in quotation db Exception: " + e.message)
         db.commit()
         dbCursor.close()
         db.close()
