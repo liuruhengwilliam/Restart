@@ -19,7 +19,7 @@ class DataScrape():
         #每个数据源采集的字典结构可能(基本都)会不同，但是统一返回两项值：当前价格和当前时间。
         retList = [None,None]
         srcProperty = Property.get_property("datasource")
-        for urlName in [srcProperty]+DataSource.URL_SRC_LIST:
+        for urlName in [srcProperty] + map(lambda x:x,DataSource.URL_SRC_TUPLE):
             if urlName == 'Fx678':#高优先级排前
                 retList = Fx678.deal_with_query()
             elif urlName == 'EastMoney':#低优先级排后

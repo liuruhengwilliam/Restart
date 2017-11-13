@@ -1,7 +1,7 @@
 #coding=utf-8
 
 # 数据源url枚举的元组。按照优先级（报价精度）由高到低的顺序排列。
-URL_SRC_LIST = ['Fx678','EastMoney']
+URL_SRC_TUPLE = ('Fx678','EastMoney')
 
 """数据源等相关内容的定义和归纳"""
 #金十报价墙
