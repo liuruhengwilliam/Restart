@@ -6,6 +6,7 @@ import Fx678
 import EastMoney
 from resource import ExceptDeal
 from resource import Trace
+from resource import Property
 
 class DataScrape():
     """ 数据抓取类 """
@@ -17,10 +18,11 @@ class DataScrape():
         urlName = ''
         #每个数据源采集的字典结构可能(基本都)会不同，但是统一返回两项值：当前价格和当前时间。
         retList = [None,None]
-        for urlName in DataSource.URL_SRC_ENUM:
-            if urlName == 'Fx678':#第一优先级
+        srcProperty = Property.get_property("datasource")
+        for urlName in [srcProperty]+DataSource.URL_SRC_LIST:
+            if urlName == 'Fx678':#高优先级排前
                 retList = Fx678.deal_with_query()
-            elif urlName == 'EastMoney':
+            elif urlName == 'EastMoney':#低优先级排后
                 retList = EastMoney.deal_with_query()
 
             if retList[0] != None and retList[1] != None: break

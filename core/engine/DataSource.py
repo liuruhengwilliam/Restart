@@ -1,9 +1,7 @@
 #coding=utf-8
 
-from resource import Property
-
-# 数据源url枚举的元组。按照优先级（报价精度）由高到低的顺序排列。配置文件的优先级最高。
-URL_SRC_ENUM = (Property.get_property("datasource"),'Fx678','EastMoney')
+# 数据源url枚举的元组。按照优先级（报价精度）由高到低的顺序排列。
+URL_SRC_LIST = ['Fx678','EastMoney']
 
 """数据源等相关内容的定义和归纳"""
 #金十报价墙
