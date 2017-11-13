@@ -1,7 +1,7 @@
 #coding=utf-8
 
 import threading
-from coordinateDS2QDB import *
+from CoordinateDS2QDB import *
 from timer.TimerMotor import TimerMotor
 from resource import Configuration
 from resource import Misc
