@@ -4,9 +4,9 @@ import sqlite3
 import os
 import threading
 from copy import deepcopy
-from resource import Configuration
-from resource import Primitive
-from resource import Trace
+from core.resource import Configuration
+from core.resource import Primitive
+from core.resource import Trace
 
 class QuotationDB():
     """ 行情数据库类 """
