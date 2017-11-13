@@ -17,6 +17,13 @@ def output(requestLevel, strContent):
     if DEBUG_LEVEL.count(requestLevel) == 0:
         return
 
+    # ==== ==== ==== ==== 控制台输出功能 ==== ==== ==== ====
+    # 从XML配置文件中获取控制台输出开关
+    ret = Property.get_property("consoletrace")
+    if ret == 'True' :
+        print strContent
+
+    # ==== ==== ==== ==== 日志功能 ==== ==== ==== ====
     # 从XML配置文件中获取调试日志的输出等级
     ret = Property.get_property("loglevel")
     if ret is not None:
@@ -34,8 +41,3 @@ def output(requestLevel, strContent):
 
     fileHandle.write('\n'+strContent)
     fileHandle.close()
-
-    # 从XML配置文件中获取控制台输出开关
-    ret = Property.get_property("consoletrace")
-    if ret == 'True' :
-        print strContent
