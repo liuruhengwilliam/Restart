@@ -9,7 +9,8 @@ QUOTATION_DB_CREATE = 'create table quotation(\
 QUOTATION_DB_INSERT = 'insert into quotation (open,high,low,close,time)\
     values(?, ?, ?, ?, ?)'
 
-# 查询操作 2017-10-31
-QUOTATION_DB_QUERY = 'select * from quotation'
-# 区间查询原语
-#QUOTATION_DB_QUERY = 'select * from quotation limit 0,10'
+# id升序排列的查询操作 2017-10-31
+QUOTATION_DB_QUERY_ASC = 'select * from quotation'
+
+# id降序排列的查询原语 2017-11-13
+QUOTATION_DB_QUERY_DESC = 'select * from quotation order by id desc'
