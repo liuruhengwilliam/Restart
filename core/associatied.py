@@ -11,12 +11,12 @@ import threading
 import talib
 import numpy
 import requests
-from engine.DataScrape import *
-from timer.TimerMotor import *
-from quotation.QuotationDB import *
+#from engine.DataScrape import *
+#from timer.TimerMotor import *
+#from quotation.QuotationDB import *
 import matplotlib.pyplot as plt
 import xml.etree.ElementTree as ET
-from resource import Primitive
+#from resource import Primitive
 
 event = threading.Event()
 QUOTATION_DB_PREFIX = ['5min','15min','30min','1hour','2hour','4hour','6hour','12hour','1day','1week']
@@ -184,11 +184,21 @@ def query_info():
             break
     return [ret_price,ret_timestamp]
 
+def home_dir():
+    print sys.path
+    print os.getcwd()
+    print os.environ['HOME']
+    print os.path.expandvars('$HOME')
+    print os.path.expanduser('~')
+    print __file__
+    print os.path.abspath(os.getcwd()+os.path.sep+"..")
+    
 if __name__ == '__main__':
     #csv_test(db_test())
     #file_test()
     #talib_sma_test()
     #query_info()
     #get_property()
-    db_test()
+    #db_test()
+    home_dir()
     sys.exit()
