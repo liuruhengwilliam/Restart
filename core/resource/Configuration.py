@@ -48,7 +48,7 @@ def get_working_directory():
     if (sysName == "Windows"):
         DIR_PATH = 'D:/misc/future/'+fileNamePrefix
     elif (sysName == "Linux"):
-        DIR_PATH = '~/mess/future/'+fileNamePrefix
+        DIR_PATH = os.environ['HOME']+'/mess/future/'+fileNamePrefix
     else :# 未知操作系统
         DIR_PATH = fileNamePrefix
 

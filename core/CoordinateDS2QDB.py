@@ -11,7 +11,7 @@ from engine.DataScrape import *
 from quotation.QuotationDB import *
 from quotation.QuotationRecord import *
 
-class coordinateDS2QDB():
+class CoordinateDS2QDB():
     def __init__(self):
         self.week = (datetime.datetime.now()).strftime('%U')# 本周周数记录
 

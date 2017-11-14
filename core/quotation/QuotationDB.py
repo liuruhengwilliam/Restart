@@ -3,10 +3,17 @@
 import sqlite3
 import os
 import threading
+import platform
 from copy import deepcopy
-from core.resource import Configuration
-from core.resource import Primitive
-from core.resource import Trace
+
+if (platform.system() == "Linux"):
+    import Configuration
+    import Primitive
+    import Trace
+else:
+    from core.resource import Configuration
+    from core.resource import Primitive
+    from core.resource import Trace
 
 class QuotationDB():
     """ 行情数据库类 """
