@@ -1,2 +1,6 @@
 *.pyc
-
+core/*.pyc
+core/engine/*.pyc
+core/quotation/*.pyc
+core/resource/*.pyc
+core/timer/*.pyc
