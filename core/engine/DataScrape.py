@@ -25,7 +25,10 @@ class DataScrape():
             elif urlName == 'EastMoney':#低优先级排后
                 retList = EastMoney.deal_with_query()
 
-            if retList[0] != None and retList[1] != None: break
+            if retList[0] != None and retList[1] != None:
+                break
+            else:
+                Trace.output('warn','Data Source:'+urlName+' get price('+retList[0]+') failed on '+retList[1]+'!')
 
         else:# 若从以上数据源都未获取有效数据就引发自定义异常
             try:
