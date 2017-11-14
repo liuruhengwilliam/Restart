@@ -1,7 +1,16 @@
 #coding=utf-8
 
-from core.resource import Configuration
-from core.quotation import QuotationKit
+import platform
+import sys
+import os
+if (platform.system() == "Linux"):
+    sys.path.append(os.path.abspath(os.getcwd()+os.path.sep+"..")+'/core/resource')
+    sys.path.append(os.path.abspath(os.getcwd()+os.path.sep+"..")+'/core/quotation')
+    import Configuration
+    import QuotationKit
+else:
+    from core.resource import Configuration
+    from core.quotation import QuotationKit
 
 def db_to_csv(file,cnt):
     """ db文件转换成csv文件的工具函数
