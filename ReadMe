@@ -38,3 +38,7 @@
 	2.记录talib库资源文件和说明文档。
 	3.增加东方财富网数据源。
 	4.支持XML配置文件动态设定相关属性。
+	
+2017-11-14
+	1.Linux环境下安装pyinstaller工具的方法（多尝试）：sudo pip install pyinstaller
+	2.Linux环境下发布可执行程序方法：pyinstaller Start.py。注：Start.py为待执行的类。
