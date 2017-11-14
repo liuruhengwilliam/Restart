@@ -3,14 +3,9 @@
 import csv
 import sqlite3
 import platform
-if (platform.system() == "Linux"):
-    import Configuration
-    import Primitive
-    import Trace
-else:
-    from core.resource import Configuration
-    from core.resource import Primitive
-    from core.resource import Trace
+from resource import Configuration
+from resource import Primitive
+from resource import Trace
 
 def translate_db_into_csv(dbFile, lineCnt):
     """ 外部接口API:将db文件转换成同名同路径的csv文件

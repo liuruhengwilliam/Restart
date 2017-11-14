@@ -6,14 +6,9 @@ import threading
 import platform
 from copy import deepcopy
 
-if (platform.system() == "Linux"):
-    import Configuration
-    import Primitive
-    import Trace
-else:
-    from core.resource import Configuration
-    from core.resource import Primitive
-    from core.resource import Trace
+from resource import Configuration
+from resource import Primitive
+from resource import Trace
 
 class QuotationDB():
     """ 行情数据库类 """
