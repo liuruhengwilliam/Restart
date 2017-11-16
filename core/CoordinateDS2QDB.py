@@ -6,7 +6,7 @@ import datetime
 from resource import Configuration
 from resource import Constant
 from resource import ExceptDeal
-from engine.DataScrape import *
+from scrape.DataScrape import *
 
 from quotation.QuotationDB import *
 from quotation.QuotationRecord import *
