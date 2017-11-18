@@ -37,7 +37,7 @@ class CoordinateDS2QDB():
         # 全球市场结算期间不更新缓冲记录
         if Constant.is_closing_market():
             return
-        if ExceptDeal.exit_on_weekend(self.week):
+        if Constant.exit_on_weekend(self.week):
             sys.exit()
 
         # 数据抓取并筛选
@@ -50,7 +50,7 @@ class CoordinateDS2QDB():
         # 全球市场结算时间不更新数据库
         if Constant.is_closing_market():
             return
-        if ExceptDeal.exit_on_weekend(self.week):
+        if Constant.exit_on_weekend(self.week):
             sys.exit()
 
         self.dbQuotationHdl.update_period_db()

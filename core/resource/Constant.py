@@ -1,10 +1,11 @@
 #coding=utf-8
 
 import time
+import datetime
 
 # 数据抓取模块应该设定在每周一凌晨6点开始启动。这样能够兼顾到各周期记录（不遗漏）。
 # 软件版本，行业相关术语等定义
-VERSION_CODE = 'V0.4.1'
+VERSION_CODE = 'V0.4.2'
 def get_version_info():
     """ 外部接口API: """
     return VERSION_CODE+"\n"+"Build Time: %s"%time.strftime("%Y-%m-%d %H:%M",time.localtime())
@@ -37,3 +38,19 @@ def is_closing_market():
             return True
 
     return False
+
+def is_weekend():
+    """ 是否周末---周末闭市 """
+    now = datetime.datetime.now()
+    day, hour = now.isoweekday(),now.strftime("%H")
+    if(int(day) == 6 and int(hour) >= STANDARD_SETTLEMENT_HOUR_TIME) or int(day) == 7:
+        return True
+    return False
+
+def exit_on_weekend(workWeek):
+    """ 到周末就退出 """
+    curWeek = (datetime.datetime.now()).strftime('%U')
+    if curWeek != workWeek:
+        return True
+
+    return is_weekend()
