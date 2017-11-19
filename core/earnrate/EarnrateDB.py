@@ -1,6 +1,11 @@
 #coding=utf-8
 
+import os
 import sqlite3
+import datetime
+from resource import Configuration
+from resource import Primitive
+from resource import Trace
 
 class EarnrateDB():
     """
@@ -15,3 +20,23 @@ class EarnrateDB():
                 查询
                 更新
     """
+
+    def create_earnrate_db(self):
+        """ 外部接口API: 创建数据库文件 """
+        dt = datetime.datetime.now()
+        year,week = dt.strftime('%Y'),dt.strftime('%U')
+        fileName = year+'-'+week+'earnrate.db'
+        file = Configuration.get_working_directory()+'/'+fileName
+        # 生成数据库文件
+        isExist = os.path.exists(file)
+        db = sqlite3.connect(file)
+        dbCursor = db.cursor()
+        #First: create db if empty
+        if not isExist:
+            try:
+                dbCursor.execute(Primitive.EARNRATE_DB_CREATE)
+            except (Exception),e:
+                Trace.output('fatal',"create earnrate db file Exception: "+e.message)
+        db.commit()
+        dbCursor.close()
+        db.close()
