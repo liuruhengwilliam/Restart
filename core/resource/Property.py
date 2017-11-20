@@ -17,14 +17,14 @@ def get_property(strProperty):
     fileName = Configuration.get_working_directory()+'/Properties.xml'
 
     if not os.path.exists(fileName):
-        return
+        return None
 
     try:
         tree = ET.parse(fileName)
         root = tree.getroot()
     except Exception,e:
         print e.message
-        return
+        return None
 
     for item in root.findall(strProperty):
         ret = item.find('value').text
