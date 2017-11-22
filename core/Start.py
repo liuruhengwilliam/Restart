@@ -5,7 +5,7 @@ Misc.misc_init()#初始化杂项
 
 import threading
 from Coordinate import *
-from timer.TimerMotor import TimerMotor
+from timer import TimerMotor
 from resource import Configuration
 
 def main():
@@ -20,15 +20,8 @@ def main():
     funcList.append(coordinate.work_heartbeat)
     funcList.extend([coordinate.work_operation]*10)
 
-    timerMotorHdl = TimerMotor()
-    # 初始化固定周期定时器
-    timerMotorHdl.init_fasten_timer(funcList, Configuration.QUOTATION_DB_PERIOD)
-
-    #ER数据库
-    #timerMotorHdl.init_chain_timer(...,Configuration.CHAIN_PERIOD)
-
-    # 定时器线程启动
-    timerMotorHdl.start_timer()
+    # 周期定时器线程启动
+    TimerMotor.start_loop_timer(funcList,Configuration.QUOTATION_DB_PERIOD)
 
 if __name__ == '__main__':
     main()

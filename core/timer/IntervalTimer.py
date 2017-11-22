@@ -4,6 +4,7 @@ import threading
 import time
 import sys
 import datetime
+from resource import Trace
 
 class IntervalTimer(threading._Timer):
     """ 变周期定时器类。该类继承threading._Timer类（详情可查看文件threading.py），并重构run()方法。
@@ -16,7 +17,6 @@ class IntervalTimer(threading._Timer):
         threading._Timer.__init__(self, index, function, args=[], kwargs={})
         self.timerTuple = args
         self.timerIndex = index
-        self.dumpFlag = True
         self.funcResult = None#回调函数的返回值
 
     def run(self):
@@ -40,9 +40,5 @@ class IntervalTimer(threading._Timer):
     def get_chain_node(self):
         return self.timerIndex
 
-    def set_dump(self,flag):
-        self.dumpFlag = flag
-
     def dump(self):
-        if self.dumpFlag:
-            print "Timer %d" % self.timerIndex+" expired at %s" % datetime.datetime.now()
+        Trace.output('info',"Chain Timer %d" % self.timerIndex+" expired at %s" % datetime.datetime.now())
