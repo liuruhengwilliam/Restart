@@ -16,7 +16,6 @@ class LoopTimer(threading._Timer):
     """
     def __init__(self, interval, function, args=[], kwargs={}):
         threading._Timer.__init__(self, interval, function, args=[], kwargs={})
-        self.funcResult = None#回调函数的返回值
 
     def run(self):
         """override run function"""
@@ -26,12 +25,7 @@ class LoopTimer(threading._Timer):
                 self.finished.set()
                 break
             self.dump()
-            #记录回调函数返回值
-            self.funcResult = self.function(*self.args, **self.kwargs)
-
-    def get_cb_func_result(self):
-        """获取回调函数返回值"""
-        return self.funcResult
+            self.function(*self.args, **self.kwargs)
 
     def dump(self):
         Trace.output('info',"Timer %s"%threading.currentThread().getName()+\

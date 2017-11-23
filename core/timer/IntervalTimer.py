@@ -14,10 +14,9 @@ class IntervalTimer(threading._Timer):
             t.cancel()     # stop the timer's action if it's still waiting
     """
     def __init__(self, index, function, args=[], kwargs={}):
-        threading._Timer.__init__(self, index, function, args=[], kwargs={})
+        threading._Timer.__init__(self, 0, function, args=[], kwargs={})
         self.timerTuple = args
-        self.timerIndex = index
-        self.funcResult = None#回调函数的返回值
+        self.dbItemId = index
 
     def run(self):
         '''override run function'''
@@ -28,17 +27,9 @@ class IntervalTimer(threading._Timer):
                     self.finished.set()
                     break
                 self.dump()
-                self.funcResult = self.function(*self.args, **self.kwargs)
-                self.timerIndex += 1
+                self.function(*self.args, **self.kwargs)
         except Exception,e:
-            print "Interval Timer Exception: "+e.Message
-
-    def get_cb_func_result(self):
-        """获取回调函数返回值"""
-        return self.funcResult
-
-    def get_chain_node(self):
-        return self.timerIndex
+            Trace.output('fatal', "Interval Timer Exception: "+e.Message)
 
     def dump(self):
-        Trace.output('info',"Chain Timer %d" % self.timerIndex+" expired at %s" % datetime.datetime.now())
+        Trace.output('info',"Chain Timer No.%d" % self.dbItemId+" expired at %s" % datetime.datetime.now())
