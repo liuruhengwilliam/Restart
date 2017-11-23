@@ -28,7 +28,7 @@ class DataScrape():
             elif urlName is None:
                 continue
 
-            if retList[0] != None and retList[1] != None:
+            if len(retList) == 2 and retList[0] != None and retList[1] != None:
                 break
             else:
                 Trace.output('warn','Data Source:'+urlName+' get price('+retList[0]+') failed on '+retList[1]+'!')
