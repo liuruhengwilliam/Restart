@@ -5,14 +5,14 @@ import platform
 import Property
 import Configuration
 
-DEBUG_LEVEL = ('fatal','warn','info')
+DEBUG_LEVEL = ('fatal','warn','debug','info')
 
 def output(requestLevel, strContent):
     """ 外部接口API：调试输出及日志信息
         入参：level---调试日志的输出等级
              strContent---调试日志具体内容
     """
-    default_level = 2 # 默认全部输出
+    default_level = len(DEBUG_LEVEL) # 默认全部输出
     # 若输出等级字符不识别，则直接返回。
     if DEBUG_LEVEL.count(requestLevel) == 0:
         return

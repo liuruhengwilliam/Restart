@@ -9,11 +9,11 @@ from resource import Trace
 
 class EarnrateDB():
     """
-        胜率数据库：
+        盈亏数据库：
             功能描述：
                 协作模块初始化数据库（搭建数据库结构）
                 由strategy模块进行插入（条目的前若干字段，比如：多/空，判定周期，时间）操作。
-                chain定时器（Start类中启动）进行更新（操作策略之后若干周期时间点的盈利情况）。
+                chain定时器（Start类中启动）进行更新（操作策略之后若干周期时间点的盈亏情况）。
             接口API：
                 创建
                 查询
@@ -24,7 +24,6 @@ class EarnrateDB():
         """
             path:数据库文件路径
         """
-        self.id = 0 # 数据库条目id值--初值为0
         self.filePath = path
 
     def create_earnrate_db(self):
@@ -47,19 +46,19 @@ class EarnrateDB():
         dbCursor.close()
         db.close()
 
-    def update_peak_earnrate_db(self, value,time,id):
-        """ 外部接口API:更新盈利数据库中某条目的盈利峰值数据
-            最小周期定时器到期时，遍历盈利数据库中所有条目并对每个条目的峰值进行更新
+    def update_peak_earnrate_db(self, value,time):
+        """ 外部接口API:更新盈亏数据库中所有条目的盈亏峰值数据
+            最小周期定时器到期时，遍历盈亏数据库中所有条目并对每个条目的峰值进行更新
         value:当前价格值
         time:当前时间
-        id:盈利数据库该条目id
         """
-        # 首先取出该id条目的极值
+        # 首先取出所有条目的极值
         db = sqlite3.connect(self.filePath)
         dbCursor = db.cursor()
         try:
             results = dbCursor.execute(Primitive.query_earnrate_db('id, direction, maxEarn, minEarn'))
             ret = results.fetchall()# 获取所有条目的这四个字段
+            Trace.output('info','update peak earnrate db:\n'+ret)
         except (Exception),e:
             Trace.output('fatal',"query earnrate db Exception: " + e.message)
 
@@ -71,7 +70,7 @@ class EarnrateDB():
                     column = 'maxEarn'
                 elif value < item[3]:#超越了极值就需要更新
                     column = 'minEarn'
-            else:#‘空’方向 -- maxEarn值小于minEarn
+            else:#‘空’方向 -- maxEarn值小于minEarn值
                 if value < item[2]:
                     column = 'maxEarn'
                 elif value > item[3]:#超越了极值就需要更新
@@ -81,6 +80,7 @@ class EarnrateDB():
             try:
                 if column != '':
                     dbCursor.execute(Primitive.update_earnrate_db(item[0],column,value))
+                    Trace.output('info','  update item in peak earnrate db:\n'+'  '+item)
             except (Exception),e:
                 Trace.output('fatal',"update peak vaule in earnrate db Exception: " + e.message)
 
@@ -103,15 +103,21 @@ class EarnrateDB():
             dbCursor.execute(Primitive.EARNRATE_DB_INSERT, [dirct,price,time,determineList])
         except (Exception),e:
             Trace.output('fatal',"insert into earnrate db Exception: " + e.message)
-        db.commit()
+        db.commit()# 先提交
+        # 获取该条目在数据库中对应的id值
+        try:
+            results = dbCursor.execute(Primitive.query_earnrate_db('id'))
+            id = len(results.fetchall())
+        except (Exception),e:
+            Trace.output('fatal',"query earnrate db file Exception: "+e.message)
+
         dbCursor.close()
         db.close()
-        self.id += 1
-        return self.id
 
-    #更新周期时间点盈利值
+        return id
+
     def update_period_earnrate_db(self, value,period,id):
-        """ 外部接口API:更新链式定时器某周期数值
+        """ 外部接口API:由链式定时器更新某周期数值
             链式定时器的回调函数。
             value：当前价格值
             period:周期名--字符串
