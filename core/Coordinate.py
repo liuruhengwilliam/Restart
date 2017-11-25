@@ -20,11 +20,11 @@ class Coordinate():
 
         self.dtScrp = DataScrape() # 初始化数据抓取模块
         # Quotation record Handle
-        self.recordHdl = QuotationRecord(Configuration.UPDATE_PERIOD_FLAG,\
-                                         Configuration.UPDATE_LOCK)
+        self.recordHdl = QuotationRecord(Constant.UPDATE_PERIOD_FLAG,\
+                                         Constant.UPDATE_LOCK)
         # Quotation DB Handle
-        self.dbQuotationHdl = QuotationDB(Configuration.UPDATE_PERIOD_FLAG,\
-                                          Configuration.UPDATE_LOCK,\
+        self.dbQuotationHdl = QuotationDB(Constant.UPDATE_PERIOD_FLAG,\
+                                          Constant.UPDATE_LOCK,\
                                           self.recordHdl.get_record_dict())
 
     def init_quotation(self):

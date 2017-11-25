@@ -2,7 +2,6 @@
 
 import os
 import platform
-import Property
 import Configuration
 
 DEBUG_LEVEL = ('fatal','warn','debug','info')
@@ -19,13 +18,13 @@ def output(requestLevel, strContent):
 
     # ==== ==== ==== ==== 控制台输出功能 ==== ==== ==== ====
     # 从XML配置文件中获取控制台输出开关
-    ret = Property.get_property("consoletrace")
+    ret = Configuration.get_property("consoletrace")
     if ret == 'True' :
         print strContent
 
     # ==== ==== ==== ==== 日志功能 ==== ==== ==== ====
     # 从XML配置文件中获取调试日志的输出等级
-    ret = Property.get_property("loglevel")
+    ret = Configuration.get_property("loglevel")
     if ret is not None:
         default_level = DEBUG_LEVEL.index(ret)
 
@@ -33,7 +32,7 @@ def output(requestLevel, strContent):
     if default_level < DEBUG_LEVEL.index(requestLevel):
         return
 
-    traceFile = Configuration.get_working_directory()+'/trace.txt'
+    traceFile = Configuration.get_working_directory()+'trace.txt'
     if not os.path.exists(traceFile):
         fileHandle = open(traceFile,'w') #创建文件
     else:

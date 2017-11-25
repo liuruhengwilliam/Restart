@@ -3,7 +3,7 @@
 import platform
 import sys
 import os
-from resource import Configuration
+#from resource import Configuration
 from quotation import QuotationKit
 
 """
@@ -17,13 +17,7 @@ def db_to_csv(file,cnt):
         file: db文件名（含文件路径）。raw_input方式接收控制台输入，字符串类型。
         cnt: 带转换db条目的行数。raw_input方式接收控制台输入，字符串类型，且-1为全部转换。
     """
-    fileName = ''
-    if len(file) < 10: # 不含文件路径的简约情况下，默认路径是当周文件夹路径
-        fileName = Configuration.get_working_directory()+'/'+file
-    else:
-        fileName = file
-
-    QuotationKit.translate_db_into_csv(fileName,int(cnt))
+    QuotationKit.translate_db_into_csv(file,int(cnt))
 
 if __name__ == '__main__':
     choiceIndex = raw_input("Please choose:\n"+"1.db translate to csv\n"+"2.drawing plotting\n"+"Your choice:\n")
