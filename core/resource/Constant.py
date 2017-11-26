@@ -74,9 +74,10 @@ UPDATE_LOCK = [threading.RLock()]*len(QUOTATION_DB_PERIOD)
 # time类中"tm_isdst"貌似有点水土不服！
 # 夏令时每日结算时间:5点到6点(6点整开盘)
 DAYLIGHT_SETTLEMENT_HOUR_TIME=5
-
+SAT_DAYLIGHT_SETTLEMENT_HOUR_TIME=3
 # 冬令时每日结算时间:6点到7点(7点整开盘)
 STANDARD_SETTLEMENT_HOUR_TIME=6
+SAT_STANDARD_SETTLEMENT_HOUR_TIME=3
 
 def is_standard_time():
     """当前时间是否属于冬令时"""
@@ -101,7 +102,7 @@ def is_weekend():
     """ 是否周末---周末闭市 """
     now = datetime.datetime.now()
     day, hour = now.isoweekday(),now.strftime("%H")
-    if(int(day) == 6 and int(hour) >= STANDARD_SETTLEMENT_HOUR_TIME) or int(day) == 7:
+    if(int(day) == 6 and int(hour) > SAT_STANDARD_SETTLEMENT_HOUR_TIME) or int(day) == 7:
         return True
     return False
 
