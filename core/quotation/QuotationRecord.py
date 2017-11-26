@@ -6,8 +6,6 @@ from resource import Constant
 class QuotationRecord():
     """ 行情记录类 """
     def __init__(self, flagList, updateLock):
-        # 调试打印开关
-        self.dumpFlag = False
         self.updatePeriodFlag = flagList
         self.updateLock = updateLock
 
@@ -32,7 +30,7 @@ class QuotationRecord():
         """ 外部接口API: 心跳定时器回调函数。更新缓冲记录。
             入参infoList的数据接口：当前价格，当前时间
         """
-        self.dump_info(infoList)
+
         #用最快定时器（心跳定时器）来更新其他周期行情数据记录
         for i in range(len(Constant.QUOTATION_DB_PERIOD)):
             dictItem = self.recordPeriodDict[Constant.QUOTATION_DB_PREFIX[i]]
@@ -59,8 +57,3 @@ class QuotationRecord():
                 dictItem[Constant.QUOTATION_STRUCTURE[1]] = infoList[0]
             elif(dictItem[Constant.QUOTATION_STRUCTURE[2]] > infoList[0]):
                 dictItem[Constant.QUOTATION_STRUCTURE[2]] = infoList[0]
-
-    def dump_info(self,info):
-        """内部接口API: 打印信息"""
-        if self.dumpFlag:
-            print info

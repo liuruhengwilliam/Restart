@@ -58,7 +58,7 @@ class QuotationDB():
         dbName = threading.currentThread().getName()
         index = int((dbName.split('-'))[1]) - 1
         #组装对应数据库文件路径
-        dbFile = self.filePath+'/'+Constant.QUOTATION_DB_PREFIX[index]+'.db'
+        dbFile = self.filePath+Constant.QUOTATION_DB_PREFIX[index]+'.db'
         #挑取对应周期字典项
         priceDict = self.recordPeriodDict[Constant.QUOTATION_DB_PREFIX[index]]
         #字典项转换成列表项
