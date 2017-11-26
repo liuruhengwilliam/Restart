@@ -6,7 +6,7 @@ import datetime
 from resource import Configuration
 from resource import Constant
 from resource import ExceptDeal
-from scrape.DataScrape import *
+from scrape import DataScrape
 
 from quotation.QuotationDB import *
 from quotation.QuotationRecord import *
@@ -18,7 +18,6 @@ class Coordinate():
     def __init__(self):
         self.week = (datetime.datetime.now()).strftime('%U')# 本周周数记录
 
-        self.dtScrp = DataScrape() # 初始化数据抓取模块
         # Quotation record Handle
         self.recordHdl = QuotationRecord(Constant.UPDATE_PERIOD_FLAG,\
                                          Constant.UPDATE_LOCK)
@@ -47,7 +46,7 @@ class Coordinate():
             sys.exit()
 
         # 数据抓取并筛选
-        infoList = self.dtScrp.query_info()
+        infoList = DataScrape.query_info()
         if len(infoList) != 0:
             self.recordHdl.update_dict_record(infoList)
 
