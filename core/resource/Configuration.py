@@ -4,6 +4,8 @@ import os
 import datetime
 import platform
 import threading
+import Trace
+
 import xml.etree.ElementTree as ET
 
 def get_working_directory():
@@ -46,7 +48,7 @@ def get_property(strProperty):
         tree = ET.parse(fileName)
         root = tree.getroot()
     except Exception,e:
-        print e.message
+        Trace.output('fatal','get_property exception:'+e.message)
         return None
 
     for item in root.findall(strProperty):

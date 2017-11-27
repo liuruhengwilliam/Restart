@@ -20,7 +20,7 @@ def get_date_code():
     month,day = dt.strftime('%m'),dt.strftime('%d')
     return MONTH_CODE[int(month)-1]+DAY_CODE[int(day)-1]
 
-VERSION_CODE = 'V0.5.1'
+VERSION_CODE = 'V0.6.0'
 def get_version_info():
     """ 内/外部接口API: """
     return VERSION_CODE + get_date_code() + "\n" + \
@@ -67,7 +67,6 @@ CHAIN_PERIOD = (1800,1*3600-1800,2*3600-1*3600,4*3600-2*3600,6*3600-4*3600,\
                 12*3600-6*3600,24*3600-12*3600,24*5*3600-24*3600)
 
 UPDATE_PERIOD_FLAG = [True]*len(QUOTATION_DB_PERIOD)
-UPDATE_LOCK = [threading.RLock()]*len(QUOTATION_DB_PERIOD)
 #=====================================================================================
 # 夏令时(Daylight saving time)和冬令时(standard time)
 # 夏令时定义：3月最后一个星期日开始，10月最后一个星期日结束。
