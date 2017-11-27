@@ -7,7 +7,7 @@ from resource import Configuration
 from resource import Constant
 from resource import ExceptDeal
 from scrape import DataScrape
-
+from earnrate.EarnrateDB import *
 from quotation.QuotationDB import *
 from quotation.QuotationRecord import *
 
@@ -17,24 +17,23 @@ class Coordinate():
     """
     def __init__(self):
         self.week = (datetime.datetime.now()).strftime('%U')# 本周周数记录
-
+        path = Configuration.get_working_directory()
         # Quotation record Handle
-        self.recordHdl = QuotationRecord(Constant.UPDATE_PERIOD_FLAG,\
-                                         Constant.UPDATE_LOCK)
+        self.recordHdl = QuotationRecord(Constant.UPDATE_PERIOD_FLAG)
         # Quotation DB Handle
-        self.dbQuotationHdl = QuotationDB(Constant.UPDATE_PERIOD_FLAG,\
-                                          Constant.UPDATE_LOCK,\
+        self.dbQuotationHdl = QuotationDB(path,Constant.UPDATE_PERIOD_FLAG,\
                                           self.recordHdl.get_record_dict())
+        # Earnrate DB Handle
+        self.dbEarnrateHdl = EarnrateDB(path)
 
-    def init_quotation(self):
+    def init_module(self):
         """ 外部接口API:行情数据库准备 """
         # 创建记录字典
         self.recordHdl.create_record_dict()
         # 创建行情数据库文件
-        self.dbQuotationHdl.create_period_db(Configuration.get_working_directory())
-
-    def init_earnrate(self):
-        """ 外部接口API：初始化胜率数据库 """
+        self.dbQuotationHdl.create_period_db()
+        # 创建盈亏数据库文件
+        self.dbEarnrateHdl.create_earnrate_db()
 
     # 以下是定时器回调函数:
     def work_heartbeat(self):

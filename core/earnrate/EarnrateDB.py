@@ -30,7 +30,7 @@ class EarnrateDB():
         """ 外部接口API: 创建数据库文件 """
         dt = datetime.datetime.now()
         year,week = dt.strftime('%Y'),dt.strftime('%U')
-        fileName = year+'-'+week+'earnrate.db'
+        fileName = year+'-'+week+'-'+'earnrate.db'
         self.filePath += '/'+fileName
         # 生成数据库文件
         isExist = os.path.exists(self.filePath)

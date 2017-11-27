@@ -13,7 +13,7 @@ def main():
     # 数据抓取和行情数据库相关初始化
     coordinate = Coordinate()
 
-    coordinate.init_quotation()
+    coordinate.init_module()
 
     funcList = [] # 回调函数列表
     # 数据抓取模块和行情数据库模块挂载到周期定时器

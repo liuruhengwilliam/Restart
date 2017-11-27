@@ -21,16 +21,15 @@ QUOTATION_DB_QUERY_DESC = 'select * from quotation order by id desc'
 EARNRATE_DB_CREATE = 'create table earnrate(\
     id integer primary key autoincrement not null default 1,\
     direction int, price float,time float,\
-    5minDetermine int, 15minDetermine int, 30minDetermine int, 1hourDetermine int, 2hourDetermine int,\
-    4hourDetermine int, 6hourDetermine int, 12hourDetermine int, 1dayDetermine int, 1weekDetermine int,\
+    M5Dtrm int, M15Dtrm int, M30Dtrm int, H1Dtrm int, H2Dtrm int,\
+    H4Dtrm int, H6Dtrm int, H12Dtrm int, D1Dtrm int, W1Dtrm int,\
     maxEarn float, maxEarnTime float, minEarn float,minEarnTime float,\
-    5minEarn float, 15minEarn float, 30minEarn float, 1hourEarn float, 2hourEarn float,\
-    4hourEarn float, 6hourEarn float, 12hourEarn float, 1dayEarn float, 1weekEarn float);'
+    M5Earn float, M15Earn float, M30Earn float, H1Earn float, H2Earn float,\
+    H4Earn float, H6Earn float, H12Earn float, D1Earn float, W1Earn float);'
 
 # 插入
-EARNRATE_DB_INSERT = 'insert into earnrate(direction,price,time,5minDetermine,15minDetermine,\
-    30minDetermine,1hourDetermine,2hourDetermine,4hourDetermine,6hourDetermine,12hourDetermine,\
-    1dayDetermine,1weekDetermine) values(?,?,?,?,?,?,?,?,?,?,?,?,?)'
+EARNRATE_DB_INSERT = 'insert into earnrate(direction,price,time,M5Dtrm,M15Dtrm,M30Dtrm,H1Dtrm,\
+    H2Dtrm,H4Dtrm,H6Dtrm,H12Dtrm,D1Dtrm,W1Dtrm) values(?,?,?,?,?,?,?,?,?,?,?,?,?)'
 
 def query_earnrate_db(column,id = ''):
     """ 外部接口API：根据数据库条目id查找相应记录项
