@@ -6,7 +6,7 @@ import platform
 import numpy as np
 import pandas as pd
 from pandas import Series,DataFrame
-from resource import Configuration
+from resource import Constant
 from resource import Primitive
 from resource import Trace
 
@@ -19,7 +19,7 @@ def translate_db_into_csv(dbFile, lineCnt):
     csvWriter = csv.writer(csvFile, dialect='excel')
 
     # 写入抬头信息
-    title = ['id'] + map(lambda x:x , Configuration.QUOTATION_STRUCTURE)
+    title = ['id'] + map(lambda x:x , Constant.QUOTATION_STRUCTURE)
     csvWriter.writerow(title)
 
     # db文件操作
@@ -50,7 +50,7 @@ def translate_list_into_csv(listToDeal,csvFileName):
     csvWriter = csv.writer(csvFile, dialect='excel')
 
     # 写入抬头信息
-    title = ['id'] + map(lambda x:x , Configuration.QUOTATION_STRUCTURE)
+    title = ['id'] + map(lambda x:x , Constant.QUOTATION_STRUCTURE)
     csvWriter.writerow(title)
 
     for item in listToDeal:
@@ -80,7 +80,7 @@ def translate_db_to_df(dbFile, lineCnt):
         if ret == None: return None
 
     # 抬头信息
-    title = ['id'] + map(lambda x:x , Configuration.QUOTATION_STRUCTURE)
+    title = ['id'] + map(lambda x:x , Constant.QUOTATION_STRUCTURE)
 
     dataframe = DataFrame(ret,columns=title)
     print dataframe
