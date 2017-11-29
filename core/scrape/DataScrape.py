@@ -27,7 +27,8 @@ def query_info():
         return retList
 
     if len(retList) == 2 and retList[0] != '' and retList[1] != '':
-        Trace.output('info',dataSrc+' '+' '.join(retList))
+        Trace.output('info', dataSrc+'  %s '%retList[0]+retList[1].strftime('%c'))
+        #print retList[1],type(retList[1])
     else:# 若从以上数据源都未获取有效数据就引发自定义异常
         Trace.output('warn','Data Source:'+dataSrc+' get price failed!')
         try:

@@ -1,6 +1,6 @@
 #coding=utf-8
 import sys
-import time
+import datetime
 import requests
 import re
 import traceback
@@ -28,8 +28,7 @@ def deal_with_query():
         #print info_dict
         # 用"最新价( b )"刷新各周期数据库
         #ret_list = [infoDict[u'"p"'],infoDict[u'"b"'],infoDict[u'"h"'],infoDict[u'"l"'],\
-        ret_list = [info_dict[u'"b"'],\
-            time.strftime("%Y-%m-%d %H:%M:%S",time.localtime(float(info_dict[u'"t"'])))]
+        ret_list = [info_dict[u'"b"'],datetime.datetime.fromtimestamp(float(info_dict[u'"t"']))]
     except (Exception),e:
         exc_type,exc_value,exc_tb = sys.exc_info()
         traceback.print_exception(exc_type, exc_value, exc_tb)
