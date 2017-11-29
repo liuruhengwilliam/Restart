@@ -3,10 +3,10 @@
 # 行情数据库操作原语
 QUOTATION_DB_CREATE = 'create table quotation(\
     id integer primary key autoincrement not null default 1,\
-    open float, high float, low float, close float, time float);'
+    time float, open float, high float, low float, close float);'
 
 # 插入操作
-QUOTATION_DB_INSERT = 'insert into quotation (open,high,low,close,time)\
+QUOTATION_DB_INSERT = 'insert into quotation (time,open,high,low,close)\
     values(?, ?, ?, ?, ?)'
 
 # id升序排列的查询操作 2017-10-31
