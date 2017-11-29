@@ -16,7 +16,7 @@ class QuotationRecord():
         atomicDictItem = dict(zip(Constant.QUOTATION_STRUCTURE,[0,0,0,0,0]))
 
         # 生成各周期记录字典
-        for tagPeriod in list(Constant.QUOTATION_DB_PREFIX):
+        for tagPeriod in Constant.QUOTATION_DB_PREFIX:
             itemPeriod = {tagPeriod: deepcopy(atomicDictItem)}
             self.recordPeriodDict.update(itemPeriod)
 
@@ -29,19 +29,18 @@ class QuotationRecord():
             入参infoList的数据接口：当前价格，当前时间
         """
         #用最快定时器（心跳定时器）来更新其他周期行情数据记录
-        for i in range(len(Constant.QUOTATION_DB_PERIOD)):
-            dictItem = self.recordPeriodDict[Constant.QUOTATION_DB_PREFIX[i]]
+        for tagPeriod,dictItem in self.recordPeriodDict.items():
             # 设置记录时间
             dictItem[Constant.QUOTATION_STRUCTURE[0]] = infoList[1]
 
             #每次行情数据库更新后各周期定时器首次到期时，开盘价/最高/最低都等于实时价格，且开盘价后续不更新。
             #对于最快定时器（暂定6秒），忽略该设置。
-            if self.updatePeriodFlag[i] == True:
+            if self.updatePeriodFlag[Constant.QUOTATION_DB_PREFIX.index(tagPeriod)] == True:
                 dictItem[Constant.QUOTATION_STRUCTURE[1]] = \
                 dictItem[Constant.QUOTATION_STRUCTURE[2]] = \
                 dictItem[Constant.QUOTATION_STRUCTURE[3]] = \
                 dictItem[Constant.QUOTATION_STRUCTURE[4]] = infoList[0]
-                self.updatePeriodFlag[i] = False
+                self.updatePeriodFlag[Constant.QUOTATION_DB_PREFIX.index(tagPeriod)] = False
                 continue
             else:
                 dictItem[Constant.QUOTATION_STRUCTURE[4]] = infoList[0]
