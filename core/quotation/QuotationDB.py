@@ -65,8 +65,7 @@ class QuotationDB():
                      priceDict[Constant.QUOTATION_STRUCTURE[2]],\
                      priceDict[Constant.QUOTATION_STRUCTURE[3]],\
                      priceDict[Constant.QUOTATION_STRUCTURE[4]]]
-
-        Trace.output('info',priceList)
+        Trace.output('info','%s '%priceList[0]+'%s'%priceList[4])
         self.insert_period_db_opera(dbFile, priceList)
 
         # 设置数据库更新标志
