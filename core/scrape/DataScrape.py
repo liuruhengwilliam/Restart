@@ -17,7 +17,7 @@ def query_info():
 
     #非法数据源就直接返回
     if DataSource.URL_SRC_TUPLE.count(dataSrc) == 0:
-        return retList
+        dataSrc = DataSource.URL_SRC_DEFAULT
 
     if dataSrc == 'Fx678':#高优先级排前
         retList = Fx678.deal_with_query()
@@ -28,7 +28,6 @@ def query_info():
 
     if len(retList) == 2 and retList[0] != '' and retList[1] != '':
         Trace.output('info', dataSrc+'  %s '%retList[0]+retList[1].strftime('%c'))
-        #print retList[1],type(retList[1])
     else:# 若从以上数据源都未获取有效数据就引发自定义异常
         Trace.output('warn','Data Source:'+dataSrc+' get price failed!')
         try:
