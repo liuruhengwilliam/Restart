@@ -1,5 +1,6 @@
 #coding=utf-8
 
+import csv
 import sqlite3
 import datetime
 import numpy as np
@@ -76,7 +77,6 @@ def pack_quotes(data):
     quotes = np.array(data.ix[:,['time','open','high','low','close']])
 
     for q in quotes:
-        print q,type(q[0])
         q[0] = datetime.datetime.strptime(q[0],"%Y-%m-%d %H:%M:%S")
         q[0] = date2num(q[0])
 
@@ -94,4 +94,22 @@ def show_period_candlestick(path,period,cnt=-1):
         return
 
     dataPicked = pack_quotes(dataWithId)
+    show_candlestick(dataPicked,period)
+
+def show_period_candlestick_withCSV(path,period,cnt=-1):
+    """ 外部接口API:通过CSV文件进行绘制。
+        参数说明类同于show_period_candlestick()方法。
+    """
+    data = []
+    with open(path) as csvfile:
+        reader = csv.DictReader(csvfile)
+        for row in reader:
+            t = row['time'].replace('/','-')#csv文件中时间存储方式需要加以处理
+            data.append([t,float(row['open']),float(row['high']),float(row['low']),float(row['close'])])
+
+    title = map(lambda x:x , Constant.QUOTATION_STRUCTURE)
+    dataframe = DataFrame(data,columns=title)
+
+    # 组装数据再进行加工
+    dataPicked = pack_quotes(dataframe)
     show_candlestick(dataPicked,period)

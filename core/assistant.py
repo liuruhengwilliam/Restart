@@ -17,10 +17,15 @@ if __name__ == '__main__':
     if choiceIndex == '1':
         filename = raw_input("file name input: ")
         cnt = raw_input("cnt to be translated: ")
-        QuotationKit.translate_db_into_csv(file,int(cnt))
+        QuotationKit.translate_db_into_csv(filename,int(cnt))
     elif choiceIndex == '2':
         filename = raw_input("file name input: ")
         period = raw_input("period choice: ")
-        DrawingKit.show_period_candlestick(filename,period)
+        if filename.find('.db') != -1:
+            DrawingKit.show_period_candlestick(filename,period)
+        elif filename.find('.csv') != -1:
+            DrawingKit.show_period_candlestick_withCSV(filename,period)
+        else:
+            print "Error file name input!"
     else:
         print "Error choice!"

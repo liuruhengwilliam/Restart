@@ -26,7 +26,7 @@ def translate_db_into_csv(dbFile, lineCnt):
     db = sqlite3.connect(dbFile)
     dbCursor = db.cursor()
     try:
-        results = dbCursor.execute(Primitive.QUOTATION_DB_QUERY_DESC)# 倒序方式查询
+        results = dbCursor.execute(Primitive.QUOTATION_DB_QUERY_ASC)# 正序方式查询
         if lineCnt == -1: # 获取所有条目
             ret = results.fetchall()
         else:# 获取指定数量的最近条目
@@ -67,7 +67,7 @@ def translate_db_to_df(dbFile, lineCnt):
     db = sqlite3.connect(dbFile)
     dbCursor = db.cursor()
     try:
-        results = dbCursor.execute(Primitive.QUOTATION_DB_QUERY_DESC)# 倒序方式查询
+        results = dbCursor.execute(Primitive.QUOTATION_DB_QUERY_ASC)
         if lineCnt == -1: # 获取所有条目
             ret = results.fetchall()
         else:# 获取指定数量的最近条目
