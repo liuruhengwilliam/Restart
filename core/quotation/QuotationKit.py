@@ -83,4 +83,4 @@ def translate_db_to_df(dbFile, lineCnt):
     title = ['id'] + map(lambda x:x , Constant.QUOTATION_STRUCTURE)
 
     dataframe = DataFrame(ret,columns=title)
-    print dataframe
+    return dataframe
