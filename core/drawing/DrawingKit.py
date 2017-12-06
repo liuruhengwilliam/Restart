@@ -16,23 +16,22 @@ from matplotlib.dates import MinuteLocator,HourLocator,DayLocator,WeekdayLocator
 from resource import Constant
 from quotation import QuotationKit
 
-def show_candlestick(quotes, period):
+def show_candlestick(quotes, period,isDraw):
     """ 内部接口API:
         quotes: 数据序列。参照finance类中candlestick_ohlc()方法的入参说明。
         period: 蜡烛图的周期名称。
     """
-    # 定义相关周期坐标的锚定对象
-    fiveMinLocator = MinuteLocator(interval=5)
-    fifteenMinLocator = MinuteLocator(interval=15)
-    thirtyMinLocator = MinuteLocator(interval=30)
+    # 定义相关周期坐标的锚定对象。为了显示清楚锚定值要大于本周期值。
+    fiveMinLocator = MinuteLocator(interval=20)
+    fifteenMinLocator = MinuteLocator(interval=60)
+    thirtyMinLocator = MinuteLocator(interval=120)
+    oneHourLocator = HourLocator(interval=4)
+    twoHourLocator = HourLocator(interval=8)
+    fourHourLocator = HourLocator(interval=16)
+    sixHourLocator = HourLocator(interval=24)
+    twelveHourLocator = HourLocator(interval=48)
 
-    oneHourLocator = HourLocator(interval=1)
-    twoHourLocator = HourLocator(interval=2)
-    fourHourLocator = HourLocator(interval=4)
-    sixHourLocator = HourLocator(interval=6)
-    twelveHourLocator = HourLocator(interval=12)
-
-    oneDayLocator = DayLocator(interval=1)
+    oneDayLocator = DayLocator(interval=2)
     oneWeekLocator = WeekdayLocator(interval=1)
 
     # 坐标横轴锚定对象列表
@@ -41,11 +40,11 @@ def show_candlestick(quotes, period):
         oneDayLocator,oneWeekLocator]
 
     # 定义相关的格式对象。DateFormatter接收的格式化字符与`strftime`相同（参见DateFormatter类定义）
-    fiveMinFormatter = fifteenMinFormatter = thirtyMinFormatter = DateFormatter('%M')
-    oneHourFormatter = twoHourFormatter = fourHourFormatter = \
-        sixHourFormatter = twelveHourFormatter = DateFormatter('%H')
-    oneDayFormatter = DateFormatter('%d')
-    oneWeekFormatter = DateFormatter('%b %d')
+    fiveMinFormatter = fifteenMinFormatter = thirtyMinFormatter = \
+        oneHourFormatter = twoHourFormatter = DateFormatter('%H:%M')
+    fourHourFormatter = sixHourFormatter = DateFormatter('%b%d %H:%M')
+    twelveHourFormatter = oneDayFormatter = DateFormatter('%b %d')
+    oneWeekFormatter = DateFormatter('%Y-%m-%d')
 
     # 坐标横轴格式对象列表
     axFormatterList = [None,fiveMinFormatter, fifteenMinFormatter, thirtyMinFormatter,\
@@ -63,9 +62,12 @@ def show_candlestick(quotes, period):
 
     candlestick_ohlc(ax, quotes,width=0.01,colorup='red',colordown='green')
     ax.grid(True)
-    plt.setp(plt.gca().get_xticklabels(), rotation=45, horizontalalignment='right')
 
-    plt.show()
+    plt.setp(plt.gca().get_xticklabels(), rotation=45, horizontalalignment='right')
+    plt.title(period)
+    plt.savefig('%s.png'%period,dpi=200)
+    if isDraw == True:
+        plt.show()
 
 def pack_quotes(data):
     """ 内部接口API：处理quotes数据--
@@ -82,11 +84,12 @@ def pack_quotes(data):
 
     return quotes
 
-def show_period_candlestick(path,period,cnt=-1):
+def show_period_candlestick(path,period,cnt=-1,isDraw=False):
     """ 外部接口API:
         path:行情数据库文件路径
         period:周期数--定义参见Constant包中QUOTATION_DB_PREFIX元组说明。
         cnt:蜡烛图中展示的K线数目。默认展示行情数据库文件中所有记录。
+        isDraw:是否展示图画的标志。对于后台运行模式默认不展示。
     """
     dataWithId = QuotationKit.translate_db_to_df(path, cnt)
     if dataWithId is None:
@@ -94,9 +97,9 @@ def show_period_candlestick(path,period,cnt=-1):
         return
 
     dataPicked = pack_quotes(dataWithId)
-    show_candlestick(dataPicked,period)
+    show_candlestick(dataPicked,period,isDraw)
 
-def show_period_candlestick_withCSV(path,period,cnt=-1):
+def show_period_candlestick_withCSV(path,period,cnt=-1,isDraw=False):
     """ 外部接口API:通过CSV文件进行绘制。
         参数说明类同于show_period_candlestick()方法。
     """
@@ -112,4 +115,4 @@ def show_period_candlestick_withCSV(path,period,cnt=-1):
 
     # 组装数据再进行加工
     dataPicked = pack_quotes(dataframe)
-    show_candlestick(dataPicked,period)
+    show_candlestick(dataPicked,period,isDraw)
