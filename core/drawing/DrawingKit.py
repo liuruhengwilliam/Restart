@@ -1,7 +1,9 @@
 #coding=utf-8
 
+import os
 import csv
 import sqlite3
+import platform
 import datetime
 import numpy as np
 import matplotlib.pyplot as plt
@@ -16,12 +18,34 @@ from matplotlib.dates import MinuteLocator,HourLocator,DayLocator,WeekdayLocator
 from resource import Constant
 from quotation import QuotationKit
 
-def show_candlestick(quotes, period,isDraw):
+def save_candlestick_misc(path):
+    """ 内部接口API: 保存蜡烛图文件夹路径和文件名timestamp
+        path：数据库文件全路径（蜡烛图文件保存路径同目录）
+        返回值：[文件夹路径,周期数,文件名timestamp]
+    """
+    folder = path.split('.')[0]
+    if not os.path.exists(folder):
+        os.makedirs(folder)
+
+    if (platform.system() == "Windows"):
+        period = folder.split('\\')[-1]
+        folder += '\\'
+    else:
+        period = folder.split('/')[-1]
+        folder += '/'
+
+    dt = datetime.datetime.now()
+    timestamp = dt.strftime('%b%d_%H_%M')
+    return [folder,period,timestamp]
+
+def show_candlestick(quotes, path,isDraw):
     """ 内部接口API:
         quotes: 数据序列。参照finance类中candlestick_ohlc()方法的入参说明。
-        period: 蜡烛图的周期名称。
+        path: 行情数据库文件路径名（包含蜡烛图的周期名称）。
     """
     # 定义相关周期坐标的锚定对象。为了显示清楚锚定值要大于本周期值。
+    folderPath,period,timestamp = save_candlestick_misc(path)
+
     fiveMinLocator = MinuteLocator(interval=20)
     fifteenMinLocator = MinuteLocator(interval=60)
     thirtyMinLocator = MinuteLocator(interval=120)
@@ -51,7 +75,7 @@ def show_candlestick(quotes, period,isDraw):
         oneHourFormatter, twoHourFormatter, fourHourFormatter, sixHourFormatter,\
         twelveHourFormatter, oneDayFormatter, oneWeekFormatter]
 
-    fig, ax = plt.subplots(figsize=(10,5))
+    fig, ax = plt.subplots(figsize=(20,5))
     fig.subplots_adjust(bottom=0.2)
 
     # 获取序号--坐标横轴的锚定对象和格式对象列表下标。
@@ -65,7 +89,7 @@ def show_candlestick(quotes, period,isDraw):
 
     plt.setp(plt.gca().get_xticklabels(), rotation=45, horizontalalignment='right')
     plt.title(period)
-    plt.savefig('%s.png'%period,dpi=200)
+    plt.savefig('%s%s-%s.png'%(folderPath,period,timestamp),dpi=200)
     if isDraw == True:
         plt.show()
 
@@ -84,7 +108,7 @@ def pack_quotes(data):
 
     return quotes
 
-def show_period_candlestick(path,period,cnt=-1,isDraw=False):
+def show_period_candlestick(path,cnt=-1,isDraw=False):
     """ 外部接口API:
         path:行情数据库文件路径
         period:周期数--定义参见Constant包中QUOTATION_DB_PREFIX元组说明。
@@ -97,9 +121,9 @@ def show_period_candlestick(path,period,cnt=-1,isDraw=False):
         return
 
     dataPicked = pack_quotes(dataWithId)
-    show_candlestick(dataPicked,period,isDraw)
+    show_candlestick(dataPicked,path,isDraw)
 
-def show_period_candlestick_withCSV(path,period,cnt=-1,isDraw=False):
+def show_period_candlestick_withCSV(path,cnt=-1,isDraw=False):
     """ 外部接口API:通过CSV文件进行绘制。
         参数说明类同于show_period_candlestick()方法。
     """
@@ -115,4 +139,4 @@ def show_period_candlestick_withCSV(path,period,cnt=-1,isDraw=False):
 
     # 组装数据再进行加工
     dataPicked = pack_quotes(dataframe)
-    show_candlestick(dataPicked,period,isDraw)
+    show_candlestick(dataPicked,path,isDraw)

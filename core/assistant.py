@@ -20,11 +20,10 @@ if __name__ == '__main__':
         QuotationKit.translate_db_into_csv(filename,int(cnt))
     elif choiceIndex == '2':
         filename = raw_input("file name input: ")
-        period = raw_input("period choice: ")
         if filename.find('.db') != -1:
-            DrawingKit.show_period_candlestick(filename,period,isDraw=True)
+            DrawingKit.show_period_candlestick(filename,isDraw=True)
         elif filename.find('.csv') != -1:
-            DrawingKit.show_period_candlestick_withCSV(filename,period,isDraw=True)
+            DrawingKit.show_period_candlestick_withCSV(filename,isDraw=True)
         else:
             print "Error file name input!"
     else:
