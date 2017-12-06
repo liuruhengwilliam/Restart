@@ -22,9 +22,9 @@ if __name__ == '__main__':
         filename = raw_input("file name input: ")
         period = raw_input("period choice: ")
         if filename.find('.db') != -1:
-            DrawingKit.show_period_candlestick(filename,period)
+            DrawingKit.show_period_candlestick(filename,period,isDraw=True)
         elif filename.find('.csv') != -1:
-            DrawingKit.show_period_candlestick_withCSV(filename,period)
+            DrawingKit.show_period_candlestick_withCSV(filename,period,isDraw=True)
         else:
             print "Error file name input!"
     else:
