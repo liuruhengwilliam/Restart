@@ -46,7 +46,7 @@ def show_candlestick(quotes, path,isDraw):
     # 定义相关周期坐标的锚定对象。为了显示清楚锚定值要大于本周期值。
     folderPath,period,timestamp = save_candlestick_misc(path)
 
-    fiveMinLocator = MinuteLocator(interval=20)
+    fiveMinLocator = MinuteLocator(interval=30)
     fifteenMinLocator = MinuteLocator(interval=60)
     thirtyMinLocator = MinuteLocator(interval=120)
     oneHourLocator = HourLocator(interval=4)
@@ -84,7 +84,9 @@ def show_candlestick(quotes, path,isDraw):
     ax.xaxis.set_major_locator(axLocatorList[index])
     ax.xaxis.set_major_formatter(axFormatterList[index])
 
-    candlestick_ohlc(ax, quotes,width=0.01,colorup='red',colordown='green')
+    # 设置坐标横轴的起止位置。参见numpy.ndarray类的处理方法。
+    ax.set_xlim([quotes.item(0,0),quotes.item(-1,0)])
+    candlestick_ohlc(ax, quotes,width=0.001,colorup='red',colordown='green')
     ax.grid(True)
 
     plt.setp(plt.gca().get_xticklabels(), rotation=45, horizontalalignment='right')
