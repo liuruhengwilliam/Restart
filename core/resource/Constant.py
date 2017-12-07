@@ -35,6 +35,10 @@ def envi_init():
         sys.path.append(os.getcwd()+'/resource')
         sys.path.append(os.getcwd()+'/engine')
         sys.path.append(os.getcwd()+'/timer')
+
+# =========================================================================================
+# 蜡烛图相关
+CANDLESTICK_MAX_CNT = 200 # 每张蜡烛图片文件最多展示200根K线
 # =========================================================================================
 # https://www.ricequant.com/community/topic/2393/
 # K线组合形态

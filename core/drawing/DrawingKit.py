@@ -95,14 +95,19 @@ def show_candlestick(quotes, path,isDraw):
     if isDraw == True:
         plt.show()
 
-def pack_quotes(data):
+def pack_quotes(dataWithID):
     """ 内部接口API：处理quotes数据--
         1.去掉id栏
         2.调用date2num函数转换datetime
-        data: 二维数组
+        data: dataframe结构的数据
         返回值: sequence of (time, open, high, low, close, ...) sequences
     """
-    quotes = np.array(data.ix[:,['time','open','high','low','close']])
+    dataCnt = dataWithID.iloc[-1:]['id']
+    if int(dataCnt) > Constant.CANDLESTICK_MAX_CNT:
+        quotes = np.array(dataWithID.ix[(int(dataCnt)-Constant.CANDLESTICK_MAX_CNT):,\
+                          ['time','open','high','low','close']])
+    else:
+        quotes = np.array(dataWithID.ix[:,['time','open','high','low','close']])
 
     for q in quotes:
         q[0] = datetime.datetime.strptime(q[0],"%Y-%m-%d %H:%M:%S")
@@ -134,9 +139,9 @@ def show_period_candlestick_withCSV(path,cnt=-1,isDraw=False):
         reader = csv.DictReader(csvfile)
         for row in reader:
             t = row['time'].replace('/','-')#csv文件中时间存储方式需要加以处理
-            data.append([t,float(row['open']),float(row['high']),float(row['low']),float(row['close'])])
+            data.append([int(row['id']),t,float(row['open']),float(row['high']),float(row['low']),float(row['close'])])
 
-    title = map(lambda x:x , Constant.QUOTATION_STRUCTURE)
+    title = ['id'] + map(lambda x:x , Constant.QUOTATION_STRUCTURE)
     dataframe = DataFrame(data,columns=title)
 
     # 组装数据再进行加工
