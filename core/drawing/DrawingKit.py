@@ -1,42 +1,15 @@
 #coding=utf-8
 
-import os
 import csv
 import sqlite3
-import platform
-import datetime
-import numpy as np
 import matplotlib.pyplot as plt
-import matplotlib.finance as mpf
-import matplotlib.ticker as ticker
-from pandas import Series,DataFrame
+from pandas import DataFrame
 from matplotlib.finance import candlestick_ohlc
-from matplotlib.dates import date2num
 from matplotlib.dates import DateFormatter
 from matplotlib.dates import MinuteLocator,HourLocator,DayLocator,WeekdayLocator
-
+import DrawingMisc
 from resource import Constant
 from quotation import QuotationKit
-
-def save_candlestick_misc(path):
-    """ 内部接口API: 保存蜡烛图文件夹路径和文件名timestamp
-        path：数据库文件全路径（蜡烛图文件保存路径同目录）
-        返回值：[文件夹路径,周期数,文件名timestamp]
-    """
-    folder = path.split('.')[0]
-    if not os.path.exists(folder):
-        os.makedirs(folder)
-
-    if (platform.system() == "Windows"):
-        period = folder.split('\\')[-1]
-        folder += '\\'
-    else:
-        period = folder.split('/')[-1]
-        folder += '/'
-
-    dt = datetime.datetime.now()
-    timestamp = dt.strftime('%b%d_%H_%M')
-    return [folder,period,timestamp]
 
 def show_candlestick(quotes, path,isDraw):
     """ 内部接口API:
@@ -44,7 +17,7 @@ def show_candlestick(quotes, path,isDraw):
         path: 行情数据库文件路径名（包含蜡烛图的周期名称）。
     """
     # 定义相关周期坐标的锚定对象。为了显示清楚锚定值要大于本周期值。
-    folderPath,period,timestamp = save_candlestick_misc(path)
+    folderPath,period,timestamp = DrawingMisc.save_candlestick_misc(path)
 
     fiveMinLocator = MinuteLocator(interval=30)
     fifteenMinLocator = MinuteLocator(interval=60)
@@ -95,26 +68,6 @@ def show_candlestick(quotes, path,isDraw):
     if isDraw == True:
         plt.show()
 
-def pack_quotes(dataWithID):
-    """ 内部接口API：处理quotes数据--
-        1.去掉id栏
-        2.调用date2num函数转换datetime
-        data: dataframe结构的数据
-        返回值: sequence of (time, open, high, low, close, ...) sequences
-    """
-    dataCnt = dataWithID.iloc[-1:]['id']
-    if int(dataCnt) > Constant.CANDLESTICK_MAX_CNT:
-        quotes = np.array(dataWithID.ix[(int(dataCnt)-Constant.CANDLESTICK_MAX_CNT):,\
-                          ['time','open','high','low','close']])
-    else:
-        quotes = np.array(dataWithID.ix[:,['time','open','high','low','close']])
-
-    for q in quotes:
-        q[0] = datetime.datetime.strptime(q[0],"%Y-%m-%d %H:%M:%S")
-        q[0] = date2num(q[0])
-
-    return quotes
-
 def show_period_candlestick(path,cnt=-1,isDraw=False):
     """ 外部接口API:
         path:行情数据库文件路径
@@ -127,7 +80,7 @@ def show_period_candlestick(path,cnt=-1,isDraw=False):
         raise ValueError
         return
 
-    dataPicked = pack_quotes(dataWithId)
+    dataPicked = DrawingMisc.pack_quotes(path,dataWithId)
     show_candlestick(dataPicked,path,isDraw)
 
 def show_period_candlestick_withCSV(path,cnt=-1,isDraw=False):
@@ -145,5 +98,5 @@ def show_period_candlestick_withCSV(path,cnt=-1,isDraw=False):
     dataframe = DataFrame(data,columns=title)
 
     # 组装数据再进行加工
-    dataPicked = pack_quotes(dataframe)
+    dataPicked = DrawingMisc.pack_quotes(path,dataframe)
     show_candlestick(dataPicked,path,isDraw)
