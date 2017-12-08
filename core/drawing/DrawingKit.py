@@ -100,3 +100,11 @@ def show_period_candlestick_withCSV(path,cnt=-1,isDraw=False):
     # 组装数据再进行加工
     dataPicked = DrawingMisc.pack_quotes(path,dataframe)
     show_candlestick(dataPicked,path,isDraw)
+
+def record_candlestick(path,periodID):
+    """ 外部接口API: 周期定时器到期时记录保存对应的蜡烛图
+        path: 工作路径
+        periodID: 到期定时器的周期序号
+    """
+    file = path + Constant.QUOTATION_DB_PREFIX[periodID] + '.db'
+    show_period_candlestick(file)

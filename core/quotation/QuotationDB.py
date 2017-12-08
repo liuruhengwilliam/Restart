@@ -49,12 +49,10 @@ class QuotationDB():
         dbCursor.close()
         db.close()
 
-    def update_period_db(self):
-        """ 外部接口API: 定时器回调函数--行情数据库更新。对各周期数据库进行更新。"""
-
-        #根据定时器线程名称中的编号找到对应数据库文件
-        dbName = threading.currentThread().getName()
-        index = int((dbName.split('-'))[1]) - 1
+    def update_period_db(self, index):
+        """ 外部接口API: 定时器回调函数--行情数据库更新。对各周期数据库进行更新。
+            index:根据定时器线程名称中的编号找到对应数据库文件
+        """
         #组装对应数据库文件路径
         dbFile = self.filePath+Constant.QUOTATION_DB_PREFIX[index]+'.db'
         #挑取对应周期字典项
