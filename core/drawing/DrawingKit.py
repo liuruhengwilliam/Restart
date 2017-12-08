@@ -2,6 +2,8 @@
 
 import csv
 import sqlite3
+import matplotlib
+matplotlib.use("Pdf")
 import matplotlib.pyplot as plt
 from pandas import DataFrame
 from matplotlib.finance import candlestick_ohlc
@@ -62,7 +64,7 @@ def show_candlestick(quotes, path,isDraw):
     candlestick_ohlc(ax, quotes,width=0.001,colorup='red',colordown='green')
     ax.grid(True)
 
-    plt.setp(plt.gca().get_xticklabels(), rotation=45, horizontalalignment='right')
+    #plt.setp(plt.gca().get_xticklabels(), rotation=45, horizontalalignment='right')
     plt.title(period)
     plt.savefig('%s%s-%s.png'%(folderPath,period,timestamp),dpi=200)
     if isDraw == True:
