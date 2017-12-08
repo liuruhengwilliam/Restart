@@ -56,7 +56,9 @@
     后续可以在数据分析和盈亏展示方面，以及程序的伸缩性和可靠性方面进行继续分析研究。
 
 2017-12-08
-  1.Ubuntu系统安装matplotlib包的经验分享。
-    正确的方法是执行如下命令：sudo apt-get install python-matplotlib。
-	其中，使用命令sudo pip install matplotlib总报错失败。
-	注：Windows环境中，Anaconda2软件包已经配置好相关依赖包和库文件等环境。Anaconda真是个好东东啊！
+  1.Ubuntu系统安装依赖包的经验分享。
+    正确的方法是执行如下命令：sudo apt-get install python-matplotlib/pandas。
+    其中，使用命令sudo pip install matplotlib总报错失败。
+    注：Windows环境中，Anaconda2软件包已经配置好相关依赖包和库文件等环境。Anaconda真是个好东东啊！
+  2.Ubuntu系统的matplotlib包版本太低（比如1.3.1），会导致matplotlib.finance中的相关接口函数无法调用。需要升级matplotlib包（比如2.0.2版本）。
+    升级方法：sudo pip install --upgrade matplotlib
