@@ -51,9 +51,9 @@ def supplement_quotes(path,dataWithID,supplementCnt):
         someday = datetime.date.today() - datetime.timedelta(weeks=weekGap)
         year,week = someday.strftime('%Y'),someday.strftime('%U')
         if (platform.system() == "Windows"):
-            preDBfile = '\\'.join(segment[:-3]+['%s-%s'%(year,week),'%s'%period])
+            preDBfile = '\\'.join(segment[:-2]+['%s-%s'%(year,week),'%s'%period])
         else:
-            preDBfile = '/'.join(segment[:-3]+['%s-%s'%(year,week),'%s'%period])
+            preDBfile = '/'.join(segment[:-2]+['%s-%s'%(year,week),'%s'%period])
 
         if not os.path.exists(preDBfile): #若回溯文件完毕，则退出循环。
             break
