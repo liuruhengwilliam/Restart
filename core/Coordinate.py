@@ -58,7 +58,8 @@ class Coordinate():
         if Constant.exit_on_weekend(self.week):
             sys.exit()
         # 通过定时器编号获取当前到期的周期序号(defined in Constant.py)
-        index = int(((threading.currentThread().getName()).split('-'))[1]) - 1
+        tmName = threading.currentThread().getName()
+        index = Constant.QUOTATION_DB_PREFIX.index(tmName)
 
         self.dbQuotationHdl.update_period_db(index)
         DrawingKit.record_candlestick(self.path, index)
