@@ -38,7 +38,13 @@ def envi_init():
 
 # =========================================================================================
 # 蜡烛图相关
-CANDLESTICK_DEFAULT_CNT = 200 # 每张蜡烛图片文件默认展示200根K线
+BIG_SCALE_CANDLESTICK_DEFAULT_CNT = (180,) # 大尺度时间周期的蜡烛图默认数目
+MEDIUM_SCALE_CANDLESTICK_DEFAULT_CNT = (150,) # 中尺度时间周期的蜡烛图默认数目
+SMALL_SCALE_CANDLESTICK_DEFAULT_CNT = (120,) # 大尺度时间周期的蜡烛图默认数目
+# 按照周期定时器的次序定义尺度
+CANDLESTICK_PERIOD_CNT = (SMALL_SCALE_CANDLESTICK_DEFAULT_CNT*4 + \
+                          MEDIUM_SCALE_CANDLESTICK_DEFAULT_CNT*4 + \
+                          BIG_SCALE_CANDLESTICK_DEFAULT_CNT*3)
 # =========================================================================================
 # https://www.ricequant.com/community/topic/2393/
 # K线组合形态
