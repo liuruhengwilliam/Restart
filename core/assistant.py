@@ -3,7 +3,7 @@
 import platform
 import sys
 import os
-#from resource import Configuration
+from resource import Constant
 from quotation import QuotationKit
 from drawing import DrawingKit
 
@@ -20,10 +20,15 @@ if __name__ == '__main__':
         QuotationKit.translate_db_into_csv(filename,int(cnt))
     elif choiceIndex == '2':
         filename = raw_input("file name input: ")
+        tmName = raw_input("period name input:")
+        if Constant.QUOTATION_DB_PREFIX.count(tmName) == 0:
+            print "Error period name!"
+            sys.exit()
+        indx = Constant.QUOTATION_DB_PREFIX.index(tmName)
         if filename.find('.db') != -1:
-            DrawingKit.show_period_candlestick(filename,isDraw=True)
+            DrawingKit.show_period_candlestick(indx,filename,isDraw=True)
         elif filename.find('.csv') != -1:
-            DrawingKit.show_period_candlestick_withCSV(filename,isDraw=True)
+            DrawingKit.show_period_candlestick_withCSV(indx,filename,isDraw=True)
         else:
             print "Error file name input!"
     else:

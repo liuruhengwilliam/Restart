@@ -16,7 +16,7 @@ import DrawingMisc
 from resource import Constant
 from quotation import QuotationKit
 
-def show_candlestick(quotes, path,isDraw):
+def show_candlestick(quotes, path, isDraw):
     """ 内部接口API:
         quotes: 数据序列。参照finance类中candlestick_ohlc()方法的入参说明。
         path: 行情数据库文件路径名（包含蜡烛图的周期名称）。
@@ -74,22 +74,17 @@ def show_candlestick(quotes, path,isDraw):
     if isDraw == True:
         plt.show()
 
-def show_period_candlestick(path,cnt=-1,isDraw=False):
+def show_period_candlestick(index,path,dataWithId,isDraw=False):
     """ 外部接口API:
-        path:行情数据库文件路径
-        period:周期数--定义参见Constant包中QUOTATION_DB_PREFIX元组说明。
-        cnt:蜡烛图中展示的K线数目。默认展示行情数据库文件中所有记录。
+        index:周期序列下标（用于计算蜡烛图展示根数）
+        path:行情数据库文件路径(包含文件名)
+        dataWithId:行情数据库中dateframe结构的数据。
         isDraw:是否展示图画的标志。对于后台运行模式默认不展示。
     """
-    dataWithId = QuotationKit.translate_db_to_df(path, cnt)
-    if dataWithId is None:
-        raise ValueError
-        return
-
-    dataPicked = DrawingMisc.pack_quotes(path,dataWithId)
+    dataPicked = DrawingMisc.process_quotes_drawing_candlestick(index,path,dataWithId)
     show_candlestick(dataPicked,path,isDraw)
 
-def show_period_candlestick_withCSV(path,cnt=-1,isDraw=False):
+def show_period_candlestick_withCSV(index,path,cnt=-1,isDraw=False):
     """ 外部接口API:通过CSV文件进行绘制。
         参数说明类同于show_period_candlestick()方法。
     """
@@ -103,14 +98,6 @@ def show_period_candlestick_withCSV(path,cnt=-1,isDraw=False):
     title = ['id'] + map(lambda x:x , Constant.QUOTATION_STRUCTURE)
     dataframe = DataFrame(data,columns=title)
 
-    # 组装数据再进行加工
-    dataPicked = DrawingMisc.pack_quotes(path,dataframe)
+    # 组装数据进行加工
+    dataPicked = DrawingMisc.process_quotes_drawing_candlestick(index,path,dataframe)
     show_candlestick(dataPicked,path,isDraw)
-
-def record_candlestick(path,periodID):
-    """ 外部接口API: 周期定时器到期时记录保存对应的蜡烛图
-        path: 工作路径
-        periodID: 到期定时器的周期序号
-    """
-    file = path + Constant.QUOTATION_DB_PREFIX[periodID] + '.db'
-    show_period_candlestick(file)

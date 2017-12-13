@@ -8,6 +8,7 @@ from resource import Constant
 from resource import ExceptDeal
 from scrape import DataScrape
 from drawing import DrawingKit
+from quotation import QuotationKit
 from earnrate.EarnrateDB import *
 from quotation.QuotationDB import *
 from quotation.QuotationRecord import *
@@ -18,7 +19,7 @@ class Coordinate():
     """
     def __init__(self):
         self.week = (datetime.datetime.now()).strftime('%U')# 本周周数记录
-        self.path = Configuration.get_working_directory()
+        self.path = Configuration.get_working_directory() #当前周工作路径
         # Quotation record Handle
         self.recordHdl = QuotationRecord(Constant.UPDATE_PERIOD_FLAG)
         # Quotation DB Handle
@@ -57,10 +58,17 @@ class Coordinate():
             return
         if Constant.exit_on_weekend(self.week):
             sys.exit()
-        # 通过定时器编号获取当前到期的周期序号(defined in Constant.py)
+        # 通过定时器名称获取当前到期的周期序号(defined in Constant.py)
         tmName = threading.currentThread().getName()
         index = Constant.QUOTATION_DB_PREFIX.index(tmName)
 
         self.dbQuotationHdl.update_period_db(index)
-        DrawingKit.record_candlestick(self.path, index)
+
+        file = self.path + tmName + '.db' # 拼装文件路径和文件名
+        dataWithId = QuotationKit.translate_db_to_df(file)
+        if dataWithId is None:
+            raise ValueError
+            return
+
+        DrawingKit.show_period_candlestick(index,file,dataWithId)
         # 各周期定时器到期之后，可根据需求调用策略算法模块的接口API对本周期数据进行计算。
