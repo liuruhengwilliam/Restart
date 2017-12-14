@@ -81,6 +81,9 @@ def show_period_candlestick(index,path,dataWithId,isDraw=False):
         dataWithId:行情数据库中dateframe结构的数据。
         isDraw:是否展示图画的标志。对于后台运行模式默认不展示。
     """
+    # 为降低系统负荷和增加实时性，对于零/小尺度周期的蜡烛图不再实时绘制
+    if Constant.SCALE_CANDLESTICK[index] < Constant.DEFAULT_SCALE_CANDLESTICK_SHOW:
+        return
     dataPicked = DrawingMisc.process_quotes_drawing_candlestick(index,path,dataWithId)
     show_candlestick(dataPicked,path,isDraw)
 

@@ -36,7 +36,7 @@ def process_quotes_drawing_candlestick(index,path,dataWithID):
         index:周期序列的下标
         path：数据库文件全路径（包含文件名，蜡烛图文件保存路径同目录）
         dataWithID: dataframe结构的数据
-        返回值: sequence of (time, open, high, low, close, ...) sequences
+        返回值: numpy.array结构数据(time, open, high, low, close)
     """
     dataCnt = dataWithID.iloc[-1:]['id']
     gap = int(dataCnt)-Constant.CANDLESTICK_PERIOD_CNT[index]

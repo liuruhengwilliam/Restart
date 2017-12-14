@@ -20,7 +20,7 @@ def get_date_code():
     month,day = dt.strftime('%m'),dt.strftime('%d')
     return MONTH_CODE[int(month)-1]+DAY_CODE[int(day)-1]
 
-VERSION_CODE = 'V0.6.3'
+VERSION_CODE = 'V0.6.4'
 def get_version_info():
     """ 内/外部接口API: """
     return VERSION_CODE + get_date_code() + "\n" + \
@@ -38,6 +38,16 @@ def envi_init():
 
 # =========================================================================================
 # 蜡烛图相关
+# 各种周期的尺度定义
+ZERO_SCALE_CANDLESTICK = (0,)
+SMALL_SCALE_CANDLESTICK = (1,)
+MEDIUM_SCALE_CANDLESTICK = (2,)
+BIG_SCALE_CANDLESTICK = (3,)
+SCALE_CANDLESTICK = (ZERO_SCALE_CANDLESTICK*2+SMALL_SCALE_CANDLESTICK*2+\
+                     MEDIUM_SCALE_CANDLESTICK*4+BIG_SCALE_CANDLESTICK*3)
+# 展示蜡烛图的默认尺度
+DEFAULT_SCALE_CANDLESTICK_SHOW = 1
+
 BIG_SCALE_CANDLESTICK_DEFAULT_CNT = (180,) # 大尺度时间周期的蜡烛图默认数目
 MEDIUM_SCALE_CANDLESTICK_DEFAULT_CNT = (150,) # 中尺度时间周期的蜡烛图默认数目
 SMALL_SCALE_CANDLESTICK_DEFAULT_CNT = (120,) # 大尺度时间周期的蜡烛图默认数目
@@ -60,6 +70,12 @@ STRATEGY_CANDLESTICK = ('CDL2CROWS','CDL3BLACKCROWS','CDL3INSIDE','CDL3LINESTRIK
                         'CDLRISEFALL3METHODS','CDLSEPARATINGLINES','CDLSHOOTINGSTAR','CDLSHORTLINE','CDLSPINNINGTOP',\
                         'CDLSTALLEDPATTERN','CDLSTICKSANDWICH','CDLTAKURI','CDLTASUKIGAP','CDLTHRUSTING','CDLTRISTAR',\
                         'CDLUNIQUE3RIVER','CDLUPSIDEGAP2CROWS','CDLXSIDEGAP3METHODS')
+
+# K线组合形态的样本数量
+STRATEGY_CANDLESTICK_CNT = (SMALL_SCALE_CANDLESTICK_DEFAULT_CNT*4 + \
+                          MEDIUM_SCALE_CANDLESTICK_DEFAULT_CNT*4 + \
+                          BIG_SCALE_CANDLESTICK_DEFAULT_CNT*3)
+
 # 均线
 STRATEGY_MEANLINE = ()
 #=================================================================================
