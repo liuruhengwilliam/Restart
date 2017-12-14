@@ -5,6 +5,7 @@ import requests
 import re
 import traceback
 import DataSource
+from resource import Configuration
 
 def deal_with_query():
     """ 汇通网数据抓取处理函数 """
@@ -32,6 +33,7 @@ def deal_with_query():
     except (Exception),e:
         exc_type,exc_value,exc_tb = sys.exc_info()
         traceback.print_exception(exc_type, exc_value, exc_tb)
+        traceback.print_exc(file=open(Configuration.get_working_directory()+'trace.txt','a'))
     finally:
         return ret_list
 
