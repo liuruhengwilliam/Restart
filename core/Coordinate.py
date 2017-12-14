@@ -12,6 +12,7 @@ from quotation import QuotationKit
 from earnrate.EarnrateDB import *
 from quotation.QuotationDB import *
 from quotation.QuotationRecord import *
+from strategy import Strategy
 
 class Coordinate():
     """
@@ -52,19 +53,22 @@ class Coordinate():
             self.recordHdl.update_dict_record(infoList)
 
     def work_operation(self):
-        """ 慢速定时器组回调函数 : 更新行情数据库和策略算法计算 """
-        # 全球市场结算时间不更新数据库
-        if Constant.is_closing_market():
-            return
-        if Constant.exit_on_weekend(self.week):
-            sys.exit()
+        """ 外部接口API: 慢速定时器组回调函数--更新行情数据库和策略算法计算 """
         # 通过定时器名称获取当前到期的周期序号(defined in Constant.py)
         tmName = threading.currentThread().getName()
         index = Constant.QUOTATION_DB_PREFIX.index(tmName)
 
+        file = self.path + tmName + '.db' # 拼装文件路径和文件名
+
+        # 全球市场结算时间不更新数据库
+        if Constant.is_closing_market():
+            QuotationKit.translate_db_into_csv(file)# 当日结算
+            return
+        if Constant.exit_on_weekend(self.week):
+            sys.exit()
+
         self.dbQuotationHdl.update_period_db(index)
 
-        file = self.path + tmName + '.db' # 拼装文件路径和文件名
         dataWithId = QuotationKit.translate_db_to_df(file)
         if dataWithId is None:
             raise ValueError
@@ -72,3 +76,4 @@ class Coordinate():
 
         DrawingKit.show_period_candlestick(index,file,dataWithId)
         # 各周期定时器到期之后，可根据需求调用策略算法模块的接口API对本周期数据进行计算。
+        Strategy.check_strategy(index,file,dataWithId)
