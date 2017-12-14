@@ -32,7 +32,7 @@ class LoopTimer(threading.Thread):
         while True:
             time.sleep(float(self.period))
             self.func()
-            self.dump()
+            #self.dump()
 
     def dump(self):
         Trace.output('info',"Timer %s"%threading.currentThread().getName()+\
