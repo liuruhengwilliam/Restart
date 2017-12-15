@@ -12,12 +12,15 @@ from resource import Constant
 from resource import Primitive
 from resource import Trace
 
-def translate_db_into_csv(dbFile, lineCnt):
+def translate_db_into_csv(dbFile, lineCnt=-1):
     """ 外部接口API:将db文件转换成同名同路径的csv文件
         dbFile: db文件名（含文件路径）
         lineCnt: 截取db条目数目。注：‘-1’表示全部转换。
     """
-    csvFile = file(dbFile.split('.')[0] + '.csv', 'wb')
+    csvFile = file(dbFile.split('.')[0] + str(datetime.date.today()) + '.csv', 'wb')
+    if os.path.exists(csvFile):
+        return
+
     csvWriter = csv.writer(csvFile, dialect='excel')
 
     # 写入抬头信息
