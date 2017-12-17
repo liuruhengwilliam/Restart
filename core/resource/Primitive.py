@@ -24,8 +24,8 @@ QUOTATION_DB_QUERY_DESC = 'select * from quotation order by id desc'
 # 策略点后盈亏值的时间统计:（最大值及时间/最小值及时间/5min/15min/30min/1hour/2hour/4hour/6hour/12hour/1day/1week）
 EARNRATE_DB_CREATE = 'create table earnrate(\
     id integer primary key autoincrement not null default 1,\
-    direction int, price float,time float, patternName text,\
-    Dtrm int, maxEarn float, maxEarnTime float, minEarn float,minEarnTime float,\
+    direction int, price float,time float, Dtrm int, patternName text,\
+    maxEarn float, maxEarnTime float, minEarn float,minEarnTime float,\
     M5Earn float, M15Earn float, M30Earn float, H1Earn float, H2Earn float,\
     H4Earn float, H6Earn float, H12Earn float, D1Earn float, W1Earn float);'
 

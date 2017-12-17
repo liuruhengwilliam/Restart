@@ -15,10 +15,10 @@ def main():
 
     coordinate.init_module()
 
-    funcList = [] # 回调函数列表
     # 数据抓取模块和行情数据库模块挂载到周期定时器
-    funcList.append(coordinate.work_heartbeat)
-    funcList.extend([coordinate.work_operation]*10)
+    HBfuncHook = (coordinate.work_heartbeat,) # 心跳定时器处理回调函数
+    PeriodfuncHook = (coordinate.work_operation,) # 一般周期定时器处理回调函数
+    funcList = (HBfuncHook + PeriodfuncHook*8) # 回调函数列表
 
     # 周期定时器线程启动
     TimerMotor.start_loop_timer(funcList,Constant.QUOTATION_DB_PERIOD)

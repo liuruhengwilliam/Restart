@@ -12,8 +12,8 @@ from resource import Trace
 
 class QuotationDB():
     """ 行情数据库类 """
-    def __init__(self,filePath,flagList,recordDict):
-        self.filePath = filePath
+    def __init__(self,workPath,flagList,recordDict):
+        self.workPath = workPath
         self.updatePeriodFlag = flagList
         self.recordPeriodDict = recordDict
 
@@ -21,8 +21,8 @@ class QuotationDB():
         """ 外部接口API: 创建数据库文件：行情数据库 (ER数据库可仿效) """
         for tagPeriod in list(Constant.QUOTATION_DB_PREFIX):
             # 生成各周期时间数据库文件。10sec.db数据库文件冗余（忽略）。
-            isExist = os.path.exists(self.filePath + tagPeriod+'.db')
-            db = sqlite3.connect(self.filePath + tagPeriod+'.db')
+            isExist = os.path.exists(self.workPath + tagPeriod+'.db')
+            db = sqlite3.connect(self.workPath + tagPeriod+'.db')
             dbCursor = db.cursor()
             #First: create db if empty
             if not isExist:
@@ -54,7 +54,7 @@ class QuotationDB():
             index:根据定时器线程名称中的编号找到对应数据库文件
         """
         #组装对应数据库文件路径
-        dbFile = self.filePath+Constant.QUOTATION_DB_PREFIX[index]+'.db'
+        dbFile = self.workPath+Constant.QUOTATION_DB_PREFIX[index]+'.db'
         #挑取对应周期字典项
         priceDict = self.recordPeriodDict[Constant.QUOTATION_DB_PREFIX[index]]
         #字典项转换成列表项
