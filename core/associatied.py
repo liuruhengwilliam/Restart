@@ -17,6 +17,8 @@ import requests
 import matplotlib.pyplot as plt
 import xml.etree.ElementTree as ET
 #from resource import Primitive
+from strategy import Strategy
+from quotation import QuotationKit
 
 event = threading.Event()
 QUOTATION_DB_PREFIX = ['5min','15min','30min','1hour','2hour','4hour','6hour','12hour','1day','1week']
@@ -55,15 +57,15 @@ def db_test():
     dbCursor = db.cursor()
     try:
         #results = dbCursor.execute(QUERY_ALL_SQL)
-        results = dbCursor.execute(Primitive.QUOTATION_DB_QUERY_DESC)
-        #ret = results.fetchall()
-        ret = results.fetchmany(1)
+        results = dbCursor.execute('select * from quotation order by id desc')
+        ret = results.fetchall()
+        #ret = results.fetchmany(1)
     except (Exception),e:
         print "query in quotation db Exception: " + e.message
     db.commit()
     dbCursor.close()
     db.close()
-    print ret
+    print ret, len(ret), max(list(ret[0]))
     return ret
 
 def datetime_test():
@@ -137,6 +139,14 @@ def talib_sma_test():
     output = talib.abstract.SMA(data_analyse, timeperiod=20, price='open')
     print (output)
 
+def talib_pattern_15min():
+    file = 'F:\\code\\python\\RESTART\\core\\2017-51\\15min.db' # 拼装文件路径和文件名
+    dataWithId = QuotationKit.translate_db_to_df(file)
+    if dataWithId is None:
+        raise ValueError
+        return
+
+    Strategy.check_strategy(2,file,dataWithId)
 
 def get_property():
     """ 内部接口API：根据XML配置文件读取相关属性字段 """
@@ -166,15 +176,16 @@ def query_info():
     """东方财富网"""
     unknow_timestamp = "17209736178267005318"
     time_tick_beijin = (int(time.time()))*1000
-    print (time_tick_beijin)
+    #print (time_tick_beijin)
     ret_timestamp = time.strftime("%Y-%m-%d %H:%M:%S",time.localtime())
     ret_price = ''
 
-    eastmoney_url = "http://nufm.dfcfw.com/EM_Finance2014NumericApplication/JS.aspx?type=CT&cmd=C._SG&sty=MPNSBAS&st=c&sr=-1&p=1&ps=5&cb=jQuery%s_%s&js=([(x)])&token=7bc05d0d4c3c22ef9fca8c2a912d779c"%(unknow_timestamp,str(time_tick_beijin))
-    r = requests.get(eastmoney_url)
+    #eastmoney_url = "http://nufm.dfcfw.com/EM_Finance2014NumericApplication/JS.aspx?type=CT&cmd=C._SG&sty=MPNSBAS&st=c&sr=-1&p=1&ps=5&cb=jQuery%s_%s&js=([(x)])&token=7bc05d0d4c3c22ef9fca8c2a912d779c"%(unknow_timestamp,str(time_tick_beijin))
+    hexun_url = 'http://quote.forex.hexun.com/ForexXML/QTMI_CUR3/QTMI_CUR3_5_xagusd.xml?0.8608891293406487&ts=1511505692039'
+    r = requests.get(hexun_url)
     print r.text
     info_content = r.text.split('(')[1].split(')')[0]
-    print info_content
+    #print info_content
     #print (info_content.split('%"'))
     for item in (info_content.split('%"')):
         #print (item)
@@ -195,10 +206,13 @@ def home_dir():
     
 if __name__ == '__main__':
     #csv_test(db_test())
+    #db_test()
     #file_test()
     #talib_sma_test()
     #query_info()
     #get_property()
     #db_test()
-    home_dir()
+    #home_dir()
+    #datetime_test()
+    talib_pattern_15min()
     sys.exit()
