@@ -13,10 +13,12 @@ def process_quotes_candlestick_pattern(index,file,dataWithID):
         返回值：dateframe结构数据
     """
     dataCnt = dataWithID.iloc[-1:]['id']
-    gap = Constant.STRATEGY_CANDLESTICK_CNT[index] - int(dataCnt)
+    gap = Constant.CANDLESTICK_PATTERN_CNT[index] - int(dataCnt)
+
     if gap > 0:# 要补齐蜡烛图中K线数目
         dataWithID = QuotationKit.supplement_quotes(file,dataWithID,int(gap))
+    else:# 截取指定数目记录。从第（dataCnt - Constant.CANDLESTICK_PATTERN_CNT[index]）行到最后一行
+        dataWithID = dataWithID[int(abs(gap)):]
 
     #dataWithID.drop(dataWithID.columns[0:1], axis=1, inplace=True)#抛弃'id'栏
-
     return dataWithID
