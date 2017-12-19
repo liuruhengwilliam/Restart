@@ -1,7 +1,8 @@
 #coding=utf-8
-
+import sys
 import csv
 import sqlite3
+import traceback
 import platform
 if (platform.system() == "Linux"):#适配Linux系统下运行环境
     import matplotlib
@@ -14,6 +15,7 @@ from matplotlib.dates import DateFormatter
 from matplotlib.dates import MinuteLocator,HourLocator,DayLocator,WeekdayLocator
 import DrawingMisc
 from resource import Constant
+from resource import Configuration
 from quotation import QuotationKit
 
 def show_candlestick(quotes, path, isDraw):
@@ -62,17 +64,26 @@ def show_candlestick(quotes, path, isDraw):
     ax.xaxis.set_major_locator(axLocatorList[index])
     ax.xaxis.set_major_formatter(axFormatterList[index])
 
-    # 设置坐标横轴的起止位置。参见numpy.ndarray类的处理方法。
-    ax.set_xlim([quotes.item(0,0),quotes.item(-1,0)])
-    candlestick_ohlc(ax, quotes,width=0.001,colorup='red',colordown='green')
-    ax.grid(True)
+    try:
+        # 设置坐标横轴的起止位置。参见numpy.ndarray类的处理方法。
+        ax.set_xlim([quotes.item(0,0),quotes.item(-1,0)])
+        candlestick_ohlc(ax, quotes,width=0.001,colorup='red',colordown='green')
+        # 坐标横轴锚定数目太多，为避免报错直接返回。
+        if len(ax.get_xticklabels()) >= max(Constant.CANDLESTICK_PERIOD_CNT):
+            return
 
-    if (platform.system() == "Windows"):#Linux环境下不进行下列优化
-        plt.setp(plt.gca().get_xticklabels(), rotation=45, horizontalalignment='right')
-    plt.title(period)
-    plt.savefig('%s%s-%s.png'%(folderPath,period,timestamp),dpi=200)
-    if isDraw == True:
-        plt.show()
+        ax.grid(True)
+
+        if (platform.system() == "Windows"):#Linux环境下不进行下列优化
+            plt.setp(ax.get_xticklabels(), rotation=45, horizontalalignment='right')
+        plt.title(period)
+        plt.savefig('%s%s-%s.png'%(folderPath,period,timestamp),dpi=200)
+        if isDraw == True:
+            plt.show()
+    except (Exception),e:
+        exc_type,exc_value,exc_tb = sys.exc_info()
+        traceback.print_exception(exc_type, exc_value, exc_tb)
+        traceback.print_exc(file=open(Configuration.get_working_directory()+'trace.txt','a'))
 
 def show_period_candlestick(index,path,dataWithId,isDraw=False):
     """ 外部接口API:
