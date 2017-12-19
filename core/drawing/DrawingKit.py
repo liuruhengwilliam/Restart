@@ -2,6 +2,7 @@
 import sys
 import csv
 import sqlite3
+import datetime
 import traceback
 import platform
 if (platform.system() == "Linux"):#适配Linux系统下运行环境
@@ -18,14 +19,12 @@ from resource import Constant
 from resource import Configuration
 from quotation import QuotationKit
 
-def show_candlestick(quotes, path, isDraw):
+def show_candlestick(quotes, periodName, isDraw):
     """ 内部接口API:
         quotes: 数据序列。参照finance类中candlestick_ohlc()方法的入参说明。
-        path: 行情数据库文件路径名（包含蜡烛图的周期名称）。
+        periodName: 周期名称的字符串。
     """
     # 定义相关周期坐标的锚定对象。为了显示清楚锚定值要大于本周期值。
-    folderPath,period,timestamp = DrawingMisc.save_candlestick_misc(path)
-
     fiveMinLocator = MinuteLocator(interval=30)
     fifteenMinLocator = MinuteLocator(interval=60)
     thirtyMinLocator = MinuteLocator(interval=120)
@@ -59,7 +58,7 @@ def show_candlestick(quotes, path, isDraw):
     fig.subplots_adjust(bottom=0.2)
 
     # 获取序号--坐标横轴的锚定对象和格式对象列表下标。
-    index = Constant.QUOTATION_DB_PREFIX.index(period)
+    index = Constant.QUOTATION_DB_PREFIX.index(periodName)
 
     ax.xaxis.set_major_locator(axLocatorList[index])
     ax.xaxis.set_major_formatter(axFormatterList[index])
@@ -76,8 +75,9 @@ def show_candlestick(quotes, path, isDraw):
 
         if (platform.system() == "Windows"):#Linux环境下不进行下列优化
             plt.setp(ax.get_xticklabels(), rotation=45, horizontalalignment='right')
-        plt.title(period)
-        plt.savefig('%s%s-%s.png'%(folderPath,period,timestamp),dpi=200)
+        plt.title(periodName)
+        timestamp = datetime.datetime.now().strftime('%b%d_%H_%M')
+        plt.savefig('%s%s-%s.png'%(Configuration.get_period_working_folder(periodName),periodName,timestamp),dpi=200)
         if isDraw == True:
             plt.show()
     except (Exception),e:
@@ -85,18 +85,18 @@ def show_candlestick(quotes, path, isDraw):
         traceback.print_exception(exc_type, exc_value, exc_tb)
         traceback.print_exc(file=open(Configuration.get_working_directory()+'trace.txt','a'))
 
-def show_period_candlestick(index,path,dataWithId,isDraw=False):
+def show_period_candlestick(periodName,dataWithId,isDraw=False):
     """ 外部接口API:
-        index:周期序列下标（用于计算蜡烛图展示根数）
-        path:行情数据库文件路径(包含文件名)
+        periodName:周期名称的字符串（用于计算蜡烛图展示根数）
         dataWithId:行情数据库中dateframe结构的数据。
         isDraw:是否展示图画的标志。对于后台运行模式默认不展示。
     """
     # 为降低系统负荷和增加实时性，对于零/小尺度周期的蜡烛图不再实时绘制
-    if Constant.SCALE_CANDLESTICK[index] < Constant.DEFAULT_SCALE_CANDLESTICK_SHOW:
+    indx = Constant.QUOTATION_DB_PREFIX.index(periodName)
+    if Constant.SCALE_CANDLESTICK[indx] < Constant.DEFAULT_SCALE_CANDLESTICK_SHOW:
         return
-    dataPicked = DrawingMisc.process_quotes_drawing_candlestick(index,path,dataWithId)
-    show_candlestick(dataPicked,path,isDraw)
+    dataPicked = DrawingMisc.process_quotes_drawing_candlestick(periodName,dataWithId)
+    show_candlestick(dataPicked,periodName,isDraw)
 
 def show_period_candlestick_withCSV(index,path,cnt=-1,isDraw=False):
     """ 外部接口API:通过CSV文件进行绘制。

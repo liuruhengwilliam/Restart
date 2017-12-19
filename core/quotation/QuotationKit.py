@@ -4,10 +4,10 @@ import os
 import csv
 import sqlite3
 import datetime
-import platform
 import numpy as np
 import pandas as pd
 from pandas import DataFrame
+from resource import Configuration
 from resource import Constant
 from resource import Primitive
 from resource import Trace
@@ -91,32 +91,17 @@ def translate_db_to_df(dbFile, lineCnt=-1):
     dataframe = DataFrame(ret,columns=title)
     return dataframe
 
-def supplement_quotes(path,dataWithID,supplementCnt):
+def supplement_quotes(periodName,dataWithID,supplementCnt):
     """ 外部接口API：补齐某个数目的行情序列。不考虑*.csv格式文件转换（可手动编辑）。
-        path：当前周期数据库文件夹路径（包含文件名）
+        periodName：周期名称字符串
         dataWithID: 当前周期行情数据库文件的dataframe结构数据
         supplementCnt: 需要增补的数目
         返回值: 增补后的dateframe结构行情数据
     """
     quotes = np.array(dataWithID.ix[:])
-    if (platform.system() == "Windows"):
-        segment = path.split('\\')
-    else:
-        segment = path.split('/')
-
-    if len(segment) < 2:# 数据库文件路径异常
-        return dataWithID
-
-    period = segment[-1] # 获取当前周期的数据库文件名 e.g: 5min.db
     weekGap = 1 # 从前一周开始搜索
     while supplementCnt > 0:
-        someday = datetime.date.today() - datetime.timedelta(weeks=weekGap)
-        year,week = someday.strftime('%Y'),someday.strftime('%U')# 获取前一周的年份和周数
-        if (platform.system() == "Windows"):
-            preDBfile = '\\'.join(segment[:-2]+['%s-%s'%(year,week),'%s'%period])
-        else:
-            preDBfile = '/'.join(segment[:-2]+['%s-%s'%(year,week),'%s'%period])
-
+        preDBfile = Configuration.get_backweek_period_directory(weekGap, periodName)+periodName+'.db'
         if not os.path.exists(preDBfile): #若回溯文件完毕，则退出循环。
             break
 

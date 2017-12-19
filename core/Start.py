@@ -1,12 +1,14 @@
 #coding=utf-8
 
 from resource import Constant
-Constant.envi_init()#初始化杂项
-
 import threading
 from Coordinate import *
 from timer import TimerMotor
 from resource import Constant
+
+Configuration.create_working_directory() #创建当周工作目录
+Configuration.create_period_working_folder() #创建各周期属性文件夹
+Constant.envi_init()#初始化杂项
 
 def main():
     """执行模块"""

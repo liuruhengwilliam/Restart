@@ -19,13 +19,14 @@ class Coordinate():
         协作类:衔接“数据抓取”、“行情数据库”、“策略算法”模块，协同工作。
     """
     def __init__(self):
-        self.week = (datetime.datetime.now()).strftime('%U')# 本周周数记录
-        self.workPath = Configuration.get_working_directory() #当前周工作路径
+        self.week = (datetime.datetime.now()).strftime('%U')#本周周数记录
+        self.workPath = Configuration.get_working_directory() #获取当前周工作路径
+
         # Quotation record Handle
         self.recordHdl = QuotationRecord(Constant.UPDATE_PERIOD_FLAG)
+        self.recordDict = self.recordHdl.get_record_dict()
         # Quotation DB Handle
-        self.dbQuotationHdl = QuotationDB(self.workPath,Constant.UPDATE_PERIOD_FLAG,\
-                                          self.recordHdl.get_record_dict())
+        self.dbQuotationHdl = QuotationDB(Constant.UPDATE_PERIOD_FLAG,self.recordDict)
         # Earnrate DB Handle
         self.dbEarnrateHdl = EarnrateDB(self.workPath)
 
@@ -59,8 +60,8 @@ class Coordinate():
         # 通过定时器名称获取当前到期的周期序号(defined in Constant.py)
         tmName = threading.currentThread().getName()
         indx = Constant.QUOTATION_DB_PREFIX.index(tmName)
-
-        file = self.workPath + tmName + '.db' # 拼装文件路径和文件名
+        #拼装文件路径和文件名
+        file = Configuration.get_period_working_folder(tmName)+tmName+'.db'
 
         # 全球市场结算时间不更新数据库
         if Constant.is_closing_market():# 当日结算
@@ -69,23 +70,23 @@ class Coordinate():
         if Constant.exit_on_weekend(self.week):
             return
 
-        self.dbQuotationHdl.update_period_db(indx) #更新行情数据库
+        self.dbQuotationHdl.update_period_db(tmName) #更新行情数据库
 
         dataWithId = QuotationKit.translate_db_to_df(file)
         if dataWithId is None:
             raise ValueError
             return
 
-        DrawingKit.show_period_candlestick(indx,file,dataWithId) #转蜡烛图文件存档
+        DrawingKit.show_period_candlestick(tmName,dataWithId) #转蜡烛图文件存档
         # 各周期定时器到期之后，可根据需求调用策略算法模块的接口API对本周期数据进行计算。
-        Strategy.check_strategy(indx,file,dataWithId)
+        Strategy.check_strategy(tmName,dataWithId)
 
     def deal_day_closing(self):
         """ 内部接口API: 每日闭市时相关处理。挂载在心跳定时器回调函数中 """
         index1day = Constant.QUOTATION_DB_PREFIX.index('1day')
-        file1day = self.workPath + '1day.db'
+        file1day = Configuration.get_period_working_folder('1day')+'1day.db'
 
-        self.dbQuotationHdl.update_period_db(index1day)
+        self.dbQuotationHdl.update_period_db('1day')
         #转csv和蜡烛图文件存档的工作在周结算期统一完成。
         dataWithId = QuotationKit.translate_db_to_df(file1day)
         if dataWithId is None:
@@ -98,18 +99,20 @@ class Coordinate():
     def deal_week_closing(self):
         """ 内部接口API: 每周闭市时相关处理。挂载在心跳定时器回调函数中 """
         #对于所有周期（心跳周期除外）进行更新
-        for indexPeriod in range(1,len(Constant.QUOTATION_DB_PREFIX)):
-            self.dbQuotationHdl.update_period_db(indexPeriod) #更新行情数据库
+        for tmName in Constant.QUOTATION_DB_PREFIX[1:]:
+            self.dbQuotationHdl.update_period_db(tmName) #更新行情数据库
 
-            tmName = Constant.QUOTATION_DB_PREFIX[indexPeriod]
-            QuotationKit.translate_db_into_csv(self.workPath+tmName+'.db') #转csv文件存档
+            filePath = Configuration.get_period_working_folder(tmName)+tmName+'.db'
+            #转csv文件存档
+            QuotationKit.translate_db_into_csv(filePath)
 
-            dataWithId = QuotationKit.translate_db_to_df(self.workPath+tmName+'.db')
+            dataWithId = QuotationKit.translate_db_to_df(filePath)
             if dataWithId is None:
                 raise ValueError
                 return
             #绘制蜡烛图文件存档
-            DrawingKit.show_period_candlestick(indexPeriod, self.workPath+tmName+'.db', dataWithId)
+            indexPeriod = Constant.QUOTATION_DB_PREFIX.index(tmName)
+            DrawingKit.show_period_candlestick(indexPeriod, filePath, dataWithId)
 
             #策略计算
             #Strategy.check_strategy(indexPeriod, self.workPath + tmName + '.db', dataWithId)
