@@ -26,7 +26,8 @@ if __name__ == '__main__':
             sys.exit()
         indx = Constant.QUOTATION_DB_PREFIX.index(tmName)
         if filename.find('.db') != -1:
-            DrawingKit.show_period_candlestick(indx,filename,isDraw=True)
+            dataWithId = QuotationKit.translate_db_to_df(filename)
+            DrawingKit.show_period_candlestick(indx,filename,dataWithId,isDraw=True)
         elif filename.find('.csv') != -1:
             DrawingKit.show_period_candlestick_withCSV(indx,filename,isDraw=True)
         else:
