@@ -44,11 +44,12 @@ class Coordinate():
         """ 快速定时器(心跳定时器)回调函数 : 数据抓取模块和行情数据库线程(缓冲字典)之间协同工作函数 """
         # 全球市场结算期间不更新缓冲记录
         if Constant.is_closing_market():
-            self.deal_day_closing()
+            self.work_period_details('1day')#此时处理‘1day’周期的相关内容
             return
-        if Constant.exit_on_weekend(self.week):
-            self.deal_week_closing()
-            return
+        if Constant.exit_on_weekend(self.week):#此时处理所有周期的相关内容
+            for periodName in Constant.QUOTATION_DB_PREFIX[1:]:
+                self.work_period_details(periodName)
+            os._exit() #退出Python程序
 
         # 数据抓取并筛选
         infoList = DataScrape.query_info()
@@ -57,66 +58,32 @@ class Coordinate():
 
     def work_operation(self):
         """ 外部接口API: 慢速定时器组回调函数--更新行情数据库和策略算法计算 """
-        # 通过定时器名称获取当前到期的周期序号(defined in Constant.py)
+        # 定时器名称即是周期名称(defined in Constant.py)
         tmName = threading.currentThread().getName()
-        indx = Constant.QUOTATION_DB_PREFIX.index(tmName)
-        #拼装文件路径和文件名
-        file = Configuration.get_period_working_folder(tmName)+tmName+'.db'
+        self.work_period_details(tmName)
 
-        # 全球市场结算时间不更新数据库
-        if Constant.is_closing_market():# 当日结算
-            QuotationKit.translate_db_into_csv(file) #转csv文件存档
-            self.recordHdl.reset_dict_record(tmName) #对应周期的行情记录缓存及标志复位
+        #盈亏数据库的操作......
+
+    def work_period_details(self,periodName):
+        """ 内部接口API: 某周期的处理细节。
+            1.是否结算期及相关处理（转存csv文件和复位相关缓存）；2.更新行情数据库；
+            3.行情数据转dateframe格式文件；4.绘制蜡烛图（若需要）；5.调用策略模块进行计算（若需要）
+        """
+        filename = Configuration.get_period_working_folder(periodName)+periodName+'.db'
+
+        #结算期间止于此，不更新行情数据库
+        if Constant.is_closing_market() or Constant.exit_on_weekend(self.week):
+            QuotationKit.translate_db_into_csv(filename) #转csv文件存档
+            self.recordHdl.reset_dict_record(periodName) #对应周期的行情记录缓存及标志复位
             return
-        if Constant.exit_on_weekend(self.week):
-            return
 
-        self.dbQuotationHdl.update_period_db(tmName) #更新行情数据库
-
-        dataWithId = QuotationKit.translate_db_to_df(file)
+        self.dbQuotationHdl.update_period_db(periodName) #更新行情数据库
+        dataWithId = QuotationKit.translate_db_to_df(filename)
         if dataWithId is None:
             raise ValueError
             return
 
-        DrawingKit.show_period_candlestick(tmName,dataWithId) #转蜡烛图文件存档
-        # 各周期定时器到期之后，可根据需求调用策略算法模块的接口API对本周期数据进行计算。
-        Strategy.check_strategy(tmName,dataWithId)
-
-    def deal_day_closing(self):
-        """ 内部接口API: 每日闭市时相关处理。挂载在心跳定时器回调函数中 """
-        index1day = Constant.QUOTATION_DB_PREFIX.index('1day')
-        file1day = Configuration.get_period_working_folder('1day')+'1day.db'
-
-        self.dbQuotationHdl.update_period_db('1day')
-        self.recordHdl.reset_dict_record('1day') #对应周期的行情记录缓存及标志复位
-        #转csv和蜡烛图文件存档的工作在周结算期统一完成。
-        dataWithId = QuotationKit.translate_db_to_df(file1day)
-        if dataWithId is None:
-            raise ValueError
-            return
-
-        # 策略算法计算。
-        Strategy.check_strategy('1day',dataWithId)
-
-    def deal_week_closing(self):
-        """ 内部接口API: 每周闭市时相关处理。挂载在心跳定时器回调函数中 """
-        #对于所有周期（心跳周期除外）进行更新
-        for tmName in Constant.QUOTATION_DB_PREFIX[1:]:
-            self.dbQuotationHdl.update_period_db(tmName) #更新行情数据库
-
-            filePath = Configuration.get_period_working_folder(tmName)+tmName+'.db'
-            #转csv文件存档
-            QuotationKit.translate_db_into_csv(filePath)
-
-            dataWithId = QuotationKit.translate_db_to_df(filePath)
-            if dataWithId is None:
-                raise ValueError
-                return
-            #绘制蜡烛图文件存档
-            indexPeriod = Constant.QUOTATION_DB_PREFIX.index(tmName)
-            DrawingKit.show_period_candlestick(indexPeriod, filePath, dataWithId)
-
-            #策略计算
-            #Strategy.check_strategy(tmName,dataWithId)
-
-        os._exit() #退出Python程序
+        # 绘制蜡烛图
+        DrawingKit.show_period_candlestick(periodName,dataWithId)
+        # 策略算法计算
+        Strategy.check_strategy(periodName,dataWithId)
