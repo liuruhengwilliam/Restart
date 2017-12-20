@@ -53,6 +53,9 @@ class QuotationDB():
         """ 外部接口API: 定时器回调函数--行情数据库更新。对各周期数据库进行更新。
             period:定时器线程字符串名称，亦即对应数据库文件名抬头
         """
+        # 每日结算期间只需要更新一次相关数据库
+        if self.updatePeriodFlag[Constant.QUOTATION_DB_PREFIX.index(period)] == True:
+            return
         #组装对应数据库文件路径
         dbFile = Configuration.get_period_working_folder(period)+period+'.db'
         #挑取对应周期字典项
@@ -65,6 +68,8 @@ class QuotationDB():
                      priceDict[Constant.QUOTATION_STRUCTURE[4]]]
         Trace.output('info','Period:%s '%period+'time out at %s '%priceList[0]+'open:%s'%priceList[1]+\
                      ' high:%s'%priceList[2]+' low:%s'%priceList[3]+' close:%s'%priceList[4])
+        if priceList.count(0) != 0: # 若存在零值，则不插入数据库中。
+            return
         self.insert_period_db_opera(dbFile, priceList)
 
         # 设置数据库更新标志

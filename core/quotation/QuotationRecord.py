@@ -50,3 +50,17 @@ class QuotationRecord():
                 dictItem[Constant.QUOTATION_STRUCTURE[2]] = infoList[0]
             elif(dictItem[Constant.QUOTATION_STRUCTURE[3]] > infoList[0]):
                 dictItem[Constant.QUOTATION_STRUCTURE[3]] = infoList[0]
+
+    def reset_dict_record(self,periodName):
+        """ 外部接口API: 复位某周期行情缓存记录及标志
+            periodName: 周期名称的字符串
+        """
+        for tagPeriod,dictItem in self.recordPeriodDict.items():
+            if tagPeriod == periodName:
+                dictItem[Constant.QUOTATION_STRUCTURE[0]] =\
+                dictItem[Constant.QUOTATION_STRUCTURE[1]] =\
+                dictItem[Constant.QUOTATION_STRUCTURE[2]] =\
+                dictItem[Constant.QUOTATION_STRUCTURE[3]] =\
+                dictItem[Constant.QUOTATION_STRUCTURE[4]] = 0
+                self.updatePeriodFlag[Constant.QUOTATION_DB_PREFIX.index(tagPeriod)] = True
+                return

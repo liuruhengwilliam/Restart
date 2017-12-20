@@ -66,6 +66,7 @@ class Coordinate():
         # 全球市场结算时间不更新数据库
         if Constant.is_closing_market():# 当日结算
             QuotationKit.translate_db_into_csv(file) #转csv文件存档
+            self.recordHdl.reset_dict_record(tmName) #对应周期的行情记录缓存及标志复位
             return
         if Constant.exit_on_weekend(self.week):
             return
@@ -87,6 +88,7 @@ class Coordinate():
         file1day = Configuration.get_period_working_folder('1day')+'1day.db'
 
         self.dbQuotationHdl.update_period_db('1day')
+        self.recordHdl.reset_dict_record('1day') #对应周期的行情记录缓存及标志复位
         #转csv和蜡烛图文件存档的工作在周结算期统一完成。
         dataWithId = QuotationKit.translate_db_to_df(file1day)
         if dataWithId is None:

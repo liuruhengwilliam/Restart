@@ -114,24 +114,15 @@ SAT_DAYLIGHT_SETTLEMENT_HOUR_TIME=3
 STANDARD_SETTLEMENT_HOUR_TIME=6
 SAT_STANDARD_SETTLEMENT_HOUR_TIME=3
 
-def is_standard_time():
-    """当前时间是否属于冬令时"""
-    return True
-    #return False
-
 def is_closing_market():
     """ 外部接口API:判断当前时间是否为闭市时间 """
     # 每工作日凌晨5点到6点为结算时间
     hour = time.strftime("%H",time.localtime())
-
-    if is_standard_time() == True:#冬令时
-        if int(hour) == STANDARD_SETTLEMENT_HOUR_TIME:
-            return True
-    else:#夏令时
-        if int(hour) == DAYLIGHT_SETTLEMENT_HOUR_TIME:
-            return True
-
-    return False
+    #if int(hour) == DAYLIGHT_SETTLEMENT_HOUR_TIME:#夏令时每日结算时间
+    if int(hour) == STANDARD_SETTLEMENT_HOUR_TIME:#冬令时每日结算时间
+        return True
+    else:
+        return False
 
 def is_weekend():
     """ 是否周末---周末闭市 """
