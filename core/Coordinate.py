@@ -94,7 +94,7 @@ class Coordinate():
             return
 
         # 策略算法计算。
-        Strategy.check_strategy(index1day,file1day,dataWithId)
+        Strategy.check_strategy('1day',dataWithId)
 
     def deal_week_closing(self):
         """ 内部接口API: 每周闭市时相关处理。挂载在心跳定时器回调函数中 """
@@ -115,6 +115,6 @@ class Coordinate():
             DrawingKit.show_period_candlestick(indexPeriod, filePath, dataWithId)
 
             #策略计算
-            #Strategy.check_strategy(indexPeriod, self.workPath + tmName + '.db', dataWithId)
+            #Strategy.check_strategy(tmName,dataWithId)
 
         os._exit() #退出Python程序
