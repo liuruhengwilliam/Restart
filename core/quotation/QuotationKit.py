@@ -17,9 +17,10 @@ def translate_db_into_csv(dbFile, lineCnt=-1):
         dbFile: db文件名（含文件路径）
         lineCnt: 截取db条目数目。注：‘-1’表示全部转换。
     """
-    csvFile = file(dbFile.split('.')[0] + str(datetime.date.today()) + '.csv', 'wb')
-    if os.path.exists(csvFile):
+    filename = '%s%s%s'%(dbFile.split('.')[0],str(datetime.date.today()),'.csv')
+    if os.path.exists(filename):
         return
+    csvFile = file(filename, 'wb')
 
     csvWriter = csv.writer(csvFile, dialect='excel')
 
