@@ -98,7 +98,7 @@ def show_period_candlestick(periodName,dataWithId,isDraw=False):
     dataPicked = DrawingMisc.process_quotes_drawing_candlestick(periodName,dataWithId)
     show_candlestick(dataPicked,periodName,isDraw)
 
-def show_period_candlestick_withCSV(index,path,cnt=-1,isDraw=False):
+def show_period_candlestick_withCSV(periodName,path,isDraw=False):
     """ 外部接口API:通过CSV文件进行绘制。
         参数说明类同于show_period_candlestick()方法。
     """
@@ -113,5 +113,5 @@ def show_period_candlestick_withCSV(index,path,cnt=-1,isDraw=False):
     dataframe = DataFrame(data,columns=title)
 
     # 组装数据进行加工
-    dataPicked = DrawingMisc.process_quotes_drawing_candlestick(index,path,dataframe)
-    show_candlestick(dataPicked,path,isDraw)
+    dataPicked = DrawingMisc.process_quotes_drawing_candlestick(periodName,dataframe)
+    show_candlestick(dataPicked,periodName,isDraw)
