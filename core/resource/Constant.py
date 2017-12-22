@@ -39,6 +39,11 @@ def envi_init():
 # =========================================================================================
 # 蜡烛图相关
 # 各种周期的尺度定义
+LITTEL_SCALE_STAGE = 0
+SMALL_SCALE_STAGE = 1
+MEDIUM_SCALE_STAGE = 2
+BIG_SCALE_STAGE = 3
+
 LITTEL_SCALE_CANDLESTICK = (0,)
 SMALL_SCALE_CANDLESTICK = (1,)
 MEDIUM_SCALE_CANDLESTICK = (2,)

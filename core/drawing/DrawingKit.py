@@ -24,44 +24,12 @@ def show_candlestick(dfData, periodName, isDraw):
         dfData: Dataframe数据接口。
         periodName: 周期名称的字符串。
     """
-    # 定义相关周期坐标的锚定对象。为了显示清楚锚定值要大于本周期值。
-    fiveMinLocator = MinuteLocator(interval=30)
-    fifteenMinLocator = MinuteLocator(interval=60)
-    thirtyMinLocator = MinuteLocator(interval=120)
-    oneHourLocator = HourLocator(interval=4)
-    twoHourLocator = HourLocator(interval=8)
-    fourHourLocator = HourLocator(interval=16)
-    sixHourLocator = HourLocator(interval=24)
-    twelveHourLocator = HourLocator(interval=48)
-
-    oneDayLocator = DayLocator(interval=2)
-    oneWeekLocator = WeekdayLocator(interval=1)
-
-    # 坐标横轴锚定对象列表
-    axLocatorList = [None, fiveMinLocator, fifteenMinLocator, thirtyMinLocator,\
-        oneHourLocator,twoHourLocator,fourHourLocator,sixHourLocator,twelveHourLocator,\
-        oneDayLocator,oneWeekLocator]
-
-    # 定义相关的格式对象。DateFormatter接收的格式化字符与`strftime`相同（参见DateFormatter类定义）
-    fiveMinFormatter = fifteenMinFormatter = thirtyMinFormatter = \
-        oneHourFormatter = twoHourFormatter = DateFormatter('%H:%M')
-    fourHourFormatter = sixHourFormatter = DateFormatter('%b%d %H:%M')
-    twelveHourFormatter = oneDayFormatter = DateFormatter('%b %d')
-    oneWeekFormatter = DateFormatter('%Y-%m-%d')
-
-    # 坐标横轴格式对象列表
-    axFormatterList = [None,fiveMinFormatter, fifteenMinFormatter, thirtyMinFormatter,\
-        oneHourFormatter, twoHourFormatter, fourHourFormatter, sixHourFormatter,\
-        twelveHourFormatter, oneDayFormatter, oneWeekFormatter]
-
     fig, ax = plt.subplots(figsize=(20,5))
     fig.subplots_adjust(bottom=0.2)
 
     # 获取序号--坐标横轴的锚定对象和格式对象列表下标。
     index = Constant.QUOTATION_DB_PREFIX.index(periodName)
 
-    ax.xaxis.set_major_locator(axLocatorList[index])
-    ax.xaxis.set_major_formatter(axFormatterList[index])
     #quotes: 数据序列。参照finance类中candlestick_ohlc()方法的入参说明。
     quotes = np.array(dfData[['dt2num','open','high','low','close']])
     try:
@@ -77,9 +45,8 @@ def show_candlestick(dfData, periodName, isDraw):
         if (platform.system() == "Windows"):#Linux环境下不进行下列优化
             plt.setp(ax.get_xticklabels(), rotation=45, horizontalalignment='right')
         # 刷新X轴的ticks('dt2num')和labels('time')
-        plt.xticks([tm for tm in dfData['dt2num'].as_matrix()[::4]],\
-                    map(lambda x:(x.split(' ')[1]).split(':')[0]+':'+(x.split(' ')[1]).split(':')[1],\
-                    [tm for tm in dfData['time'].as_matrix()[::4]]))
+        labels = DrawingMisc.process_xaxis_labels(index, dfData['time'].as_matrix()[::4])
+        plt.xticks([tm for tm in dfData['dt2num'].as_matrix()[::4]],labels)
         plt.title(periodName)
         timestamp = datetime.datetime.now().strftime('%b%d_%H_%M')
         plt.savefig('%s%s-%s.png'%(Configuration.get_period_working_folder(periodName),periodName,timestamp),dpi=200)

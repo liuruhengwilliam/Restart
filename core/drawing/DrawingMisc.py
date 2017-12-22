@@ -4,11 +4,31 @@ import os
 import platform
 import datetime
 import numpy as np
-from pandas import Series
 from matplotlib.dates import date2num
 from resource import Constant
 from quotation import QuotationKit
 from resource import Trace
+
+def process_xaxis_labels(periodIndx, tmList):
+    """ 外部接口API：生成X轴的标签字符串列表
+        periodIndx: 对应周期列表的列表下标
+        tmList: 时间列表
+        返回值：标签字符串列表
+    """
+    labelsList = []
+    scale = Constant.SCALE_CANDLESTICK[periodIndx]
+
+    if  scale == Constant.BIG_SCALE_STAGE:
+        labelsList = map(lambda x:(x.split(' ')[0]).split('-')[1]+'-'+(x.split(' ')[0]).split('-')[2],\
+            [tm for tm in tmList])
+    elif scale == Constant.MEDIUM_SCALE_STAGE:
+        labelsList = map(lambda x:(x.split(' ')[0]).split('-')[1]+'-'+(x.split(' ')[0]).split('-')[2]+\
+            ' '+(x.split(' ')[1]).split(':')[0]+':'+(x.split(' ')[1]).split(':')[1],[tm for tm in tmList])
+    else:
+        labelsList = map(lambda x:(x.split(' ')[1]).split(':')[0]+':'+(x.split(' ')[1]).split(':')[1],\
+            [tm for tm in tmList])
+
+    return labelsList
 
 def process_compact_dt2num(periodIndx, dataPicked):
     """ 外部接口API：dt2num列调整（去掉结算时间的空档）。
