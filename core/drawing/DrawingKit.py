@@ -8,7 +8,7 @@ import platform
 if (platform.system() == "Linux"):#适配Linux系统下运行环境
     import matplotlib
     matplotlib.use("Pdf")
-
+import numpy as np
 import matplotlib.pyplot as plt
 from pandas import DataFrame
 from matplotlib.finance import candlestick_ohlc
@@ -19,9 +19,9 @@ from resource import Constant
 from resource import Configuration
 from quotation import QuotationKit
 
-def show_candlestick(quotes, periodName, isDraw):
+def show_candlestick(dfData, periodName, isDraw):
     """ 内部接口API:
-        quotes: 数据序列。参照finance类中candlestick_ohlc()方法的入参说明。
+        dfData: Dataframe数据接口。
         periodName: 周期名称的字符串。
     """
     # 定义相关周期坐标的锚定对象。为了显示清楚锚定值要大于本周期值。
@@ -62,7 +62,8 @@ def show_candlestick(quotes, periodName, isDraw):
 
     ax.xaxis.set_major_locator(axLocatorList[index])
     ax.xaxis.set_major_formatter(axFormatterList[index])
-
+    #quotes: 数据序列。参照finance类中candlestick_ohlc()方法的入参说明。
+    quotes = np.array(dfData[['dt2num','open','high','low','close']])
     try:
         # 设置坐标横轴的起止位置。参见numpy.ndarray类的处理方法。
         ax.set_xlim([quotes.item(0,0),quotes.item(-1,0)])
@@ -75,6 +76,10 @@ def show_candlestick(quotes, periodName, isDraw):
 
         if (platform.system() == "Windows"):#Linux环境下不进行下列优化
             plt.setp(ax.get_xticklabels(), rotation=45, horizontalalignment='right')
+        # 刷新X轴的ticks('dt2num')和labels('time')
+        plt.xticks([tm for tm in dfData['dt2num'].as_matrix()[::4]],\
+                    map(lambda x:(x.split(' ')[1]).split(':')[0]+':'+(x.split(' ')[1]).split(':')[1],\
+                    [tm for tm in dfData['time'].as_matrix()[::4]]))
         plt.title(periodName)
         timestamp = datetime.datetime.now().strftime('%b%d_%H_%M')
         plt.savefig('%s%s-%s.png'%(Configuration.get_period_working_folder(periodName),periodName,timestamp),dpi=200)
@@ -93,7 +98,7 @@ def show_period_candlestick(periodName,dataWithId,isDraw=False):
     """
     # 为降低系统负荷和增加实时性，对于零/小尺度周期的蜡烛图不再实时绘制
     indx = Constant.QUOTATION_DB_PREFIX.index(periodName)
-    if Constant.SCALE_CANDLESTICK[indx] < Constant.DEFAULT_SCALE_CANDLESTICK_SHOW:
+    if isDraw==False and Constant.SCALE_CANDLESTICK[indx] < Constant.DEFAULT_SCALE_CANDLESTICK_SHOW:
         return
     dataPicked = DrawingMisc.process_quotes_drawing_candlestick(periodName,dataWithId)
     show_candlestick(dataPicked,periodName,isDraw)
