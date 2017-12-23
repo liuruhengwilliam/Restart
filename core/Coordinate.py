@@ -71,13 +71,13 @@ class Coordinate():
         """
         filename = Configuration.get_period_working_folder(periodName)+periodName+'.db'
 
-        #结算期间止于此，不更新行情数据库
+        self.dbQuotationHdl.update_period_db(periodName) #更新行情数据库
+        #结算期间由更新标志控制不会多次更新
         if Constant.is_closing_market() or Constant.exit_on_weekend(self.week):
             QuotationKit.translate_db_into_csv(filename) #转csv文件存档
             self.recordHdl.reset_dict_record(periodName) #对应周期的行情记录缓存及标志复位
             return
 
-        self.dbQuotationHdl.update_period_db(periodName) #更新行情数据库
         dataWithId = QuotationKit.translate_db_to_df(filename)
         if dataWithId is None:
             raise ValueError

@@ -62,4 +62,4 @@ class QuotationRecord():
         dictItem[Constant.QUOTATION_STRUCTURE[2]] =\
         dictItem[Constant.QUOTATION_STRUCTURE[3]] =\
         dictItem[Constant.QUOTATION_STRUCTURE[4]] = 0
-        self.updatePeriodFlag[Constant.QUOTATION_DB_PREFIX.index(periodName)] = True
+        #self.updatePeriodFlag[Constant.QUOTATION_DB_PREFIX.index(periodName)] = True
