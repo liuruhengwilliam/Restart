@@ -91,8 +91,8 @@ CANDLESTICK_PATTERN_CNT = (LITTLE_SCALE_CANDLESTICK_PATTERN_CNT*2 + \
                           MEDIUM_SCALE_CANDLESTICK_PATTERN_CNT*4 + \
                           BIG_SCALE_CANDLESTICK_PATTERN_CNT*3)
 
-# 均线
-STRATEGY_MEANLINE = ()
+# 均线 -- 依据"招商银行黄金行情"软件的均线进行设置(周/月/季度/半年/年线)
+STRATEGY_MOVING_AVERAGE_LINE = (5,22,66,135,270)
 #=================================================================================
 # 行情数据库中记录项
 QUOTATION_STRUCTURE = ('time','open','high','low','close')

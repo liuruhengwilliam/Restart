@@ -9,6 +9,16 @@ from resource import Constant
 from quotation import QuotationKit
 from resource import Trace
 
+def compute_sma(closePriceList, smaPeriod):
+    """ 外部接口API: 根据close价格计算该周期的算术平均线
+        closePriceList: close项价格列表
+        smaPeriod: 均线名称的整数数值。比如：5、10、30、100、200等。
+    """
+    N = smaPeriod
+    weights = np.ones(N)/N
+    # 参见<< NumPy,3rd Edition.pdf >> P77
+    return np.convolve(weights, closePriceList)[N-1:-N+1]
+
 def process_xaxis_labels(periodIndx, tmList):
     """ 外部接口API：生成X轴的标签字符串列表
         periodIndx: 对应周期列表的列表下标
@@ -31,7 +41,7 @@ def process_xaxis_labels(periodIndx, tmList):
     return labelsList
 
 def process_compact_dt2num(periodIndx, dataPicked):
-    """ 外部接口API：dt2num列调整（去掉结算时间的空档）。
+    """ 内部接口API：dt2num列调整（去掉结算时间的空档）。
         从而达到绘制蜡烛图时X-轴ticks连续的目的，便于观察和追溯。
         periodIndx: 定时器列表中的下标
         dataPicked: DataFrame数据结构入参

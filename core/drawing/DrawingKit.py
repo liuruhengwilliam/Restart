@@ -36,18 +36,32 @@ def show_candlestick(dfData, periodName, isDraw):
         # 设置坐标横轴的起止位置。参见numpy.ndarray类的处理方法。
         ax.set_xlim([quotes.item(0,0),quotes.item(-1,0)])
         candlestick_ohlc(ax, quotes,width=0.001,colorup='red',colordown='green')
-        # 坐标横轴锚定数目太多，为避免报错直接返回。
-        if len(ax.get_xticklabels()) >= max(Constant.CANDLESTICK_PERIOD_CNT):
-            return
 
-        ax.grid(True)
-
-        if (platform.system() == "Windows"):#Linux环境下不进行下列优化
-            plt.setp(ax.get_xticklabels(), rotation=45, horizontalalignment='right')
         # 刷新X轴的ticks('dt2num')和labels('time')
         labels = DrawingMisc.process_xaxis_labels(index, dfData['time'].as_matrix()[::4])
         plt.xticks([tm for tm in dfData['dt2num'].as_matrix()[::4]],labels)
+
+        # 均线
+        sma = [0,]*len(Constant.STRATEGY_MOVING_AVERAGE_LINE)
+        for index,tag in zip(range(len(Constant.STRATEGY_MOVING_AVERAGE_LINE)),\
+                             Constant.STRATEGY_MOVING_AVERAGE_LINE):
+            sma[index] = DrawingMisc.compute_sma(dfData['close'].as_matrix(),tag)
+            if len(sma[index]) > 0:
+                # 通过ax.get_xticks()可以获取横轴坐标。但此处横轴坐标已经缩减，不可使用。
+                ax.plot(dfData['dt2num'].as_matrix()[tag-1:], sma[index], label="MA%s"%str(tag))
+
+        # 坐标横轴锚定数目太多，为避免报错直接返回。
+        if len(ax.get_xticklabels()) >= max(Constant.CANDLESTICK_PERIOD_CNT):
+            return
+        if (platform.system() == "Windows"):#Linux环境下不进行下列优化
+            plt.setp(ax.get_xticklabels(), rotation=45, horizontalalignment='right')
+
+        # 设置抬头和Y轴标签
+        ax.grid(True)
+        ax.legend()
         plt.title(periodName)
+        plt.ylabel("Price ($)")
+        # 生成图片文件保存
         timestamp = datetime.datetime.now().strftime('%b%d_%H_%M')
         plt.savefig('%s%s-%s.png'%(Configuration.get_period_working_folder(periodName),periodName,timestamp),dpi=200)
         if isDraw == True:
