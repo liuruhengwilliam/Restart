@@ -9,7 +9,7 @@ import time
 import datetime
 import threading
 import talib
-import numpy
+import numpy as np
 import requests
 #from engine.DataScrape import *
 #from timer.TimerMotor import *
@@ -111,6 +111,21 @@ def thread_test():
     # 发送事件通知
     #print 'MainThread set event.'
     event.set()
+
+def sma_test():
+    file = 'F:\\code\\python\\RESTART\\core\\2017\\2017-51\\15min\\15min.db' # 拼装文件路径和文件名
+    dataWithId = QuotationKit.translate_db_to_df(file)
+    smaData = dataWithId['close'].as_matrix()
+    N = 5
+    weights = np.ones(N)/N
+    sma5 = np.convolve(weights,smaData)[N-1:-N+1]
+    t = np.arange(N-1,len(smaData))
+    #plt.plot(t,smaData[N-1:],lw=1.0,label='Data')
+    plt.plot(t,sma5,'--',lw=2.0,label='Moving average')
+
+    plt.grid()
+    plt.legend()
+    plt.show()
 
 def talib_func():
     func_collection = talib.get_functions()
@@ -214,5 +229,6 @@ if __name__ == '__main__':
     #db_test()
     #home_dir()
     #datetime_test()
-    talib_pattern_15min()
+    #talib_pattern_15min()
+    sma_test()
     sys.exit()
