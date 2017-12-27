@@ -122,12 +122,17 @@ SAT_STANDARD_SETTLEMENT_HOUR_TIME=3
 def is_closing_market():
     """ 外部接口API:判断当前时间是否为闭市时间 """
     # 每工作日凌晨5点到6点为结算时间
-    hour = time.strftime("%H",time.localtime())
+    t = time.localtime()
+    month,day,hour = time.strftime("%m",t),time.strftime("%d",t),time.strftime("%H",t)
     #if int(hour) == DAYLIGHT_SETTLEMENT_HOUR_TIME:#夏令时每日结算时间
     if int(hour) == STANDARD_SETTLEMENT_HOUR_TIME:#冬令时每日结算时间
         return True
-    else:
-        return False
+
+    # 对于欧美节假日休市的处理
+    for dictHolidayItem in HOLIDAY_DATE:
+        if dictHolidayItem['month']==int(month) and dictHolidayItem['day']==int(day):
+            return True
+    return False
 
 def is_weekend():
     """ 是否周末---周末闭市 """
@@ -144,3 +149,8 @@ def exit_on_weekend(workWeek):
         return True
 
     return is_weekend()
+
+# 欧美国家节假日的定义
+INDEPENDENCE_DAY = {'month':7,'day':4}
+CHRISTMAS = {'month':12,'day':27}
+HOLIDAY_DATE = (INDEPENDENCE_DAY,CHRISTMAS)
