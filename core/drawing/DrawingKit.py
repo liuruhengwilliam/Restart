@@ -18,13 +18,15 @@ import DrawingMisc
 from resource import Constant
 from resource import Configuration
 from quotation import QuotationKit
+from indicator import MA
+from indicator import BollingerBands
 
 def show_candlestick(dfData, periodName, isDraw):
     """ 内部接口API:
         dfData: Dataframe数据接口。
         periodName: 周期名称的字符串。
     """
-    fig, ax = plt.subplots(figsize=(20,5))
+    fig, ax = plt.subplots(figsize=(20,10))
     fig.subplots_adjust(bottom=0.2)
 
     # 获取序号--坐标横轴的锚定对象和格式对象列表下标。
@@ -42,13 +44,18 @@ def show_candlestick(dfData, periodName, isDraw):
         plt.xticks([tm for tm in dfData['dt2num'].as_matrix()[::4]],labels)
 
         # 均线
-        sma = [0,]*len(Constant.STRATEGY_MOVING_AVERAGE_LINE)
-        for index,tag in zip(range(len(Constant.STRATEGY_MOVING_AVERAGE_LINE)),\
-                             Constant.STRATEGY_MOVING_AVERAGE_LINE):
-            sma[index] = DrawingMisc.compute_sma(dfData['close'].as_matrix(),tag)
+        sma = [0,]*len(Constant.MOVING_AVERAGE_LINE)
+        for index,tag in zip(range(len(Constant.MOVING_AVERAGE_LINE)),Constant.MOVING_AVERAGE_LINE):
+            sma[index] = MA.compute_sma(dfData['close'].as_matrix(),tag)
             if len(sma[index]) > 0:
                 # 通过ax.get_xticks()可以获取横轴坐标。但此处横轴坐标已经缩减，不可使用。
-                ax.plot(dfData['dt2num'].as_matrix()[tag-1:], sma[index], label="MA%s"%str(tag))
+                ax.plot(dfData['dt2num'].as_matrix()[tag-1:],sma[index],lw=0.8,label="MA%s"%str(tag))
+
+        # 布林线
+        upperBB,middleBB,lowerBB = BollingerBands.compute_BBands(dfData['close'].as_matrix())
+        #ax.plot(dfData['dt2num'].as_matrix()[Constant.BOLLINGER_BANDS-1:],upperBB,'y--',label="UBB")
+        #ax.plot(dfData['dt2num'].as_matrix()[Constant.BOLLINGER_BANDS-1:],middleBB,'y:',label="MBB")
+        #ax.plot(dfData['dt2num'].as_matrix()[Constant.BOLLINGER_BANDS-1:],lowerBB,'y--',label="LBB")
 
         # 坐标横轴锚定数目太多，为避免报错直接返回。
         if len(ax.get_xticklabels()) >= max(Constant.CANDLESTICK_PERIOD_CNT):

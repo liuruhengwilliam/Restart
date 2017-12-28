@@ -9,16 +9,6 @@ from resource import Constant
 from quotation import QuotationKit
 from resource import Trace
 
-def compute_sma(closePriceList, smaPeriod):
-    """ 外部接口API: 根据close价格计算该周期的算术平均线
-        closePriceList: close项价格列表
-        smaPeriod: 均线名称的整数数值。比如：5、10、30、100、200等。
-    """
-    N = smaPeriod
-    weights = np.ones(N)/N
-    # 参见<< NumPy,3rd Edition.pdf >> P77
-    return np.convolve(weights, closePriceList)[N-1:-N+1]
-
 def process_xaxis_labels(periodIndx, tmList):
     """ 外部接口API：生成X轴的标签字符串列表
         periodIndx: 对应周期列表的列表下标

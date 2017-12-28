@@ -20,7 +20,7 @@ def get_date_code():
     month,day = dt.strftime('%m'),dt.strftime('%d')
     return MONTH_CODE[int(month)-1]+DAY_CODE[int(day)-1]
 
-VERSION_CODE = 'V0.7.3'
+VERSION_CODE = 'V0.7.4'
 def get_version_info():
     """ 内/外部接口API: """
     return VERSION_CODE + get_date_code() + "\n" + \
@@ -54,7 +54,7 @@ SCALE_CANDLESTICK = (LITTEL_SCALE_CANDLESTICK*2+SMALL_SCALE_CANDLESTICK*2+\
 DEFAULT_SCALE_CANDLESTICK_SHOW = 1
 
 LITTLE_SCALE_CANDLESTICK_DEFAULT_CNT = (0,) # 微尺度时间周期的蜡烛图默认数目
-SMALL_SCALE_CANDLESTICK_DEFAULT_CNT = (120,) # 小尺度时间周期的蜡烛图默认数目
+SMALL_SCALE_CANDLESTICK_DEFAULT_CNT = (150,) # 小尺度时间周期的蜡烛图默认数目
 MEDIUM_SCALE_CANDLESTICK_DEFAULT_CNT = (150,) # 中尺度时间周期的蜡烛图默认数目
 BIG_SCALE_CANDLESTICK_DEFAULT_CNT = (180,) # 大尺度时间周期的蜡烛图默认数目
 # 按照周期定时器的次序定义尺度
@@ -91,8 +91,10 @@ CANDLESTICK_PATTERN_CNT = (LITTLE_SCALE_CANDLESTICK_PATTERN_CNT*2 + \
                           MEDIUM_SCALE_CANDLESTICK_PATTERN_CNT*4 + \
                           BIG_SCALE_CANDLESTICK_PATTERN_CNT*3)
 
-# 均线 -- 依据"招商银行黄金行情"软件的均线进行设置(周/月/季度/半年/年线)
-STRATEGY_MOVING_AVERAGE_LINE = (5,22,66,135,270)
+# 移动平均线 -- 依据"招商银行黄金行情"软件的均线进行设置(周/月/季度/半年/年线)
+MOVING_AVERAGE_LINE = (5,22,66,135,270)
+# 布林线 -- 参数默认设为20
+BOLLINGER_BANDS = 20
 #=================================================================================
 # 行情数据库中记录项
 QUOTATION_STRUCTURE = ('time','open','high','low','close')
@@ -152,5 +154,5 @@ def exit_on_weekend(workWeek):
 
 # 欧美国家节假日的定义
 INDEPENDENCE_DAY = {'month':7,'day':4}
-CHRISTMAS = {'month':12,'day':27}
+CHRISTMAS = {'month':12,'day':25}
 HOLIDAY_DATE = (INDEPENDENCE_DAY,CHRISTMAS)
