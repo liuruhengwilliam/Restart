@@ -62,3 +62,13 @@
     注：Windows环境中，Anaconda2软件包已经配置好相关依赖包和库文件等环境。Anaconda真是个好东东啊！
   2.Ubuntu系统的matplotlib包版本太低（比如1.3.1），会导致matplotlib.finance中的相关接口函数无法调用。需要升级matplotlib包（比如2.0.2版本）。
     升级方法：sudo pip install --upgrade matplotlib
+    
+2017-12-28
+  1.Ubuntu系统搭建程序运行环境的经验小结。
+  问题：89服务器执行程序失败，报错matplotlib相关模块未找到。
+  分析：根据之前经验执行命令sudo pip install --U matplotlib时失败。根据报错信息，需要再安装libfreetype6-dev和libpng12-dev两个依赖库。
+  方法：依次执行 sudo apt-get install libfreetype6-dev和sudo apt-get install libpng12-dev两个命令。然后再更新matplotlib库即可。
+
+  问题：ta_lib库依赖失败。
+  分析：ta_lib动态库由TA-Lib脚本及ta-lib开源项目源码生成。具体方法参见“talib-usage-flow.txt”文档。
+  方法：将生成的libta_lib.so动态库放到Ubuntu系统的/usr/lib目录下，并生成相关的软连接文件。libta_lib.so.0和libta_lib.so链接到libta_lib.so.0.0.0库文件上。
