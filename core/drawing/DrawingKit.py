@@ -53,9 +53,9 @@ def show_candlestick(dfData, periodName, isDraw):
 
         # 布林线
         upperBB,middleBB,lowerBB = BollingerBands.compute_BBands(dfData['close'].as_matrix())
-        #ax.plot(dfData['dt2num'].as_matrix()[Constant.BOLLINGER_BANDS-1:],upperBB,'y--',label="UBB")
-        #ax.plot(dfData['dt2num'].as_matrix()[Constant.BOLLINGER_BANDS-1:],middleBB,'y:',label="MBB")
-        #ax.plot(dfData['dt2num'].as_matrix()[Constant.BOLLINGER_BANDS-1:],lowerBB,'y--',label="LBB")
+        ax.plot(dfData['dt2num'].as_matrix()[Constant.BOLLINGER_BANDS-1:],upperBB,'y--',label="UBB")
+        ax.plot(dfData['dt2num'].as_matrix()[Constant.BOLLINGER_BANDS-1:],middleBB,'y:',label="MBB")
+        ax.plot(dfData['dt2num'].as_matrix()[Constant.BOLLINGER_BANDS-1:],lowerBB,'y--',label="LBB")
 
         # 坐标横轴锚定数目太多，为避免报错直接返回。
         if len(ax.get_xticklabels()) >= max(Constant.CANDLESTICK_PERIOD_CNT):
