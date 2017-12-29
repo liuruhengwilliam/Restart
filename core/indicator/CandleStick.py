@@ -14,14 +14,14 @@ from pandas import DataFrame
 from matplotlib.finance import candlestick_ohlc
 from matplotlib.dates import DateFormatter
 from matplotlib.dates import MinuteLocator,HourLocator,DayLocator,WeekdayLocator
-import DrawingMisc
+import DataProcess
 from resource import Constant
 from resource import Configuration
 from quotation import QuotationKit
 from indicator import MA
 from indicator import BollingerBands
 
-def show_candlestick(dfData, periodName, isDraw):
+def show_candlestick(dfData, ma, BBands, periodName, isDraw):
     """ 内部接口API:
         dfData: Dataframe数据接口。
         periodName: 周期名称的字符串。
@@ -40,19 +40,18 @@ def show_candlestick(dfData, periodName, isDraw):
         candlestick_ohlc(ax, quotes,width=0.001,colorup='red',colordown='green')
 
         # 刷新X轴的ticks('dt2num')和labels('time')
-        labels = DrawingMisc.process_xaxis_labels(index, dfData['time'].as_matrix()[::4])
+        labels = DataProcess.process_xaxis_labels(index, dfData['time'].as_matrix()[::4])
         plt.xticks([tm for tm in dfData['dt2num'].as_matrix()[::4]],labels)
 
         # 均线
-        sma = [0,]*len(Constant.MOVING_AVERAGE_LINE)
-        for index,tag in zip(range(len(Constant.MOVING_AVERAGE_LINE)),Constant.MOVING_AVERAGE_LINE):
-            sma[index] = MA.compute_sma(dfData['close'].as_matrix(),tag)
-            if len(sma[index]) > 0:
+        for index in range(len(Constant.MOVING_AVERAGE_LINE)):
+            if len(ma[index]) > 0:
                 # 通过ax.get_xticks()可以获取横轴坐标。但此处横轴坐标已经缩减，不可使用。
-                ax.plot(dfData['dt2num'].as_matrix()[tag-1:],sma[index],lw=0.8,label="MA%s"%str(tag))
+                tag = Constant.MOVING_AVERAGE_LINE[index]
+                ax.plot(dfData['dt2num'].as_matrix()[tag-1:],ma[index],lw=0.8,label="MA%s"%str(tag))
 
         # 布林线
-        upperBB,middleBB,lowerBB = BollingerBands.compute_BBands(dfData['close'].as_matrix())
+        upperBB,middleBB,lowerBB = BBands
         if Configuration.get_property("BBands") == 'True':
             ax.plot(dfData['dt2num'].as_matrix()[Constant.BOLLINGER_BANDS-1:],upperBB,'y--',label="UBB")
             ax.plot(dfData['dt2num'].as_matrix()[Constant.BOLLINGER_BANDS-1:],middleBB,'y:',label="MBB")
@@ -87,9 +86,9 @@ def show_period_candlestick(periodName,dataWithId,isDraw=False):
     """
     # 为降低系统负荷和增加实时性，对于零/小尺度周期的蜡烛图不再实时绘制
     indx = Constant.QUOTATION_DB_PREFIX.index(periodName)
-    if isDraw==False and Constant.SCALE_CANDLESTICK[indx] < Constant.DEFAULT_SCALE_CANDLESTICK_SHOW:
-        return
-    dataPicked = DrawingMisc.process_quotes_drawing_candlestick(periodName,dataWithId)
+    #if isDraw==False and Constant.SCALE_CANDLESTICK[indx] < Constant.DEFAULT_SCALE_CANDLESTICK_SHOW:
+    #    return
+    dataPicked = DataProcess.process_quotes_drawing_candlestick(periodName,dataWithId)
     show_candlestick(dataPicked,periodName,isDraw)
 
 def show_period_candlestick_withCSV(periodName,path,isDraw=False):
@@ -107,5 +106,5 @@ def show_period_candlestick_withCSV(periodName,path,isDraw=False):
     dataframe = DataFrame(data,columns=title)
 
     # 组装数据进行加工
-    dataPicked = DrawingMisc.process_quotes_drawing_candlestick(periodName,dataframe)
+    dataPicked = DataProcess.process_quotes_drawing_candlestick(periodName,dataframe)
     show_candlestick(dataPicked,periodName,isDraw)

@@ -7,7 +7,7 @@ from resource import Configuration
 from resource import Constant
 from resource import ExceptDeal
 from scrape import DataScrape
-from drawing import DrawingKit
+from indicator.Indicator import Indicator
 from quotation import QuotationKit
 from earnrate.EarnrateDB import *
 from quotation.QuotationDB import *
@@ -29,6 +29,11 @@ class Coordinate():
         self.dbQuotationHdl = QuotationDB(Constant.UPDATE_PERIOD_FLAG,self.recordDict)
         # Earnrate DB Handle
         self.dbEarnrateHdl = EarnrateDB(self.workPath)
+
+        # 指标类初始化
+        self.indicator = Indicator()
+
+        # 策略类初始化
 
     def init_module(self):
         """ 外部接口API:行情数据库准备 """
@@ -83,7 +88,7 @@ class Coordinate():
             raise ValueError
             return
 
-        # 绘制蜡烛图
-        DrawingKit.show_period_candlestick(periodName,dataWithId)
+        # 进行指标计算
+        self.indicator.process_indicator(periodName,dataWithId)
         # 策略算法计算
         Strategy.check_strategy(periodName,dataWithId)

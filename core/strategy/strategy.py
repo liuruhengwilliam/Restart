@@ -19,7 +19,7 @@ def check_candlestick_pattern(periodName,dataWithId):
     """
     dataDealed = StrategyMisc.process_quotes_candlestick_pattern(periodName,dataWithId)
 
-    for pattern in Constant.STRATEGY_CANDLESTICK:# 遍历蜡烛图组合模型
+    for pattern in Constant.CANDLESTICK_PATTERN:# 遍历蜡烛图组合模型
         result = None
         dataCsv = deepcopy(dataDealed)
         try:
