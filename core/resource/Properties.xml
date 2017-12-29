@@ -9,4 +9,7 @@
     <loglevel name="log level">
         <value>info</value>    
     </loglevel>
+    <BBands name="Bollinger Bands">
+        <value>False</value>
+    </BBands>
 </data>
