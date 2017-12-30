@@ -5,7 +5,7 @@ import sys
 import os
 from resource import Constant
 from quotation import QuotationKit
-from drawing import DrawingKit
+from indicator import CandleStick
 
 """
     辅助类：
@@ -27,9 +27,9 @@ if __name__ == '__main__':
         indx = Constant.QUOTATION_DB_PREFIX.index(tmName)
         if filename.find('.db') != -1:
             dataWithId = QuotationKit.translate_db_to_df(filename)
-            DrawingKit.show_period_candlestick(tmName,dataWithId,isDraw=True)
+            CandleStick.manual_show_candlestick(tmName,dataWithId,isDraw=True)
         elif filename.find('.csv') != -1:
-            DrawingKit.show_period_candlestick_withCSV(tmName,filename,isDraw=True)
+            CandleStick.manual_show_candlestick_withCSV(tmName,filename,isDraw=True)
         else:
             print "Error file name input!"
     else:

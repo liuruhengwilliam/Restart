@@ -1,11 +1,11 @@
 #coding=utf-8
 
-from resource import Constant
-
 import MA
 import CandleStick
 import BollingerBands
 import DataProcess
+from resource import Constant
+
 
 class Indicator():
     """
