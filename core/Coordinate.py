@@ -12,7 +12,7 @@ from quotation import QuotationKit
 from earnrate.EarnrateDB import *
 from quotation.QuotationDB import *
 from quotation.QuotationRecord import *
-from strategy import Strategy
+from strategy.Strategy import *
 
 class Coordinate():
     """
@@ -34,6 +34,7 @@ class Coordinate():
         self.indicator = Indicator()
 
         # 策略类初始化
+        self.strategy = Strategy()
 
     def init_module(self):
         """ 外部接口API:行情数据库准备 """
@@ -88,7 +89,7 @@ class Coordinate():
             raise ValueError
             return
 
-        # 进行指标计算
+        # 指标计算和记录
         self.indicator.process_indicator(periodName,dataWithId)
         # 策略算法计算
         Strategy.check_strategy(periodName,dataWithId)

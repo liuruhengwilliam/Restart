@@ -13,7 +13,7 @@ def process_quotes_candlestick_pattern(periodName,dataWithID):
     """
     dataCnt = dataWithID.iloc[-1:]['id']
     indx = Constant.QUOTATION_DB_PREFIX.index(periodName)
-    gap = Constant.CANDLESTICK_PATTERN_CNT[indx] - int(dataCnt)
+    gap = Constant.CANDLESTICK_PATTERN_MATCH_CNT[indx] - int(dataCnt)
 
     if gap > 0:# 要补齐蜡烛图中K线数目
         dataWithID = QuotationKit.supplement_quotes(periodName,dataWithID,int(gap))
