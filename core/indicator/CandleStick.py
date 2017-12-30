@@ -24,6 +24,8 @@ from indicator import BollingerBands
 def show_candlestick(dfData, ma, BBands, periodName, isDraw):
     """ 内部接口API:
         dfData: Dataframe数据接口。
+        ma： 移动平均线数据列表
+        BBands：布林线数据列表（上/中/下轨）
         periodName: 周期名称的字符串。
     """
     fig, ax = plt.subplots(figsize=(20,10))
