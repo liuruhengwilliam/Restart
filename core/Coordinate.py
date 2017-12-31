@@ -92,4 +92,4 @@ class Coordinate():
         # 指标计算和记录
         self.indicator.process_indicator(periodName,dataWithId)
         # 策略算法计算
-        Strategy.check_strategy(periodName,dataWithId)
+        self.strategy.check_strategy(periodName,dataWithId)
