@@ -3,6 +3,8 @@
 import sys
 import talib
 import traceback
+import time
+import datetime
 import numpy as np
 import pandas as pd
 import copy
@@ -11,6 +13,7 @@ from pandas import DataFrame
 import StrategyMisc
 from resource import Constant
 from resource import Configuration
+from resource import Trace
 
 class Strategy():
     """
@@ -34,6 +37,7 @@ class Strategy():
     def check_candlestick_pattern(self,periodName,dataWithId):
         """ 外部接口API: 蜡烛图组合图形的识别
             periodName: 周期名称的字符串
+            返回值：DataFrame结构数据
         """
         dataDealed = StrategyMisc.process_quotes_candlestick_pattern(periodName,dataWithId)
 
@@ -53,12 +57,21 @@ class Strategy():
                     #关于浅拷贝和深拷贝说明的一篇文章 https://www.cnblogs.com/zxlovenet/p/4575228.html
                     dataCache[pattern] = result #增加蜡烛图组合模式的名称列
                     dfLastLine = dataCache[dataCache[pattern]!=0][-1:] #按照时间排序的最后一行即是更新行。返回DataFrame结构。
+
+                    #按照时间进行筛选。只添加不超过一个周期时间的条目。
+                    nowTimeFloat = time.mktime(time.strptime(str(datetime.datetime.now()).split('.')[0],'%Y-%m-%d %H:%M:%S'))
+                    #对unicode字符特殊处理
+                    patternTimeFloat = time.mktime(time.strptime(str(dfLastLine['time'].values).split('\'')[1],'%Y-%m-%d %H:%M:%S'))
+                    if float(nowTimeFloat-patternTimeFloat)>float(Constant.QUOTATION_DB_PERIOD[Constant.QUOTATION_DB_PREFIX.index(periodName)]):
+                        continue
+
                     title = ['id'] + map(lambda x:x , Constant.QUOTATION_STRUCTURE)+['pattern','value']
                     #匹配K线组合模式成功后，添加到本周期DataFrame记录对象中。
-                    matchItem = [int(dfLastLine['id'].values),str(dfLastLine['time'].values),float(dfLastLine['open'].values),float(dfLastLine['high'].values),\
+                    matchItem = [int(dfLastLine['id'].values),dfLastLine['time'].values,float(dfLastLine['open'].values),float(dfLastLine['high'].values),\
                                float(dfLastLine['low'].values),float(dfLastLine['close'].values),pattern,int(dfLastLine[pattern].values)]
                     self.dfStrategyRecDict[periodName] = self.dfStrategyRecDict[periodName].append(pd.Series(matchItem,index=title),ignore_index=True)
 
+                    Trace.output('info',(' ').join(map(lambda x:str(x), matchItem)))
             except (Exception),e:
                 exc_type,exc_value,exc_tb = sys.exc_info()
                 traceback.print_exception(exc_type, exc_value, exc_tb)
