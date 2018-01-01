@@ -4,7 +4,6 @@ import sqlite3
 import os
 import threading
 import platform
-from copy import deepcopy
 from resource import Configuration
 from resource import Constant
 from resource import Primitive
