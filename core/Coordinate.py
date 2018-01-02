@@ -9,7 +9,7 @@ from resource import ExceptDeal
 from scrape import DataScrape
 from indicator.Indicator import Indicator
 from quotation import QuotationKit
-from earnrate.EarnrateDB import *
+from stratearnrate.StratEarnrateDB import *
 from quotation.QuotationDB import *
 from quotation.QuotationRecord import *
 from strategy.Strategy import *
@@ -28,7 +28,7 @@ class Coordinate():
         # Quotation DB Handle
         self.dbQuotationHdl = QuotationDB(Constant.UPDATE_PERIOD_FLAG,self.recordDict)
         # Earnrate DB Handle
-        self.dbEarnrateHdl = EarnrateDB(self.workPath)
+        self.dbSERHdl = StratEarnrateDB(self.workPath)
 
         # 指标类初始化
         self.indicator = Indicator()
@@ -43,7 +43,7 @@ class Coordinate():
         # 创建行情数据库文件
         self.dbQuotationHdl.create_period_db()
         # 创建盈亏数据库文件
-        self.dbEarnrateHdl.create_earnrate_db()
+        self.dbSERHdl.create_stratearnrate_db()
 
     # 以下是定时器回调函数:
     def work_heartbeat(self):
@@ -89,7 +89,9 @@ class Coordinate():
             raise ValueError
             return
 
-        # 指标计算和记录
+        #指标计算和记录
         self.indicator.process_indicator(periodName,dataWithId)
-        # 策略算法计算
+        #策略算法计算
         self.strategy.check_strategy(periodName,dataWithId)
+
+        #盈亏统计工作。由汇总各周期盈亏数据库生成表格文件。

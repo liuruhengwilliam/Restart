@@ -19,7 +19,7 @@ class QuotationDB():
         """ 外部接口API: 创建数据库文件：行情数据库 """
         for tagPeriod in Constant.QUOTATION_DB_PREFIX[1:]:
             # 生成各周期时间数据库文件。心跳定时器的数据库文件冗余（忽略）。
-            filePath = Configuration.get_period_working_folder(tagPeriod)+tagPeriod+'.db'
+            filePath = Configuration.get_period_working_folder(tagPeriod)+tagPeriod+'-quote.db'
             isExist = os.path.exists(filePath)
             db = sqlite3.connect(filePath)
             dbCursor = db.cursor()
