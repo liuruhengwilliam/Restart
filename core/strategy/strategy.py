@@ -62,12 +62,13 @@ class Strategy():
                     nowTimeFloat = time.mktime(time.strptime(str(datetime.datetime.now()).split('.')[0],'%Y-%m-%d %H:%M:%S'))
                     #对unicode字符特殊处理
                     patternTimeFloat = time.mktime(time.strptime(str(dfLastLine['time'].values).split('\'')[1],'%Y-%m-%d %H:%M:%S'))
-                    if float(nowTimeFloat-patternTimeFloat)>float(Constant.QUOTATION_DB_PERIOD[Constant.QUOTATION_DB_PREFIX.index(periodName)]):
-                        continue
+                    #if float(nowTimeFloat-patternTimeFloat)>float(Constant.QUOTATION_DB_PERIOD[Constant.QUOTATION_DB_PREFIX.index(periodName)]):
+                    #    continue
+                    print float(nowTimeFloat-patternTimeFloat),Constant.QUOTATION_DB_PERIOD[Constant.QUOTATION_DB_PREFIX.index(periodName)]
 
                     title = ['id'] + map(lambda x:x , Constant.QUOTATION_STRUCTURE)+['pattern','value']
                     #匹配K线组合模式成功后，添加到本周期DataFrame记录对象中。
-                    matchItem = [int(dfLastLine['id'].values),dfLastLine['time'].values,float(dfLastLine['open'].values),float(dfLastLine['high'].values),\
+                    matchItem = [int(dfLastLine['id'].values),str(dfLastLine['time'].values).split('\'')[1],float(dfLastLine['open'].values),float(dfLastLine['high'].values),\
                                float(dfLastLine['low'].values),float(dfLastLine['close'].values),pattern,int(dfLastLine[pattern].values)]
                     self.dfStrategyRecDict[periodName] = self.dfStrategyRecDict[periodName].append(pd.Series(matchItem,index=title),ignore_index=True)
 
@@ -76,8 +77,6 @@ class Strategy():
                 exc_type,exc_value,exc_tb = sys.exc_info()
                 traceback.print_exception(exc_type, exc_value, exc_tb)
                 traceback.print_exc(file=open(Configuration.get_working_directory()+'trace.txt','a'))
-
-        return self.dfStrategyRecDict[periodName]
 
     def check_strategy(self,periodName,dataWithId):
         """ 外部接口API: 检测行情，依据策略生成相关指令
@@ -91,3 +90,15 @@ class Strategy():
         # 首先匹配蜡烛图组合
         self.check_candlestick_pattern(periodName,dataWithId)
         # 其次结合移动平均线和布林线进行分析
+
+    def query_strategy(self,periodName):
+        """ 外部接口API: 获取某周期的策略指示 """
+        return self.dfStrategyRecDict[periodName]
+
+    def clean_strategy(self,periodName):
+        """ 外部接口API: 清除某周期的策略指示
+            策略指示插入SER数据库文件之后就应该被清除，等待下个周期的到来。
+        """
+        title = ['id'] + map(lambda x:x , Constant.QUOTATION_STRUCTURE)+['pattern','value']
+        cleanItem = [0,0,0,0,0,0,0,0]
+        self.dfStrategyRecDict[periodName] = self.dfStrategyRecDict[periodName].append(pd.Series(cleanItem,index=title),ignore_index=True)
