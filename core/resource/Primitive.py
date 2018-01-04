@@ -22,8 +22,8 @@ QUOTATION_DB_QUERY_DESC = 'select * from quotation order by id desc'
 #策略点时间，策略点价格，策略点方向，周期名称，技术指标名称（组合图形名称索引或其他）
 #策略点给出后盈亏率时间统计:（极值及时间/5min/15min/30min/1hour/2hour/4hour/6hour/12hour/1day/1week）
 STRATEARNRATE_DB_CREATE = 'create table stratearnrate(\
-    id integer primary key autoincrement not null default 1,\
-    time float, price float, direction int, tmName int, patternName text,\
+    indx integer primary key autoincrement not null default 1,\
+    time text, price float, direction int, tmName text, patternName text,\
     maxEarn float, maxEarnTime float, minEarn float,minEarnTime float,\
     M5Earn float, M15Earn float, M30Earn float, H1Earn float, H2Earn float,\
     H4Earn float, H6Earn float, H12Earn float, D1Earn float, W1Earn float);'
@@ -31,15 +31,11 @@ STRATEARNRATE_DB_CREATE = 'create table stratearnrate(\
 # 插入: 时间，价格，方向，周期名称，匹配模式名称
 STRATEARNRATE_DB_INSERT='insert into stratearnrate(time,price,direction,tmName,patternName) values(?,?,?,?,?)'
 
-def query_stratearnrate_db(column,id = ''):
+def query_stratearnrate_db(indxValue):
     """ 外部接口API：根据数据库条目id查找相应记录项
-        id: 条目id
-        column: 条目id具体某项
+        indxValue: 条目序号值
     """
-    if id == '':
-        "select '%s' from stratearnrate" % column
-    else:
-        "select '%s' from stratearnrate where id = '%s'" % column,id
+    "select * from stratearnrate where indx = '%s'" % indxValue
 
 def update_stratearnrate_db(id,column,value):
     """ 外部接口API：根据数据库条目id更新相应记录项

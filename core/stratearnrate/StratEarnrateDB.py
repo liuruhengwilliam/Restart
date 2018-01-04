@@ -54,20 +54,22 @@ class StratEarnrateDB():
             dfStrategy: DataFrame结构策略数据
             返回值: 数据库条目的游标 -- 指向第一个需要启动链式定时器的条目
         """
-        id = 0
+        indxMarked = 0
         filePath = Configuration.get_period_working_folder(periodName)+periodName+'-ser.db'
         db = sqlite3.connect(filePath)
         dbCursor = db.cursor()
         #获取该条目在数据库中对应的id值 -- 游标
         try:
-            results = dbCursor.execute(Primitive.query_stratearnrate_db())
-            id = len(results.fetchall())
+            results = dbCursor.execute('select * from stratearnrate')
+            indxMarked = len(results.fetchall())
         except (Exception),e:
             Trace.output('fatal',"query stratearnrate db file Exception: "+e.message)
-
         #DataFrame数据插入到SER数据库中
-        for itemRow in dfStrategy.itertuples():
-            dbItem = [itemRow[2],itemRow[6],itemRow[8],periodName,itemRow[7]]
+        #for itemRow in dfStrategy.itertuples(): #此法虽然效率较高，但是不便于后续维护。
+        for indx in range(len(dfStrategy)):
+            #dfStrategy.iloc[indx]可以获取整行数值
+            dbItem = [str(dfStrategy.loc[indx,['time']].values),float(dfStrategy.loc[indx,['close']].values),\
+                int(dfStrategy.loc[indx,['value']].values),periodName,str(dfStrategy.loc[indx,['pattern']].values)]
             try:
                 dbCursor.execute(Primitive.STRATEARNRATE_DB_INSERT,dbItem)
             except (Exception),e:
@@ -76,8 +78,7 @@ class StratEarnrateDB():
         db.commit()# 提交
         dbCursor.close()
         db.close()
-
-        return id
+        return indxMarked
 
     def update_period_stratearnrate_db(self, value,period,id):
         """ 外部接口API:由链式定时器更新某周期数值
