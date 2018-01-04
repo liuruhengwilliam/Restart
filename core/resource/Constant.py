@@ -20,7 +20,7 @@ def get_date_code():
     month,day = dt.strftime('%m'),dt.strftime('%d')
     return MONTH_CODE[int(month)-1]+DAY_CODE[int(day)-1]
 
-VERSION_CODE = 'V0.8.3'
+VERSION_CODE = 'V0.8.4'
 def get_version_info():
     """ 内/外部接口API: """
     return VERSION_CODE + get_date_code() + "\n" + \
@@ -114,15 +114,18 @@ BOLLINGER_BANDS = 20
 #=================================================================================
 # 行情数据库中记录项
 QUOTATION_STRUCTURE = ('time','open','high','low','close')
-
+# 策略盈亏率数据库文件对应的DataFrame结构。‘id’，‘tmChainIndx’和‘restCnt’是区别于SER数据库特有的字段。
+SER_DF_STRUCTURE = ('id','time','price','tmName','patternName','patterVal',\
+    'maxEarn','maxEarnTime','minEarn','minEarnTime','M5Earn','M15Earn','M30Earn',\
+    'H1Earn','H2Earn','H4Earn','H6Earn','H12Earn','D1Earn','W1Earn','tmChainIndx','restCnt')
 #循环定时器周期
 # 行情数据库记录项周期: 6sec(不生成db文件),5min,15min,30min,1hour,2hour,4hour,6hour,12hour,1day,1week
 QUOTATION_DB_PREFIX = ('6sec','5min','15min','30min','1hour','2hour','4hour','6hour','12hour','1day','1week')
 QUOTATION_DB_PERIOD = (6,5*60,15*60,30*60,1*3600,2*3600,4*3600,6*3600,12*3600)
 # 日线和周线定时器周期时间调整（日线需减去每日的结算时间，周线需减去周六闭市时间差） 2017-11-02
 
-#链式定时器周期
-CHAIN_PERIOD = (1800,1*3600-1800,2*3600-1*3600,4*3600-2*3600,6*3600-4*3600,\
+#链式计数:5min/15min/30min/1hour/2hour/4hour/6hour/12hour/1day/1week
+CHAIN_PERIOD = (5*60,15*60-5*60,30*60-15*60,1*3600-30*60,2*3600-1*3600,4*3600-2*3600,6*3600-4*3600,\
                 12*3600-6*3600,24*3600-12*3600,24*5*3600-24*3600)
 
 UPDATE_PERIOD_FLAG = [True]*len(QUOTATION_DB_PREFIX)
