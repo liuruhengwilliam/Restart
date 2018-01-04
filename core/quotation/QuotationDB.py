@@ -56,7 +56,7 @@ class QuotationDB():
         if self.updatePeriodFlag[Constant.QUOTATION_DB_PREFIX.index(period)] == True:
             return
         #组装对应数据库文件路径
-        dbFile = Configuration.get_period_working_folder(period)+period+'.db'
+        dbFile = Configuration.get_period_working_folder(period)+period+'-quote.db'
         #挑取对应周期字典项
         priceDict = self.recordPeriodDict[period]
         #字典项转换成列表项

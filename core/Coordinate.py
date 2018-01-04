@@ -9,10 +9,10 @@ from resource import ExceptDeal
 from scrape import DataScrape
 from indicator.Indicator import Indicator
 from quotation import QuotationKit
-from stratearnrate.StratEarnrateDB import *
 from quotation.QuotationDB import *
 from quotation.QuotationRecord import *
 from strategy.Strategy import *
+from stratearnrate import StratEarnRate
 
 class Coordinate():
     """
@@ -27,8 +27,6 @@ class Coordinate():
         self.recordDict = self.recordHdl.get_record_dict()
         # Quotation DB Handle
         self.dbQuotationHdl = QuotationDB(Constant.UPDATE_PERIOD_FLAG,self.recordDict)
-        # Earnrate DB Handle
-        self.dbSERHdl = StratEarnrateDB(self.workPath)
 
         # 指标类初始化
         self.indicator = Indicator()
@@ -43,7 +41,7 @@ class Coordinate():
         # 创建行情数据库文件
         self.dbQuotationHdl.create_period_db()
         # 创建盈亏数据库文件
-        self.dbSERHdl.create_stratearnrate_db()
+        StratEarnRate.create_stratearnrate_db()
 
     # 以下是定时器回调函数:
     def work_heartbeat(self):
@@ -75,7 +73,7 @@ class Coordinate():
             1.是否结算期及相关处理（转存csv文件和复位相关缓存）；2.更新行情数据库；
             3.行情数据转dateframe格式文件；4.绘制蜡烛图（若需要）；5.调用策略模块进行计算（若需要）
         """
-        filename = Configuration.get_period_working_folder(periodName)+periodName+'.db'
+        filename = Configuration.get_period_working_folder(periodName)+periodName+'-quote.db'
 
         self.dbQuotationHdl.update_period_db(periodName) #更新行情数据库
         #结算期间由更新标志控制不会多次更新
@@ -93,5 +91,7 @@ class Coordinate():
         self.indicator.process_indicator(periodName,dataWithId)
         #策略算法计算
         self.strategy.check_strategy(periodName,dataWithId)
+
+        #策略盈亏率数据库操作
 
         #盈亏统计工作。由汇总各周期盈亏数据库生成表格文件。

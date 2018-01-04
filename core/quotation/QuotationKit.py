@@ -102,7 +102,7 @@ def supplement_quotes(periodName,dataWithID,supplementCnt):
     quotes = np.array(dataWithID.ix[:])
     weekGap = 1 # 从前一周开始搜索
     while supplementCnt > 0:
-        preDBfile = Configuration.get_backweek_period_directory(weekGap, periodName)+periodName+'.db'
+        preDBfile = Configuration.get_backweek_period_directory(weekGap, periodName)+periodName+'-quote.db'
         if not os.path.exists(preDBfile): #若回溯文件完毕，则退出循环。
             break
 
