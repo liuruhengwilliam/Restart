@@ -29,7 +29,10 @@ STRATEARNRATE_DB_CREATE = 'create table stratearnrate(\
     H4Earn float, H6Earn float, H12Earn float, D1Earn float, W1Earn float);'
 
 # 插入: 时间，价格，方向，周期名称，匹配模式名称
-STRATEARNRATE_DB_INSERT='insert into stratearnrate(time,price,direction,tmName,patternName) values(?,?,?,?,?)'
+STRATEARNRATE_DB_INSERT=\
+    'insert into stratearnrate(time,price,tmName,patternName,patternVal,\
+    maxEarn,maxEarnTime,minEarn,minEarnTime,M5Earn,M15Earn,M30Earn,\
+    H1Earn,H2Earn,H4Earn,H6Earn,H12Earn,D1Earn,W1Earn) values(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)'
 
 def query_stratearnrate_db(indxValue):
     """ 外部接口API：根据数据库条目id查找相应记录项

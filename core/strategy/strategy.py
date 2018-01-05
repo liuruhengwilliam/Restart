@@ -40,7 +40,7 @@ class Strategy():
             返回值：DataFrame结构数据
         """
         dataDealed = StrategyMisc.process_quotes_candlestick_pattern(tmName,dataWithId)
-
+        dfCollect = DataFrame(columns=Constant.SER_DF_STRUCTURE)#收集本周期内新增策略条目
         for indxs in self.dfCandlestickPattern.index:# 遍历所有已定义的蜡烛图组合模型
             note = self.dfCandlestickPattern.loc[indxs]['Note']
             pattern = self.dfCandlestickPattern.loc[indxs]['Pattern']
@@ -73,12 +73,14 @@ class Strategy():
                     #self.dictPolRec[tmName] = \
                     #    self.dictPolRec[tmName].append(pd.Series(matchItem,index=Constant.SER_DF_STRUCTURE),ignore_index=True)
                     Trace.output('info',(' ').join(map(lambda x:str(x), matchItem)))
-                    StratEarnRate.insert_item_stratearnrate(tmName,self.dictPolRec[tmName],matchItem)
+                    dfCollect = dfCollect.append(pd.Series(matchItem,index=Constant.SER_DF_STRUCTURE),ignore_index=True)
             except (Exception),e:
                 exc_type,exc_value,exc_tb = sys.exc_info()
                 traceback.print_exception(exc_type, exc_value, exc_tb)
                 traceback.print_exc(file=open(Configuration.get_working_directory()+'trace.txt','a'))
-        print self.dictPolRec[tmName]
+        #汇总到对应总表并添加数据库条目
+        self.dictPolRec[tmName] = self.dictPolRec[tmName].append(dfCollect,ignore_index=True)
+        StratEarnRate.insert_item_stratearnrate_db(tmName,dfCollect)
 
     def check_strategy(self,periodName,dataWithId):
         """ 外部接口API: 检测行情，依据策略生成相关指令
