@@ -17,8 +17,8 @@ import requests
 import matplotlib.pyplot as plt
 import xml.etree.ElementTree as ET
 #from resource import Primitive
-from strategy import Strategy
-from quotation import QuotationKit
+#from strategy import Strategy
+#from quotation import QuotationKit
 
 event = threading.Event()
 QUOTATION_DB_PREFIX = ['5min','15min','30min','1hour','2hour','4hour','6hour','12hour','1day','1week']
@@ -218,7 +218,26 @@ def home_dir():
     print os.path.expanduser('~')
     print __file__
     print os.path.abspath(os.getcwd()+os.path.sep+"..")
-    
+
+def update_serdb():
+    file = 'F:\\code\\python\\RESTART\\core\\2018\\2018-01\\15min\\15min-ser.db'
+    db = sqlite3.connect(file)
+    dbCursor = db.cursor()
+    item = ('2017/12/30  5:59:59',16,'15min','CDL3INSIDE',100,17.09,'2017/12/30  4:59:59',\
+            16.00,'2017/12/30  2:59:59',17.09,17.09,17.09,17.09,17.09,17.09,17.09,17.09,17.09,17.09)
+    strtmp = '2018-01-11 12:45:30'
+    try:
+        #dbCursor.execute("update stratearnrate set time=? where indx=11",item)
+        dbCursor.execute('update stratearnrate set time=?,price=?,tmName=?,patternName=?,patternVal=?,\
+        maxEarn=?,maxEarnTime=?,minEarn=?,minEarnTime=?,M5Earn=?,M15Earn=?,M30Earn=?,\
+        H1Earn=?,H2Earn=?,H4Earn=?,H6Earn=?,H12Earn=?,D1Earn=?,W1Earn=? where indx = 11', item)
+    except (Exception),e:
+        print("update in stratearnrate db Exception: "+e.message)
+    db.commit()
+    dbCursor.close()
+    db.close()
+
+
 if __name__ == '__main__':
     #csv_test(db_test())
     #db_test()
@@ -230,5 +249,6 @@ if __name__ == '__main__':
     #home_dir()
     #datetime_test()
     #talib_pattern_15min()
-    sma_test()
+    #sma_test()
+    update_serdb()
     sys.exit()
