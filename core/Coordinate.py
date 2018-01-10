@@ -53,7 +53,7 @@ class Coordinate():
         if Constant.exit_on_weekend(self.week):#此时处理所有周期的相关内容
             for periodName in Constant.QUOTATION_DB_PREFIX[1:]:
                 self.work_period_details(periodName)
-            os._exit() #退出Python程序
+            os._exit(0) #退出Python程序
 
         # 数据抓取并筛选
         infoList = DataScrape.query_info()
@@ -90,8 +90,12 @@ class Coordinate():
         #指标计算和记录
         self.indicator.process_indicator(periodName,dataWithId)
         #策略算法计算
-        self.strategy.check_strategy(periodName,dataWithId)
 
-        #策略盈亏率数据库操作
+        #策略盈亏率数据库操作。先进行统计更新策略盈亏率数据，然后再分析及插入新条目。
+        if periodName == '5min':
+            recInfo = self.recordHdl.get_record_dict()['5min']
+            self.strategy.update_strategy([recInfo['time'],recInfo['high'],recInfo['low'],recInfo['close']])
+        else:
+            self.strategy.check_strategy(periodName,dataWithId)
 
         #盈亏统计工作。由汇总各周期盈亏数据库生成表格文件。

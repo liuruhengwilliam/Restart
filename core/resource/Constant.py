@@ -20,7 +20,7 @@ def get_date_code():
     month,day = dt.strftime('%m'),dt.strftime('%d')
     return MONTH_CODE[int(month)-1]+DAY_CODE[int(day)-1]
 
-VERSION_CODE = 'V0.8.4'
+VERSION_CODE = 'V0.8.5'
 def get_version_info():
     """ 内/外部接口API: """
     return VERSION_CODE + get_date_code() + "\n" + \
@@ -116,7 +116,7 @@ BOLLINGER_BANDS = 20
 QUOTATION_STRUCTURE = ('time','open','high','low','close')
 # 策略盈亏率数据库文件对应的DataFrame结构。‘id’，‘tmChainIndx’和‘restCnt’是区别于SER数据库特有的字段。
 SER_DF_STRUCTURE = ('id','time','price','tmName','patternName','patterVal',\
-    'maxEarn','maxEarnTime','minEarn','minEarnTime','M5Earn','M15Earn','M30Earn',\
+    'maxEarn','maxEarnTime','maxLoss','maxLossTime','M5Earn','M15Earn','M30Earn',\
     'H1Earn','H2Earn','H4Earn','H6Earn','H12Earn','D1Earn','W1Earn','tmChainIndx','restCnt')
 #循环定时器周期
 # 行情数据库记录项周期: 6sec(不生成db文件),5min,15min,30min,1hour,2hour,4hour,6hour,12hour,1day,1week

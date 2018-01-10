@@ -24,14 +24,14 @@ QUOTATION_DB_QUERY_DESC = 'select * from quotation order by id desc'
 STRATEARNRATE_DB_CREATE = 'create table stratearnrate(\
     indx integer primary key autoincrement not null default 1,\
     time text, price float, tmName text, patternName text,patternVal int, \
-    maxEarn float, maxEarnTime text, minEarn float,minEarnTime text,\
+    maxEarn float, maxEarnTime text, maxLoss float,maxLossTime text,\
     M5Earn float, M15Earn float, M30Earn float, H1Earn float, H2Earn float,\
     H4Earn float, H6Earn float, H12Earn float, D1Earn float, W1Earn float);'
 
 # 插入: 时间，价格，方向，周期名称，匹配模式名称
 STRATEARNRATE_DB_INSERT=\
     'insert into stratearnrate(time,price,tmName,patternName,patternVal,\
-    maxEarn,maxEarnTime,minEarn,minEarnTime,M5Earn,M15Earn,M30Earn,\
+    maxEarn,maxEarnTime,maxLoss,maxLossTime,M5Earn,M15Earn,M30Earn,\
     H1Earn,H2Earn,H4Earn,H6Earn,H12Earn,D1Earn,W1Earn) values(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)'
 
 def query_stratearnrate_db(indxValue):
@@ -39,11 +39,3 @@ def query_stratearnrate_db(indxValue):
         indxValue: 条目序号值
     """
     "select * from stratearnrate where indx = '%s'" % indxValue
-
-def update_stratearnrate_db(id,column,value):
-    """ 外部接口API：根据数据库条目id更新相应记录项
-        id: 条目id
-        column: 条目id具体某项
-        value: column对应的值
-    """
-    "update stratearnrate set %s = %s where id = %s"% column, value, id
