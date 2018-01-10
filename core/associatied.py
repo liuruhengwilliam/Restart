@@ -229,7 +229,7 @@ def update_serdb():
     try:
         #dbCursor.execute("update stratearnrate set time=? where indx=11",item)
         dbCursor.execute('update stratearnrate set time=?,price=?,tmName=?,patternName=?,patternVal=?,\
-        maxEarn=?,maxEarnTime=?,minEarn=?,minEarnTime=?,M5Earn=?,M15Earn=?,M30Earn=?,\
+        maxEarn=?,maxEarnTime=?,maxLoss=?,maxLossTime=?,M5Earn=?,M15Earn=?,M30Earn=?,\
         H1Earn=?,H2Earn=?,H4Earn=?,H6Earn=?,H12Earn=?,D1Earn=?,W1Earn=? where indx = 11', item)
     except (Exception),e:
         print("update in stratearnrate db Exception: "+e.message)
