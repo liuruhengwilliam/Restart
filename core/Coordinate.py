@@ -6,6 +6,7 @@ import datetime
 from resource import Configuration
 from resource import Constant
 from resource import ExceptDeal
+from resource import Primitive
 from scrape import DataScrape
 from indicator.Indicator import Indicator
 from quotation import QuotationKit
@@ -73,16 +74,18 @@ class Coordinate():
             1.是否结算期及相关处理（转存csv文件和复位相关缓存）；2.更新行情数据库；
             3.行情数据转dateframe格式文件；4.绘制蜡烛图（若需要）；5.调用策略模块进行计算（若需要）
         """
-        filename = Configuration.get_period_working_folder(periodName)+periodName+'-quote.db'
+        quotefilename = Configuration.get_period_working_folder(periodName)+periodName+'-quote.db'
+        serfilename = Configuration.get_period_working_folder(periodName)+periodName+'-ser.db'
 
         self.dbQuotationHdl.update_period_db(periodName) #更新行情数据库
         #结算期间由更新标志控制不会多次更新
         if Constant.is_closing_market() or Constant.exit_on_weekend(self.week):
-            QuotationKit.translate_db_into_csv(filename) #转csv文件存档
+            Primitive.translate_db_into_csv(quotefilename) #转csv文件存档
+            Primitive.translate_db_into_csv(serfilename)
             self.recordHdl.reset_dict_record(periodName) #对应周期的行情记录缓存及标志复位
             return
 
-        dataWithId = QuotationKit.translate_db_to_df(filename)
+        dataWithId = Primitive.translate_db_to_df(quotefilename)
         if dataWithId is None:
             raise ValueError
             return
@@ -98,4 +101,4 @@ class Coordinate():
         else:
             self.strategy.check_strategy(periodName,dataWithId)
 
-        #盈亏统计工作。由汇总各周期盈亏数据库生成表格文件。
+    #盈亏统计工作。由汇总各周期盈亏数据库生成表格文件。
