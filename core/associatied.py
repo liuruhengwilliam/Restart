@@ -16,7 +16,7 @@ import requests
 #from quotation.QuotationDB import *
 import matplotlib.pyplot as plt
 import xml.etree.ElementTree as ET
-#from resource import Primitive
+from resource import Primitive
 #from strategy import Strategy
 #from quotation import QuotationKit
 
@@ -114,7 +114,7 @@ def thread_test():
 
 def sma_test():
     file = 'F:\\code\\python\\RESTART\\core\\2017\\2017-51\\15min\\15min.db' # 拼装文件路径和文件名
-    dataWithId = QuotationKit.translate_db_to_df(file)
+    dataWithId = Primitive.translate_db_to_df(file)
     smaData = dataWithId['close'].as_matrix()
     N = 5
     weights = np.ones(N)/N
@@ -156,7 +156,7 @@ def talib_sma_test():
 
 def talib_pattern_15min():
     file = 'F:\\code\\python\\RESTART\\core\\2017-51\\15min.db' # 拼装文件路径和文件名
-    dataWithId = QuotationKit.translate_db_to_df(file)
+    dataWithId = Primitive.translate_db_to_df(file)
     if dataWithId is None:
         raise ValueError
         return

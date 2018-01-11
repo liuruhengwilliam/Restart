@@ -3,6 +3,7 @@
 import platform
 import sys
 import os
+from resource import Primitive
 from resource import Constant
 from quotation import QuotationKit
 from indicator import CandleStick
@@ -17,7 +18,7 @@ if __name__ == '__main__':
     if choiceIndex == '1':
         filename = raw_input("file name input: ")
         cnt = raw_input("cnt to be translated: ")
-        QuotationKit.translate_db_into_csv(filename,int(cnt))
+        Primitive.translate_db_into_csv(filename,int(cnt))
     elif choiceIndex == '2':
         filename = raw_input("file name input: ")
         tmName = raw_input("period name input:")
@@ -26,7 +27,7 @@ if __name__ == '__main__':
             sys.exit()
         indx = Constant.QUOTATION_DB_PREFIX.index(tmName)
         if filename.find('.db') != -1:
-            dataWithId = QuotationKit.translate_db_to_df(filename)
+            dataWithId = Primitive.translate_db_to_df(filename)
             CandleStick.manual_show_candlestick(tmName,dataWithId,isDraw=True)
         elif filename.find('.csv') != -1:
             CandleStick.manual_show_candlestick_withCSV(tmName,filename,isDraw=True)
