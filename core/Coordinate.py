@@ -13,7 +13,7 @@ from quotation import QuotationKit
 from quotation.QuotationDB import *
 from quotation.QuotationRecord import *
 from strategy.Strategy import *
-from stratearnrate import StratEarnRate
+from strategy import StratEarnRate
 
 class Coordinate():
     """

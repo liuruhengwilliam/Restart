@@ -12,10 +12,10 @@ import threading
 from copy import deepcopy
 from pandas import DataFrame
 import StrategyMisc
+import StratEarnRate
 from resource import Constant
 from resource import Configuration
 from resource import Trace
-from stratearnrate import StratEarnRate
 
 class Strategy():
     """
