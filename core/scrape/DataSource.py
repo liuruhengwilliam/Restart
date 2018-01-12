@@ -1,7 +1,7 @@
 #coding=utf-8
 
 # 数据源url枚举的元组。按照优先级（报价精度）由高到低的顺序排列。
-URL_SRC_TUPLE = ('Fx678','EastMoney')
+URL_SRC_TUPLE = ('Fx678','SinaFinance')
 URL_SRC_DEFAULT = URL_SRC_TUPLE[0]
 """数据源等相关内容的定义和归纳"""
 #金十报价墙
@@ -14,10 +14,11 @@ JIN10_PRICE_WALL = 'https://www.jin10.com/price_wall/index.html'
 XAU_URL='http://finance.sina.com.cn/futures/quotes/XAU.shtml'
 #伦敦银界面
 XAG_URL='http://finance.sina.com.cn/futures/quotes/XAG.shtml'
+
 #伦敦金报价URL
-SINA_XAU_JS_URL = 'http://hq.sinajs.cn/&list=hf_XAU'
+SINA_XAU_JS_URL = 'http://hq.sinajs.cn/?_=%s/&list=hf_XAU'
 #伦敦银报价URL
-SINA_XAG_JS_URL = 'http://hq.sinajs.cn/&list=hf_XAG'
+SINA_XAG_JS_URL = 'http://hq.sinajs.cn/?_=%s/&list=hf_XAG'
 
 #汇通网报价
 #黄金报价URL

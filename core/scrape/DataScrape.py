@@ -3,7 +3,7 @@
 import sys
 import DataSource
 import Fx678
-import EastMoney
+import SinaFinance
 from resource import ExceptDeal
 from resource import Trace
 from resource import Configuration
@@ -21,8 +21,8 @@ def query_info():
 
     if dataSrc == 'Fx678':#高优先级排前
         retList = Fx678.deal_with_query()
-    elif dataSrc == 'EastMoney':#低优先级排后
-        retList = EastMoney.deal_with_query()
+    elif dataSrc == 'SinaFinance':#低优先级排后
+        retList = SinaFinance.deal_with_query()
     else:
         return retList
 
