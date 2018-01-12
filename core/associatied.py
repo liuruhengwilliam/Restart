@@ -11,6 +11,9 @@ import threading
 import talib
 import numpy as np
 import requests
+import urllib
+import urllib2
+import cookielib
 #from engine.DataScrape import *
 #from timer.TimerMotor import *
 #from quotation.QuotationDB import *
@@ -237,6 +240,50 @@ def update_serdb():
     dbCursor.close()
     db.close()
 
+def practice_jinten():
+    #声明一个CookieJar对象来保存cookie
+    #req = urllib2.Request("https://www.jin10.com/price_wall/index.html")
+    #response = urllib2.urlopen(req)
+    #response=urllib2.urlopen('https://www.jin10.com/price_wall/index.html')
+    #html=response.read()
+    #print html
+    #url = 'https://www.baidu.com'
+    #values = {'name' : 'who','password':'123456'}
+    #url = 'http://quote.eastmoney.com/globalfuture/SI00Y.html'
+    time_now_tick = time.time()*1000
+    url = 'http://hq.sinajs.cn/?_=%s/&list=hf_XAG'%str(time_now_tick)
+    print url
+    get_headers = {
+    'Accept':'*/*',
+    'Accept-Encoding':'gzip, deflate, sdch',
+    'Accept-Language':'zh-CN,zh;q=0.8',
+    'Connection':'keep-alive',
+    'Host':'hq.sinajs.cn',
+    'If-None-Match':'W/"ICiAA1aWG7F"',
+    'Referer':'http://finance.sina.com.cn/futures/quotes/XAG.shtml',
+    'User-Agent':'Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/55.0.2883.87 Safari/537.36',
+    }
+    head={'User-Agent':'Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/537.1 (KHTML, like Gecko) Chrome/21.0.1180.89 Safari/537.1'}
+    #get_headers = {
+    #'Connection' : 'keep-alive' ,
+    #'Cache-Control' : 'max-age=0',
+    #'Accept' : 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8',
+    #'User-Agent': 'Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/35.0.1916.114 Safari/537.36',
+    #'Accept-Language' : 'zh-CN,zh;q=0.8,en;q=0.6',
+    #}
+    req = requests.get(url, headers=head)
+    print req
+    req = urllib2.Request(url, None, head)
+    print req
+    response = urllib2.urlopen(req)
+    the_page = response.read()
+    response_url=response.geturl()
+    info=response.info()
+    code=response.getcode()
+    print the_page
+    print "==="
+    print response_url,info,code
+
 
 if __name__ == '__main__':
     #csv_test(db_test())
@@ -250,5 +297,6 @@ if __name__ == '__main__':
     #datetime_test()
     #talib_pattern_15min()
     #sma_test()
-    update_serdb()
+    #update_serdb()
+    practice_jinten()
     sys.exit()
