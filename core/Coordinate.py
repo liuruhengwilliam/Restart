@@ -48,18 +48,17 @@ class Coordinate():
     def work_heartbeat(self):
         """ 快速定时器(心跳定时器)回调函数 : 数据抓取模块和行情数据库线程(缓冲字典)之间协同工作函数 """
         # 全球市场结算期间不更新缓冲记录
-        if Constant.is_closing_market():
-            self.work_period_details('1day')#此时处理‘1day’周期的相关内容
-            return
-        if Constant.exit_on_weekend(self.week):#此时处理所有周期的相关内容
-            for periodName in Constant.QUOTATION_DB_PREFIX[1:]:
-                self.work_period_details(periodName)
-            os._exit(0) #退出Python程序
-
         # 数据抓取并筛选
+        if Constant.is_closing_market():
+            self.statistics_settlement()
+            return
+
         infoList = DataScrape.query_info()
         if len(infoList) != 0:
             self.recordHdl.update_dict_record(infoList)
+
+        if Constant.exit_on_weekend(self.week):#此时处理所有周期的相关内容
+            os._exit(0) #退出Python程序
 
     def work_operation(self):
         """ 外部接口API: 慢速定时器组回调函数--更新行情数据库和策略算法计算 """
@@ -75,13 +74,10 @@ class Coordinate():
             3.行情数据转dateframe格式文件；4.绘制蜡烛图（若需要）；5.调用策略模块进行计算（若需要）
         """
         quotefilename = Configuration.get_period_working_folder(periodName)+periodName+'-quote.db'
-        serfilename = Configuration.get_period_working_folder(periodName)+periodName+'-ser.db'
 
         self.dbQuotationHdl.update_period_db(periodName) #更新行情数据库
         #结算期间由更新标志控制不会多次更新
-        if Constant.is_closing_market() or Constant.exit_on_weekend(self.week):
-            Primitive.translate_db_into_csv(quotefilename) #转csv文件存档
-            Primitive.translate_db_into_csv(serfilename)
+        if Constant.is_closing_market():
             self.recordHdl.reset_dict_record(periodName) #对应周期的行情记录缓存及标志复位
             return
 
@@ -101,4 +97,12 @@ class Coordinate():
         else:
             self.strategy.check_strategy(periodName,dataWithId)
 
-    #盈亏统计工作。由汇总各周期盈亏数据库生成表格文件。
+    def statistics_settlement(self):
+        """内部接口API: 盈亏统计工作。由汇总各周期盈亏数据库生成表格文件。"""
+        for tmName in Constant.QUOTATION_DB_PREFIX[1:]:
+            quotefile = Configuration.get_period_working_folder(tmName)+tmName+'-quote.db'
+            serfile = Configuration.get_period_working_folder(tmName)+tmName+'-ser.db'
+            Primitive.translate_db_into_csv(quotefile) #转csv文件存档
+            Primitive.translate_db_into_csv(serfile)
+
+
