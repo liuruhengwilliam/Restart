@@ -14,6 +14,8 @@ import requests
 import urllib
 import urllib2
 import cookielib
+import commands
+import subprocess
 #from engine.DataScrape import *
 #from timer.TimerMotor import *
 #from quotation.QuotationDB import *
@@ -284,6 +286,13 @@ def practice_jinten():
     print "==="
     print response_url,info,code
 
+def dos_cmd_test():
+    #subprocess.check_output('wget http://192.168.10.81/git/backup-git-warehouse.sh -P F:',shell=True)
+    #os.system('dir')
+    try:
+        urllib.urlretrieve('http://192.168.10.81/Start-V061/2017-52/15min.db',filename='F:\\15min.db')
+    except Exception,e:
+        print "download failed!"
 
 if __name__ == '__main__':
     #csv_test(db_test())
@@ -298,5 +307,6 @@ if __name__ == '__main__':
     #talib_pattern_15min()
     #sma_test()
     #update_serdb()
-    practice_jinten()
+    #practice_jinten()
+    dos_cmd_test()
     sys.exit()
