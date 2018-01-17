@@ -3,6 +3,7 @@
 import os
 import datetime
 
+from resource import Trace
 from resource import Configuration
 from resource import Constant
 from resource import ExceptDeal
@@ -73,6 +74,7 @@ class Coordinate():
             1.是否结算期及相关处理（转存csv文件和复位相关缓存）；2.更新行情数据库；
             3.行情数据转dateframe格式文件；4.绘制蜡烛图（若需要）；5.调用策略模块进行计算（若需要）
         """
+        markStart1 = datetime.datetime.now()
         quotefilename = Configuration.get_period_working_folder(periodName)+periodName+'-quote.db'
 
         self.dbQuotationHdl.update_period_db(periodName) #更新行情数据库
@@ -81,21 +83,36 @@ class Coordinate():
             self.recordHdl.reset_dict_record(periodName) #对应周期的行情记录缓存及标志复位
             return
 
+        #策略盈亏率数据库操作。先进行统计更新策略盈亏率数据，然后再分析及插入新条目。
+        if periodName == '5min':#5min周期定时器的主要任务就是更新盈亏率数据库
+            recInfo = self.recordHdl.get_record_dict()['5min']
+            self.strategy.update_strategy([recInfo['time'],recInfo['high'],recInfo['low'],recInfo['close']])
+            markEnd4 = datetime.datetime.now()
+            Trace.output('info', "period %s update strategy cost:"%periodName)
+            Trace.output('info', str(markEnd4-markStart1))
+            return
+
+        #其他周期定时器
         dataWithId = Primitive.translate_db_to_df(quotefilename)
         if dataWithId is None:
             raise ValueError
             return
+        markEnd1 = datetime.datetime.now()
+        Trace.output('info', "period %s update db and build dataframe cost:"%periodName)
+        Trace.output('info',str(markEnd1-markStart1))
 
         #指标计算和记录
         self.indicator.process_indicator(periodName,dataWithId)
         #策略算法计算
+        markEnd2 = datetime.datetime.now()
+        Trace.output('info', "period %s process indicator cost:"%periodName)
+        Trace.output('info',str(markEnd2-markEnd1))
 
-        #策略盈亏率数据库操作。先进行统计更新策略盈亏率数据，然后再分析及插入新条目。
-        if periodName == '5min':
-            recInfo = self.recordHdl.get_record_dict()['5min']
-            self.strategy.update_strategy([recInfo['time'],recInfo['high'],recInfo['low'],recInfo['close']])
-        else:
-            self.strategy.check_strategy(periodName,dataWithId)
+        self.strategy.check_strategy(periodName,dataWithId)
+
+        markEnd3 = datetime.datetime.now()
+        Trace.output('info', "period %s check strategy cost:"%periodName)
+        Trace.output('info',str(markEnd3-markEnd2))
 
     def statistics_settlement(self):
         """内部接口API: 盈亏统计工作。由汇总各周期盈亏数据库生成表格文件。"""
