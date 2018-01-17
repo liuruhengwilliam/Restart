@@ -24,7 +24,7 @@ class Indicator():
             self.indiMADict.update(itemMA)
             self.indiBBandsDict.update(itemBBands)
 
-    def process_indicator(self,periodName,dataWithId,isDraw=False):
+    def process_indicator(self,periodName,dataWithId):
         """ 外部接口API: 计算指标
             periodName:周期名称的字符串（用于计算蜡烛图展示根数）
             dataWithId:行情数据库中dateframe结构的数据。
@@ -37,7 +37,7 @@ class Indicator():
         #布林线
         self.indiBBandsDict[periodName] = BollingerBands.compute_BBands(dataPicked['close'].as_matrix())
 
-        self.show_indicator(periodName,dataPicked,isDraw)
+        self.show_indicator(periodName,dataPicked)
 
     def fetch_ma_indicator(self,periodName):
         """ 外部接口API:移动均线指标。通过周期字符串在移动平均线字典中查找。
@@ -51,7 +51,7 @@ class Indicator():
         """
         return self.indiBBandsDict[periodName]
 
-    def show_indicator(self,period,dataPicked,isDraw=False):
+    def show_indicator(self,period,dataPicked):
         """ 内部接口API:指标图形绘制
             period:周期名称的字符串（用于计算蜡烛图展示根数）
             dataPicked:dateframe结构的数据。
@@ -59,8 +59,8 @@ class Indicator():
         """
         # 为降低系统负荷和增加实时性，对于零/小尺度周期的蜡烛图不再实时绘制
         indx = Constant.QUOTATION_DB_PREFIX.index(period)
-        if isDraw==False and Constant.SCALE_CANDLESTICK[indx] < Constant.DEFAULT_SCALE_CANDLESTICK_SHOW:
+        if Constant.SCALE_CANDLESTICK[indx] < Constant.DEFAULT_SCALE_CANDLESTICK_SHOW:
             return
-        CandleStick.show_candlestick(dataPicked,self.indiMADict[period],self.indiBBandsDict[period],period,isDraw)
+        CandleStick.show_candlestick(dataPicked,self.indiMADict[period],self.indiBBandsDict[period],period)
 
 

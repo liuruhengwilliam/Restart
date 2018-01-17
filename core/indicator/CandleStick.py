@@ -21,7 +21,7 @@ from quotation import QuotationKit
 from indicator import MA
 from indicator import BollingerBands
 
-def show_candlestick(dfData, ma, BBands, periodName, isDraw):
+def show_candlestick(dfData, ma, BBands, periodName):
     """ 内部接口API:
         dfData: Dataframe数据接口。
         ma： 移动平均线数据列表
@@ -72,23 +72,18 @@ def show_candlestick(dfData, ma, BBands, periodName, isDraw):
         # 生成图片文件保存
         timestamp = datetime.datetime.now().strftime('%b%d_%H_%M')
         plt.savefig('%s%s-%s.png'%(Configuration.get_period_working_folder(periodName),periodName,timestamp),dpi=200)
-        if isDraw == True:
-            plt.show()
+        plt.show()
     except (Exception),e:
         exc_type,exc_value,exc_tb = sys.exc_info()
         traceback.print_exception(exc_type, exc_value, exc_tb)
         traceback.print_exc(file=open(Configuration.get_working_directory()+'trace.txt','a'))
 
-def manual_show_candlestick(periodName,dataWithId,isDraw=False):
+def manual_show_candlestick(periodName,dataWithId):
     """ 外部接口API: 手动绘图使用。
         periodName:周期名称的字符串（用于计算蜡烛图展示根数）
         dataWithId:行情数据库中dateframe结构的数据。
         isDraw:是否展示图画的标志。对于后台运行模式默认不展示。
     """
-    # 为降低系统负荷和增加实时性，对于零/小尺度周期的蜡烛图不再实时绘制
-    indx = Constant.QUOTATION_DB_PREFIX.index(periodName)
-    if isDraw==False and Constant.SCALE_CANDLESTICK[indx] < Constant.DEFAULT_SCALE_CANDLESTICK_SHOW:
-        return
     dataPicked = DataProcess.process_quotes_drawing_candlestick(periodName,dataWithId)
 
     # 均线
@@ -99,9 +94,9 @@ def manual_show_candlestick(periodName,dataWithId,isDraw=False):
     # 布林线
     bbands = BollingerBands.compute_BBands(dataPicked['close'].as_matrix())
 
-    show_candlestick(dataPicked,ma,bbands,periodName,isDraw)
+    show_candlestick(dataPicked,ma,bbands,periodName)
 
-def manual_show_candlestick_withCSV(periodName,path,isDraw=False):
+def manual_show_candlestick_withCSV(periodName,path):
     """ 外部接口API:通过CSV文件进行绘制。
         参数说明类同于show_period_candlestick()方法。
     """
@@ -125,4 +120,4 @@ def manual_show_candlestick_withCSV(periodName,path,isDraw=False):
     # 布林线
     bbands = BollingerBands.compute_BBands(dataPicked['close'].as_matrix())
 
-    show_candlestick(dataPicked,periodName,isDraw)
+    show_candlestick(dataPicked,periodName)

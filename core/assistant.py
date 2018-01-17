@@ -28,9 +28,9 @@ if __name__ == '__main__':
         indx = Constant.QUOTATION_DB_PREFIX.index(tmName)
         if filename.find('.db') != -1:
             dataWithId = Primitive.translate_db_to_df(filename)
-            CandleStick.manual_show_candlestick(tmName,dataWithId,isDraw=True)
+            CandleStick.manual_show_candlestick(tmName,dataWithId)
         elif filename.find('.csv') != -1:
-            CandleStick.manual_show_candlestick_withCSV(tmName,filename,isDraw=True)
+            CandleStick.manual_show_candlestick_withCSV(tmName,filename)
         else:
             print "Error file name input!"
     else:
