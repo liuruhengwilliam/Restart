@@ -20,7 +20,7 @@ def get_date_code():
     month,day = dt.strftime('%m'),dt.strftime('%d')
     return MONTH_CODE[int(month)-1]+DAY_CODE[int(day)-1]
 
-VERSION_CODE = 'V0.9.0'
+VERSION_CODE = 'V0.9.2'
 def get_version_info():
     """ 内/外部接口API: """
     return VERSION_CODE + get_date_code() + "\n" + \
@@ -51,7 +51,7 @@ BIG_SCALE_CANDLESTICK = (3,)
 SCALE_CANDLESTICK = (LITTEL_SCALE_CANDLESTICK*2+SMALL_SCALE_CANDLESTICK*2+\
                      MEDIUM_SCALE_CANDLESTICK*4+BIG_SCALE_CANDLESTICK*3)
 # 展示蜡烛图的默认尺度
-DEFAULT_SCALE_CANDLESTICK_SHOW = 1
+DEFAULT_SCALE_CANDLESTICK_SHOW = 4
 
 LITTLE_SCALE_CANDLESTICK_DEFAULT_CNT = (0,) # 微尺度时间周期的蜡烛图默认数目
 SMALL_SCALE_CANDLESTICK_DEFAULT_CNT = (150,) # 小尺度时间周期的蜡烛图默认数目
