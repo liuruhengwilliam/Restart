@@ -2,7 +2,7 @@
 
 import os
 import datetime
-
+import urllib
 from resource import Trace
 from resource import Configuration
 from resource import Constant
@@ -61,19 +61,27 @@ class Coordinate():
         if Constant.exit_on_weekend(self.week):#此时处理所有周期的相关内容
             os._exit(0) #退出Python程序
 
-    def work_operation(self):
-        """ 外部接口API: 慢速定时器组回调函数--更新行情数据库和策略算法计算 """
+    def work_client_operation(self):
+        """ 外部接口API: 客户端线程回调函数 """
         # 定时器名称即是周期名称(defined in Constant.py)
-        tmName = threading.currentThread().getName()
-        self.work_period_details(tmName)
+        #下载各周期的SER.db文件
+        for tmName in Constant.QUOTATION_DB_PREFIX[2:]:
+            dnldUrl = Configuration.get_server_download_url(tmName)+tmName+'-ser.db'
+            filePath = Configuration.get_period_working_folder(tmName)+tmName+'-ser-dup.db'
+            urllib.urlretrieve(dnldUrl,filename=filePath)
+            Trace.output('info',"download db file from %s"%(dnldUrl))
+        #筛选条目，最大程度匹配策略
 
-        #盈亏数据库的操作......
 
-    def work_period_details(self,periodName):
-        """ 内部接口API: 某周期的处理细节。
+        #屏幕弹框(发送消息及email--应包含策略条目详情)
+        return
+
+    def work_server_operation(self):
+        """ 外部接口API: 服务器端某周期的处理回调函数。
             1.是否结算期及相关处理（转存csv文件和复位相关缓存）；2.更新行情数据库；
             3.行情数据转dateframe格式文件；4.绘制蜡烛图（若需要）；5.调用策略模块进行计算（若需要）
         """
+        periodName = threading.currentThread().getName()
         markStart1 = datetime.datetime.now()
         quotefilename = Configuration.get_period_working_folder(periodName)+periodName+'-quote.db'
 
@@ -84,7 +92,8 @@ class Coordinate():
             return
 
         #策略盈亏率数据库操作。先进行统计更新策略盈亏率数据，然后再分析及插入新条目。
-        if periodName == '5min':#5min周期定时器的主要任务就是更新盈亏率数据库
+        #5min周期定时器的主要任务就是更新盈亏率数据库
+        if periodName == '5min':
             recInfo = self.recordHdl.get_record_dict()['5min']
             self.strategy.update_strategy([recInfo['time'],recInfo['high'],recInfo['low'],recInfo['close']])
             markEnd4 = datetime.datetime.now()
@@ -103,11 +112,11 @@ class Coordinate():
 
         #指标计算和记录
         self.indicator.process_indicator(periodName,dataWithId)
-        #策略算法计算
+
         markEnd2 = datetime.datetime.now()
         Trace.output('info', "period %s process indicator cost:"%periodName)
         Trace.output('info',str(markEnd2-markEnd1))
-
+        #策略算法计算
         self.strategy.check_strategy(periodName,dataWithId)
 
         markEnd3 = datetime.datetime.now()
