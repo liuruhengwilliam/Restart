@@ -72,7 +72,7 @@ def show_candlestick(dfData, ma, BBands, periodName):
         # 生成图片文件保存
         timestamp = datetime.datetime.now().strftime('%b%d_%H_%M')
         plt.savefig('%s%s-%s.png'%(Configuration.get_period_working_folder(periodName),periodName,timestamp),dpi=200)
-        plt.show()
+        #plt.show() #只有主线程才能处理该信号 -- ValueError: signal only works in main thread
     except (Exception),e:
         exc_type,exc_value,exc_tb = sys.exc_info()
         traceback.print_exception(exc_type, exc_value, exc_tb)
