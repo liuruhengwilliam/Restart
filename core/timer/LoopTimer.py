@@ -15,14 +15,14 @@ class LoopTimer(threading.Thread):
             t.start()
             t.cancel()     # stop the timer's action if it's still waiting
     """
-    def __init__(self, indx, period, func):
+    def __init__(self, period, func):
         """ 定时器初始化函数。
             period: 定时器超时时间。
             func: 定时器到期时回调函数。
         """
         self.func = func
         self.period = period
-        self.tmName = Constant.QUOTATION_DB_PREFIX[indx]
+        self.tmName = Constant.QUOTATION_DB_PREFIX[Constant.QUOTATION_DB_PERIOD.index(period)]
 
         super(LoopTimer,self).__init__(name=self.tmName)
 

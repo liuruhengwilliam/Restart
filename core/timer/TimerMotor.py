@@ -17,8 +17,8 @@ def start_loop_timer(tmFunc, Period):
         Period：固定周期定时列表 """
     fastenTimer = []#固定周期定时器列表
     if len(Period) != 0:
-        for (indx,period,func) in zip(range(len(Period)), Period, tmFunc):
-            tmpTimer = LoopTimer(indx, period, func)
+        for (period,func) in zip(Period, tmFunc):
+            tmpTimer = LoopTimer(period, func)
             tmpTimer.start()
             # 添加到固定周期定时器列表中
             fastenTimer.append(tmpTimer)

@@ -116,3 +116,24 @@ def get_property(strProperty):
         ret = item.find('value').text
 
     return ret
+
+DEFAULT_SERVER_URL = "http://192.168.10.81/"
+DEFAULT_PHRASE_VERSION = "Fx678-V093AQ"
+def get_server_download_url(period):
+    """ 外部接口API：获取远端服务器(only should be Linux)的下载url
+        period: 周期名称字符串
+    """
+    dt = datetime.datetime.now()
+    year,week = dt.strftime('%Y'),dt.strftime('%U')
+    fileNamePrefix = year+'-'+week
+
+    serverUrl = get_property('serverUrl')
+    if serverUrl == None:
+        serverUrl = DEFAULT_SERVER_URL
+
+    phraseVersion = get_property('phraseVer')
+    if phraseVersion == None:
+        phraseVersion = DEFAULT_PHRASE_VERSION
+
+    return serverUrl + phraseVersion + '/'+year+'/'+fileNamePrefix+'/'+period+'/'
+
