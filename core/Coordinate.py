@@ -15,6 +15,7 @@ from quotation.QuotationDB import *
 from quotation.QuotationRecord import *
 from strategy.Strategy import *
 from strategy import StratEarnRate
+from strategy import Decision
 
 class Coordinate():
     """
@@ -64,12 +65,12 @@ class Coordinate():
     def work_client_operation(self):
         """ 外部接口API: 客户端线程回调函数 """
         # 定时器名称即是周期名称(defined in Constant.py)
-        #下载各周期的SER.db文件
-        for tmName in Constant.QUOTATION_DB_PREFIX[2:]:
-            dnldUrl = Configuration.get_server_download_url(tmName)+tmName+'-ser.db'
-            filePath = Configuration.get_period_working_folder(tmName)+tmName+'-ser-dup.db'
-            urllib.urlretrieve(dnldUrl,filename=filePath)
-            Trace.output('info',"download db file from %s"%(dnldUrl))
+        Trace.output('info', "client work on "+str(datetime.datetime.now()))
+        #下载各周期的db文件
+        for item in ("quote","ser"):
+            Configuration.download_realtime_file(item)
+        for item in ("csv","png"):
+            Configuration.download_statistic_file(item)
         #筛选条目，最大程度匹配策略
 
 

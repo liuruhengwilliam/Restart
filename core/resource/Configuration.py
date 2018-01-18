@@ -1,6 +1,7 @@
 #coding=utf-8
 
 import os
+import urllib
 import datetime
 import platform
 import threading
@@ -137,3 +138,45 @@ def get_server_download_url(period):
 
     return serverUrl + phraseVersion + '/'+year+'/'+fileNamePrefix+'/'+period+'/'
 
+def download_realtime_file(suffix):
+    """ 外部接口API:下载实时更新的文件--相关数据库文件
+        suffix:文件名伪后缀-- ser or quote
+    """
+    for tmName in Constant.QUOTATION_DB_PREFIX[1:]:
+        dnldUrl = get_server_download_url(tmName)+tmName+'-'+suffix+'.db'
+        filePath = get_period_working_folder(tmName)+tmName+'-'+suffix+'-dup.db'
+        try:
+            urllib.urlretrieve(dnldUrl,filename=filePath)
+            Trace.output('info',"download db file from %s"%(dnldUrl))
+        except Exception,e:
+            continue
+
+def download_statistic_file(suffix):
+    """外部接口API：下载每日结算期统计文件--相关csv和png文件
+        suffix:文件后缀-- csv or png
+    """
+    for tmName in Constant.QUOTATION_DB_PREFIX[1:]:
+        if suffix == "csv":#制表文件
+            for phase in ("quote","ser"):
+                dnldUrl = get_server_download_url(tmName)+\
+                        tmName+'-'+phase+str(datetime.date.today())+'.'+suffix
+                filePath = get_period_working_folder(tmName)+\
+                        tmName+'-'+phase+str(datetime.date.today())+'.'+suffix
+                try:
+                    urllib.urlretrieve(dnldUrl,filename=filePath)
+                    Trace.output('info',"download db file from %s"%(dnldUrl))
+                except Exception,e:
+                    continue
+        else:#png文件
+            #下载前一天的指标绘图文件
+            dayStamp = (datetime.date.today()-datetime.timedelta(days=1)).strftime('%b%d')
+            for clock in range(24):
+                dnldUrl = get_server_download_url(tmName)+\
+                        tmName+'-'+dayStamp+'_'+'%02d'%clock+'_00'+'.'+suffix
+                filePath = get_period_working_folder(tmName)+\
+                        tmName+'-'+dayStamp+'_'+'%02d'%clock+'_00'+'.'+suffix
+                try:
+                    urllib.urlretrieve(dnldUrl,filename=filePath)
+                    Trace.output('info',"download db file from %s"%(dnldUrl))
+                except Exception,e:
+                    continue
