@@ -30,19 +30,29 @@ SER_DB_QUERY_DESC = 'select * from stratearnrate order by indx desc'
 # 建表
 # 表结构说明：
 #策略点时间，策略点价格，策略点方向，周期名称，技术指标名称（组合图形名称索引或其他）
-#策略点给出后盈亏率时间统计:（极值及时间/5min/15min/30min/1hour/2hour/4hour/6hour/12hour/1day/1week）
+#策略点给出后盈亏率时间统计:极值及时间15min/30min/1hour/2hour/4hour/6hour/12hour，损单时间（止损可配置，默认0.7%）
 STRATEARNRATE_DB_CREATE = 'create table stratearnrate(\
     indx integer primary key autoincrement not null default 1,\
-    time text, price float, tmName text, patternName text,patternVal int, \
-    maxEarn float, maxEarnTime text, maxLoss float,maxLossTime text,\
-    M5Earn float, M15Earn float, M30Earn float, H1Earn float, H2Earn float,\
-    H4Earn float, H6Earn float, H12Earn float, D1Earn float, W1Earn float);'
+    time text, price float, tmName text, patternName text,patternVal int, DeadTime text,\
+    M15maxEarn float, M15maxEarnTime text, M15maxLoss float, M15maxLossTime text,\
+    M30maxEarn float, M30maxEarnTime text, M30maxLoss float, M30maxLossTime text,\
+    H1maxEarn float, H1maxEarnTime text, H1maxLoss float, H1maxLossTime text,\
+    H2maxEarn float, H2maxEarnTime text, H2maxLoss float, H2maxLossTime text,\
+    H4maxEarn float, H4maxEarnTime text, H4maxLoss float, H4maxLossTime text,\
+    H6maxEarn float, H6maxEarnTime text, H6maxLoss float, H6maxLossTime text,\
+    H12maxEarn float, H12maxEarnTime text, H12maxLoss float, H12maxLossTime text);'
 
 # 插入: 时间，价格，方向，周期名称，匹配模式名称
 STRATEARNRATE_DB_INSERT=\
-    'insert into stratearnrate(time,price,tmName,patternName,patternVal,\
-    maxEarn,maxEarnTime,maxLoss,maxLossTime,M5Earn,M15Earn,M30Earn,\
-    H1Earn,H2Earn,H4Earn,H6Earn,H12Earn,D1Earn,W1Earn) values(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)'
+    'insert into stratearnrate(time,price,tmName,patternName,patternVal,DeadTime,\
+    M15maxEarn, M15maxEarnTime, M15maxLoss, M15maxLossTime,\
+    M30maxEarn, M30maxEarnTime, M30maxLoss, M30maxLossTime,\
+    H1maxEarn, H1maxEarnTime, H1maxLoss, H1maxLossTime,\
+    H2maxEarn, H2maxEarnTime, H2maxLoss, H2maxLossTime,\
+    H4maxEarn, H4maxEarnTime, H4maxLoss, H4maxLossTime,\
+    H6maxEarn, H6maxEarnTime, H6maxLoss, H6maxLossTime,\
+    H12maxEarn, H12maxEarnTime, H12maxLoss, H12maxLossTime,\
+    values(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)'
 
 def translate_db_into_csv(dbFile, lineCnt=-1):
     """ 外部接口API:将db文件转换成同名同路径的csv文件

@@ -20,7 +20,7 @@ def get_date_code():
     month,day = dt.strftime('%m'),dt.strftime('%d')
     return MONTH_CODE[int(month)-1]+DAY_CODE[int(day)-1]
 
-VERSION_CODE = 'V0.9.3'
+VERSION_CODE = 'V1.0.0'
 def get_version_info():
     """ 内/外部接口API: """
     return VERSION_CODE + get_date_code() + "\n" + \
@@ -36,6 +36,8 @@ def envi_init():
         sys.path.append(os.getcwd()+'/engine')
         sys.path.append(os.getcwd()+'/timer')
 
+#止损率定义
+STOP_LOSS_RATE = 0.7
 # =========================================================================================
 # 蜡烛图相关
 # 各种周期的尺度定义
@@ -115,9 +117,14 @@ BOLLINGER_BANDS = 20
 # 行情数据库中记录项
 QUOTATION_STRUCTURE = ('time','open','high','low','close')
 # 策略盈亏率数据库文件对应的DataFrame结构。‘id’，‘tmChainIndx’和‘restCnt’是区别于SER数据库特有的字段。
-SER_DF_STRUCTURE = ('id','time','price','tmName','patternName','patterVal',\
-    'maxEarn','maxEarnTime','maxLoss','maxLossTime','M5Earn','M15Earn','M30Earn',\
-    'H1Earn','H2Earn','H4Earn','H6Earn','H12Earn','D1Earn','W1Earn','tmChainIndx','restCnt')
+SER_DF_STRUCTURE = ('id','time','price','tmName','patternName','patterVal','DeadTime',\
+    'M15maxEarn', 'M15maxEarnTime', 'M15maxLoss', 'M15maxLossTime',\
+    'M30maxEarn', 'M30maxEarnTime', 'M30maxLoss', 'M30maxLossTime',\
+    'H1maxEarn', 'H1maxEarnTime', 'H1maxLoss', 'H1maxLossTime',\
+    'H2maxEarn', 'H2maxEarnTime', 'H2maxLoss', 'H2maxLossTime',\
+    'H4maxEarn', 'H4maxEarnTime', 'H4maxLoss', 'H4maxLossTime',\
+    'H6maxEarn', 'H6maxEarnTime', 'H6maxLoss', 'H6maxLossTime',\
+    'H12maxEarn', 'H12maxEarnTime', 'H12maxLoss', 'H12maxLossTime','tmChainIndx','restCnt')
 #循环定时器周期
 # 行情数据库记录项周期: 6sec(不生成db文件),5min,15min,30min,1hour,2hour,4hour,6hour,12hour,1day,1week
 QUOTATION_DB_PREFIX = ('6sec','5min','15min','30min','1hour','2hour','4hour','6hour','12hour','1day','1week')

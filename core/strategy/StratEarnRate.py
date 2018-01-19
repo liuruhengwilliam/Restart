@@ -74,9 +74,16 @@ def update_stratearnrate_db(periodName,indxList,dfStrategy):
         itemList = np.array(dfStrategy.iloc[indx]).tolist()
         Trace.output('info',(' ').join(map(lambda x:str(x), itemList)))
         try:
-            dbCursor.execute('update stratearnrate set time=?,price=?,tmName=?,patternName=?,patternVal=?,\
-                maxEarn=?,maxEarnTime=?,maxLoss=?,maxLossTime=?,M5Earn=?,M15Earn=?,M30Earn=?,H1Earn=?,H2Earn=?,\
-                H4Earn=?,H6Earn=?,H12Earn=?,D1Earn=?,W1Earn=? where indx=%d'%(indx+1),itemList[1:-2])
+            dbCursor.execute('update stratearnrate set time=?,price=?,tmName=?,\
+                patternName=?,patternVal=?,DeadTime=?,\
+                M15maxEarn=?,M15maxEarnTime=?,M15maxLoss=?,M15maxLossTime=?,\
+                M30maxEarn=?,M30maxEarnTime=?,M30maxLoss=?,M30maxLossTime=?,\
+                H1maxEarn=?,H1maxEarnTime=?,H1maxLoss=?,H1maxLossTime=?,\
+                H2maxEarn=?,H2maxEarnTime=?,H2maxLoss=?,H2maxLossTime=?,\
+                H4maxEarn=?,H4maxEarnTime=?,H4maxLoss=?,H4maxLossTime=?,\
+                H6maxEarn=?,H6maxEarnTime=?,H6maxLoss=?,H6maxLossTime=?,\
+                H12maxEarn=?,H12maxEarnTime=?,H12maxLoss=?,H12maxLossTime=?,\
+                where indx=%d'%(indx+1),itemList[1:-2])
         except (Exception),e:
             Trace.output('fatal',"update %sEarn in stratearnrate db Exception: "% periodName+e.message)
     db.commit()
