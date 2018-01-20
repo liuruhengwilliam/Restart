@@ -184,7 +184,10 @@ class Strategy():
                 if itemRow[-1] - Constant.CHAIN_PERIOD[0] <= 0:
                     dfStrategy.ix[itemRow[0],[-2]] = itemRow[-2]+1 #设置链式定时的下个周期序号
                     #设置计数初值。需要减去前一个周期数值。
-                    dfStrategy.ix[itemRow[0],[-1]] = Constant.CHAIN_PERIOD[itemRow[-2]+1]
+                    baseAddr = Constant.QUOTATION_DB_PERIOD.index(15*60)#周期计数值的基址
+                    dfStrategy.ix[itemRow[0],[-1]] = Constant.QUOTATION_DB_PERIOD[baseAddr+itemRow[-2]+1]
+                    if updatedIndxList.count(itemRow[0]) == 0:
+                        updatedIndxList.append(itemRow[0])
                 else:#链式计数还未到期
                     dfStrategy.ix[itemRow[0],[-1]] -= Constant.CHAIN_PERIOD[0]
 

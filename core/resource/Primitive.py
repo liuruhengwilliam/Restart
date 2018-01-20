@@ -51,7 +51,7 @@ STRATEARNRATE_DB_INSERT=\
     H2maxEarn, H2maxEarnTime, H2maxLoss, H2maxLossTime,\
     H4maxEarn, H4maxEarnTime, H4maxLoss, H4maxLossTime,\
     H6maxEarn, H6maxEarnTime, H6maxLoss, H6maxLossTime,\
-    H12maxEarn, H12maxEarnTime, H12maxLoss, H12maxLossTime,\
+    H12maxEarn, H12maxEarnTime, H12maxLoss, H12maxLossTime) \
     values(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)'
 
 def translate_db_into_csv(dbFile, lineCnt=-1):

@@ -82,7 +82,7 @@ def update_stratearnrate_db(periodName,indxList,dfStrategy):
                 H2maxEarn=?,H2maxEarnTime=?,H2maxLoss=?,H2maxLossTime=?,\
                 H4maxEarn=?,H4maxEarnTime=?,H4maxLoss=?,H4maxLossTime=?,\
                 H6maxEarn=?,H6maxEarnTime=?,H6maxLoss=?,H6maxLossTime=?,\
-                H12maxEarn=?,H12maxEarnTime=?,H12maxLoss=?,H12maxLossTime=?,\
+                H12maxEarn=?,H12maxEarnTime=?,H12maxLoss=?,H12maxLossTime=? \
                 where indx=%d'%(indx+1),itemList[1:-2])
         except (Exception),e:
             Trace.output('fatal',"update %sEarn in stratearnrate db Exception: "% periodName+e.message)

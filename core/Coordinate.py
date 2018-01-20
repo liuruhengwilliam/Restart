@@ -13,7 +13,7 @@ from indicator.Indicator import Indicator
 from quotation import QuotationKit
 from quotation.QuotationDB import *
 from quotation.QuotationRecord import *
-from strategy.Strategy import *
+from strategy.Strategy import Strategy
 from strategy import StratEarnRate
 from strategy import Decision
 
@@ -96,7 +96,7 @@ class Coordinate():
         #5min周期定时器的主要任务就是更新盈亏率数据库
         if periodName == '5min':
             recInfo = self.recordHdl.get_record_dict()['5min']
-            self.strategy.update_strategy([recInfo['time'],recInfo['high'],recInfo['low'],recInfo['close']])
+            self.strategy.update_strategy([recInfo['time'],recInfo['high'],recInfo['low']])
             markEnd4 = datetime.datetime.now()
             Trace.output('info', "period %s update strategy cost:"%periodName)
             Trace.output('info', str(markEnd4-markStart1))
