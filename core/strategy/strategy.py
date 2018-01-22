@@ -117,7 +117,7 @@ class Strategy():
             currentInfo:当前时间和价格信息
         """
         closeTime, highPrice, lowPrice = currentInfo#当前时间和价格信息
-        for tmName in Constant.QUOTATION_DB_PREFIX[1:]:
+        for tmName in Constant.QUOTATION_DB_PREFIX[2:]:
             self.dictMutexLock[tmName].acquire()
             dfStrategy = self.dictPolRec[tmName]
             updatedIndxList = []
@@ -128,7 +128,6 @@ class Strategy():
                 deadTimeIndx = Constant.SER_DF_STRUCTURE.index('DeadTime')
                 dircIndx = Constant.SER_DF_STRUCTURE.index('patterVal')
                 basePrice = itemRow[basePriceIndx+1]
-                basePrice = basePrice.astype('float64')
                 deadTime = itemRow[deadTimeIndx+1]
                 dirc = itemRow[dircIndx+1]
                 #'M15maxEarn'为记录项基址,itemRow[-2]*4为偏移量--链式定时序号。每四个记录项为一组。
