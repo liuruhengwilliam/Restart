@@ -69,7 +69,7 @@ class Strategy():
                     #对unicode字符特殊处理
                     pttnFloat=time.mktime(time.strptime(str(dfLastLine['time'].values).split('\'')[1],'%Y-%m-%d %H:%M:%S'))
                     if float(nowFloat-pttnFloat)>float(Constant.QUOTATION_DB_PERIOD[Constant.QUOTATION_DB_PREFIX.index(tmName)]):
-                        Trace.output('info','  find outdated strategy:%s'%pattern + \
+                        Trace.output('info','    find outdated strategy:%s'%pattern + \
                                     ' Time:%s'%str(dfLastLine['time'].values).split('\'')[1]+' in Period %s'%tmName)
                         continue
 
@@ -86,7 +86,7 @@ class Strategy():
 
         if len(dfCollect) != 0:
             #汇总到对应总表并添加数据库条目
-            Trace.output('info',' === %s Period insert Strategy DB === '%tmName)
+            Trace.output('info','  === %s Period insert Strategy DB ===  '%tmName)
             self.dictMutexLock[tmName].acquire()
             self.dictPolRec[tmName] = self.dictPolRec[tmName].append(dfCollect,ignore_index=True)
             StratEarnRate.insert_stratearnrate_db(tmName,dfCollect)
@@ -173,7 +173,7 @@ class Strategy():
 
                 #判断是否止损，止损刻度时间的精度是5min。
                 if StrategyMisc.set_dead_price(basePrice,dirc,highPrice,lowPrice,deadTime)==True:
-                    Trace.output('warn','In Period %s, item died which bsTm %s bsPr %d dirc %d Pattern %s'\
+                    Trace.output('warn','In Period %s, item DIED which bsTm %s bsPr %d dirc %d Pattern %s'\
                                      %(tmName,baseTime,basePrice,dirc,patternStr))
                     dfStrategy.ix[itemRow[0],[deadTimeIndx]] = closeTime.strftime("%Y-%m-%d %H:%M")
                     if updatedIndxList.count(itemRow[0]) == 0:
@@ -192,7 +192,7 @@ class Strategy():
 
             #需要更新的条目序号组合成列表，然后一次性操作数据库文件。这样效率较高。
             if len(updatedIndxList) != 0:
-                Trace.output('info',' === %s Period update Strategy DB === '% tmName)
+                Trace.output('info','  === %s Period update Strategy DB ===  '% tmName)
                 StratEarnRate.update_stratearnrate_db(tmName, updatedIndxList, dfStrategy)
 
             self.dictMutexLock[tmName].release()

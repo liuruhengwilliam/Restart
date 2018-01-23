@@ -98,8 +98,7 @@ class Coordinate():
             recInfo = self.recordHdl.get_record_dict()['5min']
             self.strategy.update_strategy([recInfo['time'],recInfo['high'],recInfo['low']])
             markEnd4 = datetime.datetime.now()
-            Trace.output('info', "period %s update strategy cost:"%periodName)
-            Trace.output('info', str(markEnd4-markStart1))
+            Trace.output('info', "period %s update strategy cost: %s"%(periodName,str(markEnd4-markStart1)))
             return
 
         #其他周期定时器
@@ -108,21 +107,18 @@ class Coordinate():
             raise ValueError
             return
         markEnd1 = datetime.datetime.now()
-        Trace.output('info', "period %s update db and build dataframe cost:"%periodName)
-        Trace.output('info',str(markEnd1-markStart1))
+        Trace.output('info', "period %s build dataframe cost: %s"%(periodName,str(markEnd1-markStart1)))
 
         #指标计算和记录
         self.indicator.process_indicator(periodName,dataWithId)
 
         markEnd2 = datetime.datetime.now()
-        Trace.output('info', "period %s process indicator cost:"%periodName)
-        Trace.output('info',str(markEnd2-markEnd1))
+        Trace.output('info', "period %s process indicator cost: %s"%(periodName,str(markEnd2-markEnd1)))
         #策略算法计算
         self.strategy.check_strategy(periodName,dataWithId)
 
         markEnd3 = datetime.datetime.now()
-        Trace.output('info', "period %s check strategy cost:"%periodName)
-        Trace.output('info',str(markEnd3-markEnd2))
+        Trace.output('info', "period %s check strategy cost: %s"%(periodName,str(markEnd3-markEnd2)))
 
     def statistics_settlement(self):
         """内部接口API: 盈亏统计工作。由汇总各周期盈亏数据库生成表格文件。"""
