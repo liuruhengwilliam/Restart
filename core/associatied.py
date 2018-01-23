@@ -22,6 +22,7 @@ import subprocess
 import matplotlib.pyplot as plt
 import xml.etree.ElementTree as ET
 from resource import Primitive
+from resource import Constant
 #from strategy import Strategy
 #from quotation import QuotationKit
 
@@ -55,6 +56,77 @@ def csv_test(priceList):
 def file_test():
     for line in open('D:/misc/future/2017-44/5min.db'):
         print line
+
+def create_db_test():
+    """ 外部接口API: 创建数据库文件 """
+    dt = datetime.datetime.now()
+    year,week = dt.strftime('%Y'),dt.strftime('%U')
+    #各周期创建所属的策略盈亏率数据库
+    for tagPeriod in Constant.QUOTATION_DB_PREFIX[1:]:
+        filePath = 'D:\\misc\\2018-03\\1day\\1day-ser.db'
+        #生成数据库文件
+        isExist = os.path.exists(filePath)
+        db = sqlite3.connect(filePath)
+        dbCursor = db.cursor()
+        #First: create db if empty
+        if not isExist:
+            try:
+                dbCursor.execute(Primitive.STRATEARNRATE_DB_CREATE)
+            except (Exception),e:
+                print "create stratearnrate db file Exception: "+e.message
+        db.commit()
+        dbCursor.close()
+        db.close()
+
+def insert_db_test():
+    """ 外部接口API:策略产生点时，插入该策略条目信息。
+        可随同最小周期定时器调用。
+        periodName: 周期名称字符串
+        dfStrategy: DataFrame结构的策略数据
+    """
+    filePath = "D:\\misc\\2018-03\\1day\\1day-ser.db"
+    db = sqlite3.connect(filePath)
+    dbCursor = db.cursor()
+    matchItem = ['1900-01-01:12:00',20.00,'1day','UNKNOWN',200,'',\
+            0,'',10000,'',0,'',10000,'',0,'',10000,'',0,'',10000,'',0,'',10000,'',0,'',10000,'',0,'',10000,'']
+    try:
+        #刨开DataFrame中特有项
+        dbCursor.execute(Primitive.STRATEARNRATE_DB_INSERT,matchItem)
+    except (Exception),e:
+        print "insert into stratearnrate db Exception: " + e.message
+
+    db.commit()# 提交
+    dbCursor.close()
+    db.close()
+
+def update_db_test():
+    """ 外部接口API:更新某周期的策略盈亏率数据库。由‘5min’周期定时函数进行调用。
+        periodName:周期名--字符串
+        indxList:待更新条目序号的列表
+        dfStrategy: DataFrame结构的策略数据
+    """
+    filePath = "D:\\misc\\2018-03\\1day\\1day-ser.db"
+    db = sqlite3.connect(filePath)
+    dbCursor = db.cursor()
+
+    matchItem = ['2000-01-01:12:00',23.00,'1day','William',100,'',\
+            0,'2010-01-01:13:00',10,'2010-01-01:14:00',0,'',10000,'',0,'',10000,'',0,'',10000,'',0,'',10000,'',0,'',10000,'',0,'',10000,'']
+    try:
+        dbCursor.execute('update stratearnrate set time=?,price=?,tmName=?,\
+                patternName=?,patternVal=?,DeadTime=?,\
+                M15maxEarn=?,M15maxEarnTime=?,M15maxLoss=?,M15maxLossTime=?,\
+                M30maxEarn=?,M30maxEarnTime=?,M30maxLoss=?,M30maxLossTime=?,\
+                H1maxEarn=?,H1maxEarnTime=?,H1maxLoss=?,H1maxLossTime=?,\
+                H2maxEarn=?,H2maxEarnTime=?,H2maxLoss=?,H2maxLossTime=?,\
+                H4maxEarn=?,H4maxEarnTime=?,H4maxLoss=?,H4maxLossTime=?,\
+                H6maxEarn=?,H6maxEarnTime=?,H6maxLoss=?,H6maxLossTime=?,\
+                H12maxEarn=?,H12maxEarnTime=?,H12maxLoss=?,H12maxLossTime=? \
+                where indx=1',matchItem)
+    except (Exception),e:
+        print "update Earn in stratearnrate db Exception: "+e.message
+    db.commit()
+    dbCursor.close()
+    db.close()
 
 def db_test():
     dbFile = 'D:/misc/future/2017-44/5min.db'
@@ -290,9 +362,11 @@ def dos_cmd_test():
     #subprocess.check_output('wget http://192.168.10.81/git/backup-git-warehouse.sh -P F:',shell=True)
     #os.system('dir')
     try:
-        urllib.urlretrieve('http://192.168.10.81/Start-V061/2017-52/15min.db',filename='F:\\15min.db')
+        #urllib.urlretrieve('http://192.168.10.81/Start-V061/2017-52/15min.db',filename='F:\\15min.db')
+        data = urllib2.urlopen('http://192.168.10.81/Fx678-V093AQ/2018/2018-02/')
+        print data
     except Exception,e:
-        print "download failed!"
+        print e
 
 if __name__ == '__main__':
     #csv_test(db_test())
@@ -308,5 +382,8 @@ if __name__ == '__main__':
     #sma_test()
     #update_serdb()
     #practice_jinten()
-    dos_cmd_test()
+    #dos_cmd_test()
+    create_db_test()
+    #insert_db_test()
+    update_db_test()
     sys.exit()
