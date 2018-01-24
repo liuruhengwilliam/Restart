@@ -69,7 +69,7 @@ class Coordinate():
         #下载各周期的db文件
         for item in ("quote","ser"):
             Configuration.download_realtime_file(item)
-        for item in ("csv","png"):
+        for item in ("csv",):
             Configuration.download_statistic_file(item)
         #筛选条目，最大程度匹配策略
 
