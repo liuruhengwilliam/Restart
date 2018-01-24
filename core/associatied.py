@@ -16,6 +16,12 @@ import urllib2
 import cookielib
 import commands
 import subprocess
+import Tkinter
+import tkMessageBox
+import smtplib
+from email.mime.text import MIMEText
+from email.mime.multipart import MIMEMultipart
+from email.header import Header
 #from engine.DataScrape import *
 #from timer.TimerMotor import *
 #from quotation.QuotationDB import *
@@ -368,6 +374,53 @@ def dos_cmd_test():
     except Exception,e:
         print e
 
+def box_show_test():
+    root = Tkinter.Tk()
+    #b = Tkinter.Button(root, text="关于", command=tkMessageBox.showinfo(title='aaa', message='bbb'))
+    #b.pack()
+    root.mainloop()
+
+def email_send_test():
+    '''发送电子邮件'''
+    MAIL_FROM='liuruhengwilliam@sina.com'
+    MAIL_TO = ['liuruhengwilliam@sina.com']
+    msg = MIMEText('Python email send practice',"plain",_charset='utf-8')
+    msg['Subject'] = Header('email auto send','utf-8')
+    msg["From"]=MAIL_FROM
+    msg['Date']='2018-01-24'
+    try:
+        smtp = smtplib.SMTP()
+        smtp.connect("smtp.sina.com",25)#SMTP端口号默认为25
+        smtp.login("liuruhengwilliam", "Joe19800116")#用户名和密码
+        smtp.sendmail(MAIL_FROM, MAIL_TO, msg.as_string())
+        print "True"
+    except Exception as e:
+        print e.message
+
+def email_withattachment_send_test():
+    '''发送电子邮件'''
+    MAIL_FROM='liuruhengwilliam@sina.com'
+    MAIL_TO = ['liuruhengwilliam@sina.com']#多人接收时可在该列表中添加
+    #msg['To'] = ";".join(receiver)
+    msg = MIMEMultipart()
+    msg['Subject'] = Header('Email AutoMatic Send','utf-8')
+    msg["From"]=MAIL_FROM
+    msg['Date']='2018-01-24 16:00'
+    msg.attach(MIMEText('Python email send practice',"plain",_charset='utf-8'))
+    att1 = MIMEText(open('1hour-Jan20_20_18.png','rb').read(),'base64','utf-8')
+    att1["Content-Type"] = 'application/octet-stream'
+    att1["Content-Disposition"] = 'attachment; filename="1hour-Jan20_20_18.png"'
+    msg.attach(att1)
+    try:
+        smtp = smtplib.SMTP()
+        smtp.connect("smtp.sina.com",25)#SMTP端口号默认为25
+        smtp.login("liuruhengwilliam", "Joe19800116")#用户名和密码
+        smtp.sendmail(MAIL_FROM, MAIL_TO, msg.as_string())
+        print "True"
+    except Exception as e:
+        print e.message
+    smtp.quit()
+
 if __name__ == '__main__':
     #csv_test(db_test())
     #db_test()
@@ -383,7 +436,10 @@ if __name__ == '__main__':
     #update_serdb()
     #practice_jinten()
     #dos_cmd_test()
-    create_db_test()
+    #create_db_test()
     #insert_db_test()
-    update_db_test()
+    #update_db_test()
+    #box_show_test()
+    email_send_test()
+    #email_withattachment_send_test()
     sys.exit()
