@@ -10,6 +10,8 @@ import platform
 Configuration.create_working_directory() #创建当周工作目录
 Configuration.create_period_working_folder() #创建各周期属性文件夹
 Constant.envi_init()#初始化杂项
+#程序运行的角色：Server 或者 Client
+ROLE_DEFAULT = "Server"
 
 def server_main():
     """执行模块"""
@@ -28,10 +30,13 @@ def server_main():
 
 def client_main():
     coordinate = Coordinate()
+    coordinate.work_client_operation()#客户端启动时就运行
+    #然后再设置定时器
     TimerMotor.start_loop_timer((coordinate.work_client_operation,),(Constant.QUOTATION_DB_PERIOD[1],))
 
 if __name__ == '__main__':
-    if (platform.system() == "Linux"):#服务器端主线程
+    ROLE_DEFAULT = Configuration.get_property("programrole")#服务器端主线程
+    if ROLE_DEFAULT == "Server":
         server_main()
     else:#客户端主线程
         client_main()

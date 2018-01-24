@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <data>
     <datasource name="web name of source data">
-        <value>Fx678</value>
+        <value>SinaFinance</value>
     </datasource>
     <consoletrace name="console trace switcher">
         <value>True</value>    
@@ -9,7 +9,10 @@
     <loglevel name="log level">
         <value>info</value>    
     </loglevel>
-    <BBands name="Bollinger Bands">
-        <value>False</value>
-    </BBands>
+    <trace name="trace switch">
+        <value>True</value>
+    </trace>
+    <programrole name="program role">
+        <value>Server</value>
+    </programrole>
 </data>
