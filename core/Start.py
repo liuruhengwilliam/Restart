@@ -18,8 +18,6 @@ def server_main():
     # 数据抓取和行情数据库相关初始化
     coordinate = Coordinate()
 
-    coordinate.init_module()
-
     # 数据抓取模块和数据库模块挂载到周期定时器
     HBfuncHook = (coordinate.work_heartbeat,) # 心跳定时器处理回调函数
     PeriodfuncHook = (coordinate.work_server_operation,) # 一般周期定时器处理回调函数
