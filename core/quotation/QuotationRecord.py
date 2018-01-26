@@ -9,20 +9,15 @@ class QuotationRecord():
         self.updatePeriodFlag = flagList
         # QDB中各周期记录字典
         self.recordPeriodDict = {}
-
-    def get_record_dict(self):
-        """ 外部接口API: 获取缓冲字典对象 """
-        return self.recordPeriodDict
-
-    # 用列表还是用字典？ 字典可读性优于列表，后期维护性较高。-- 字典'键值对'本身就是一种注释。
-    def create_record_dict(self):
-        """ 外部接口API: 创建记录字典: '缓冲记录字典' 和 '各周期记录字典' """
         atomicDictItem = dict(zip(Constant.QUOTATION_STRUCTURE,[0,0,0,0,0]))
-
         # 生成各周期记录字典
         for tagPeriod in Constant.QUOTATION_DB_PREFIX:
             itemPeriod = {tagPeriod: deepcopy(atomicDictItem)}
             self.recordPeriodDict.update(itemPeriod)
+
+    def get_record_dict(self):
+        """ 外部接口API: 获取缓冲字典对象 """
+        return self.recordPeriodDict
 
     def update_dict_record(self,infoList):
         """ 外部接口API: 心跳定时器回调函数。更新缓冲记录。

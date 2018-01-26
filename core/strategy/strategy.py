@@ -1,14 +1,15 @@
 #coding=utf-8
 
+import os
 import sys
 import talib
 import traceback
 import time
 import datetime
+import threading
 import numpy as np
 import pandas as pd
 import copy
-import threading
 from copy import deepcopy
 from pandas import DataFrame
 import StrategyMisc
@@ -16,6 +17,7 @@ import StratEarnRate
 from resource import Constant
 from resource import Configuration
 from resource import Trace
+from resource import Primitive
 
 class Strategy():
     """
@@ -29,7 +31,7 @@ class Strategy():
 
         #共享资源--数据库文件互斥锁
         self.dictMutexLock={}
-        for keyTag in Constant.QUOTATION_DB_PREFIX:#检测15min~12hour的周期
+        for keyTag in Constant.QUOTATION_DB_PREFIX[1:]:#检测15min~12hour的周期
             mutex = threading.Lock()
             self.dictMutexLock.update({keyTag: mutex})
 
@@ -37,7 +39,18 @@ class Strategy():
         self.dictPolRec = {}
         #该字典的键为周期名称字符串，值为DataFrame条目（见下）。
         valueDf = DataFrame(columns=Constant.SER_DF_STRUCTURE)#建立空的DataFrame数据结构
-        for keyTag in Constant.QUOTATION_DB_PREFIX:
+        for keyTag in Constant.QUOTATION_DB_PREFIX[1:]:
+            serfilename = Configuration.get_period_working_folder(keyTag)+keyTag+'-ser.db'
+            if not os.path.exists(serfilename):#当周程序首次运行，不存在对应数据库文件（需要创建）
+                valueDf = DataFrame(columns=Constant.SER_DF_STRUCTURE)#建立空的DataFrame数据结构
+                StratEarnRate.create_stratearnrate_db(keyTag)
+            else:#非首次运行就存在数据库文件
+                valueDf = Primitive.translate_db_to_df(serfilename)
+                if valueDf is not None and len(valueDf) != 0:#若存在接续的数据记录
+                    Trace.output('info'," === %s Period to be continued from SerDB === "%keyTag)
+                    for itemRow in valueDf.itertuples():
+                        Trace.output('info','    '+(' ').join(map(lambda x:str(x), itemRow)))
+
             self.dictPolRec.update({keyTag: deepcopy(valueDf)})
 
     def check_candlestick_pattern(self,tmName,dataWithId):
@@ -46,6 +59,7 @@ class Strategy():
             dataWithID: 来自行情数据库的dataframe结构数据
         """
         dataDealed = StrategyMisc.process_quotes_candlestick_pattern(tmName,dataWithId)
+
         dfCollect = DataFrame(columns=Constant.SER_DF_STRUCTURE)#收集本周期内新增策略条目
         for indxs in self.dfCandlestickPattern.index:# 遍历所有已定义的蜡烛图组合模型
             note = self.dfCandlestickPattern.loc[indxs]['Note']
@@ -64,10 +78,14 @@ class Strategy():
                     dataCache[pattern] = result #增加蜡烛图组合模式的名称列
                     dfLastLine = dataCache[dataCache[pattern]!=0][-1:] #按照时间排序的最后一行即是更新行。返回DataFrame结构。
 
+                    #对unicode字符特殊处理
+                    if len(str(dfLastLine['time'].values).split('\'')) < 2:
+                        continue
+
                     #按照时间进行筛选。只添加不超过一个周期时间的条目。
                     nowFloat=time.mktime(time.strptime(str(datetime.datetime.now()).split('.')[0],'%Y-%m-%d %H:%M:%S'))
-                    #对unicode字符特殊处理
                     pttnFloat=time.mktime(time.strptime(str(dfLastLine['time'].values).split('\'')[1],'%Y-%m-%d %H:%M:%S'))
+
                     if float(nowFloat-pttnFloat)>float(Constant.QUOTATION_DB_PERIOD[Constant.QUOTATION_DB_PREFIX.index(tmName)]):
                         Trace.output('info','    find outdated strategy:%s'%pattern + \
                                     ' Time:%s'%str(dfLastLine['time'].values).split('\'')[1]+' in Period %s'%tmName)
@@ -89,7 +107,7 @@ class Strategy():
             Trace.output('info','  === %s Period insert Strategy DB ===  '%tmName)
             self.dictMutexLock[tmName].acquire()
             self.dictPolRec[tmName] = self.dictPolRec[tmName].append(dfCollect,ignore_index=True)
-            StratEarnRate.insert_stratearnrate_db(tmName,dfCollect)
+            #StratEarnRate.insert_stratearnrate_db(tmName,dfCollect)#插入操作移到5min定时器中处理
             self.dictMutexLock[tmName].release()
 
     def check_strategy(self,periodName,dataWithId):
@@ -104,12 +122,6 @@ class Strategy():
         # 首先匹配蜡烛图组合
         self.check_candlestick_pattern(periodName,dataWithId)
         # 其次结合移动平均线和布林线进行分析
-
-    def query_strategy(self,periodName):
-        """ 外部接口API: 获取某周期的策略指示
-            返回值：DataFrame结构数据
-        """
-        return self.dictPolRec[periodName]
 
     def update_strategy(self,currentInfo):
         """ 外部接口API: 更新某周期的策略盈亏率数据。
@@ -190,9 +202,10 @@ class Strategy():
                 else:#链式计数还未到期
                     dfStrategy.ix[itemRow[0],[-1]] -= Constant.CHAIN_PERIOD[0]
 
+            self.dictMutexLock[tmName].release()
+
             #需要更新的条目序号组合成列表，然后一次性操作数据库文件。这样效率较高。
             if len(updatedIndxList) != 0:
                 Trace.output('info','  === %s Period update Strategy DB ===  '% tmName)
                 StratEarnRate.update_stratearnrate_db(tmName, updatedIndxList, dfStrategy)
 
-            self.dictMutexLock[tmName].release()

@@ -37,15 +37,6 @@ class Coordinate():
         # 策略类初始化
         self.strategy = Strategy()
 
-    def init_module(self):
-        """ 外部接口API:行情数据库准备 """
-        # 创建记录字典
-        self.recordHdl.create_record_dict()
-        # 创建行情数据库文件
-        self.dbQuotationHdl.create_period_db()
-        # 创建盈亏数据库文件
-        StratEarnRate.create_stratearnrate_db()
-
     # 以下是定时器回调函数:
     def work_heartbeat(self):
         """ 快速定时器(心跳定时器)回调函数 : 数据抓取模块和行情数据库线程(缓冲字典)之间协同工作函数 """
@@ -83,10 +74,8 @@ class Coordinate():
             3.行情数据转dateframe格式文件；4.绘制蜡烛图（若需要）；5.调用策略模块进行计算（若需要）
         """
         periodName = threading.currentThread().getName()
-        markStart1 = datetime.datetime.now()
-        quotefilename = Configuration.get_period_working_folder(periodName)+periodName+'-quote.db'
+        markStart = datetime.datetime.now()
 
-        self.dbQuotationHdl.update_period_db(periodName) #更新行情数据库
         #结算期间由更新标志控制不会多次更新
         if Constant.is_closing_market():
             self.recordHdl.reset_dict_record(periodName) #对应周期的行情记录缓存及标志复位
@@ -97,28 +86,24 @@ class Coordinate():
         if periodName == '5min':
             recInfo = self.recordHdl.get_record_dict()['5min']
             self.strategy.update_strategy([recInfo['time'],recInfo['high'],recInfo['low']])
-            markEnd4 = datetime.datetime.now()
-            Trace.output('info', "period %s update strategy cost: %s"%(periodName,str(markEnd4-markStart1)))
+            markEnd5min = datetime.datetime.now()
+            Trace.output('info', "period %s update strategy cost: %s"%(periodName,str(markEnd5min-markStart)))
             return
 
         #其他周期定时器
-        dataWithId = Primitive.translate_db_to_df(quotefilename)
-        if dataWithId is None:
-            raise ValueError
-            return
-        markEnd1 = datetime.datetime.now()
-        Trace.output('info', "period %s build dataframe cost: %s"%(periodName,str(markEnd1-markStart1)))
+        self.dbQuotationHdl.update_quote(periodName) #更新行情数据
+        markQuote = datetime.datetime.now()
+        Trace.output('info', "period %s update quote cost: %s"%(periodName,str(markQuote-markStart)))
 
         #指标计算和记录
-        self.indicator.process_indicator(periodName,dataWithId)
+        self.indicator.process_indicator(periodName,self.dbQuotationHdl.query_quote(periodName))
+        markIndicator = datetime.datetime.now()
+        Trace.output('info', "period %s process indicator cost: %s"%(periodName,str(markIndicator-markQuote)))
 
-        markEnd2 = datetime.datetime.now()
-        Trace.output('info', "period %s process indicator cost: %s"%(periodName,str(markEnd2-markEnd1)))
         #策略算法计算
-        self.strategy.check_strategy(periodName,dataWithId)
-
-        markEnd3 = datetime.datetime.now()
-        Trace.output('info', "period %s check strategy cost: %s"%(periodName,str(markEnd3-markEnd2)))
+        self.strategy.check_strategy(periodName,self.dbQuotationHdl.query_quote(periodName))
+        markStrategy = datetime.datetime.now()
+        Trace.output('info', "period %s check strategy cost: %s"%(periodName,str(markStrategy-markIndicator)))
 
     def statistics_settlement(self):
         """内部接口API: 盈亏统计工作。由汇总各周期盈亏数据库生成表格文件。"""

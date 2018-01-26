@@ -24,12 +24,13 @@ def supplement_quotes(periodName,dataWithID,supplementCnt):
             break
 
         dataSupplementWithID = Primitive.translate_db_to_df(preDBfile)
-        dataSupplementCnt = dataSupplementWithID.iloc[-1:]['id']
-        if len(dataSupplementCnt) == 0:
+        if len(dataSupplementWithID) == 0:
             #对于无记录文件情形，dataSupplementCnt为空Series。int(dataSupplementCnt)会报错。
             supplCnt = 0
         else:
+            dataSupplementCnt = dataSupplementWithID.iloc[-1:]['id']
             supplCnt = int(dataSupplementCnt)
+
         if supplCnt >= supplementCnt: #已经能够补全，取后面的(supplementCnt)个数据
             dataSupplement = np.array(dataSupplementWithID.ix[supplCnt-supplementCnt:])
         else: #还未补全数据继续循环

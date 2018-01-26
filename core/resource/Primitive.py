@@ -40,7 +40,8 @@ STRATEARNRATE_DB_CREATE = 'create table stratearnrate(\
     H2maxEarn float, H2maxEarnTime text, H2maxLoss float, H2maxLossTime text,\
     H4maxEarn float, H4maxEarnTime text, H4maxLoss float, H4maxLossTime text,\
     H6maxEarn float, H6maxEarnTime text, H6maxLoss float, H6maxLossTime text,\
-    H12maxEarn float, H12maxEarnTime text, H12maxLoss float, H12maxLossTime text);'
+    H12maxEarn float, H12maxEarnTime text, H12maxLoss float, H12maxLossTime text,\
+    tmChainIndx float, restCnt float);'
 
 # 插入: 时间，价格，方向，周期名称，匹配模式名称
 STRATEARNRATE_DB_INSERT=\
@@ -51,8 +52,9 @@ STRATEARNRATE_DB_INSERT=\
     H2maxEarn, H2maxEarnTime, H2maxLoss, H2maxLossTime,\
     H4maxEarn, H4maxEarnTime, H4maxLoss, H4maxLossTime,\
     H6maxEarn, H6maxEarnTime, H6maxLoss, H6maxLossTime,\
-    H12maxEarn, H12maxEarnTime, H12maxLoss, H12maxLossTime) \
-    values(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)'
+    H12maxEarn, H12maxEarnTime, H12maxLoss, H12maxLossTime,\
+    tmChainIndx,restCnt) \
+    values(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)'
 
 def translate_db_into_csv(dbFile, lineCnt=-1):
     """ 外部接口API:将db文件转换成同名同路径的csv文件
@@ -73,7 +75,7 @@ def translate_db_into_csv(dbFile, lineCnt=-1):
 
     # 写入抬头信息
     if fileType == 'Ser':
-        title = ['indx'] + map(lambda x:x , Constant.SER_DF_STRUCTURE[1:-2])
+        title = ['indx'] + map(lambda x:x , Constant.SER_DF_STRUCTURE[1:])
     else:
         title = ['id'] + map(lambda x:x , Constant.QUOTATION_STRUCTURE)
     csvWriter.writerow(title)
@@ -130,9 +132,11 @@ def translate_db_to_df(dbFile):
 
     # 写入抬头信息
     if fileType == 'Ser':
-        title = ['indx'] + map(lambda x:x , Constant.SER_DF_STRUCTURE[1:-2])
+        title = ['indx'] + map(lambda x:x , Constant.SER_DF_STRUCTURE[1:])
     else:
         title = ['id'] + map(lambda x:x , Constant.QUOTATION_STRUCTURE)
-
-    dataframe = DataFrame(ret,columns=title)
+    if len(ret) == 0:
+        dataframe = DataFrame(columns=title)
+    else:
+        dataframe = DataFrame(ret,columns=title)
     return dataframe

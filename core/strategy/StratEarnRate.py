@@ -17,26 +17,25 @@ from resource import Trace
 #        chain定时器（Start类中启动）进行更新（操作策略之后若干周期时间点的盈亏情况）。
 #    接口API：创建/查询/插入/更新
 
-def create_stratearnrate_db():
+def create_stratearnrate_db(tagPeriod):
     """ 外部接口API: 创建数据库文件 """
     dt = datetime.datetime.now()
     year,week = dt.strftime('%Y'),dt.strftime('%U')
     #各周期创建所属的策略盈亏率数据库
-    for tagPeriod in Constant.QUOTATION_DB_PREFIX[1:]:
-        filePath = Configuration.get_period_working_folder(tagPeriod)+tagPeriod+'-ser.db'
-        #生成数据库文件
-        isExist = os.path.exists(filePath)
-        db = sqlite3.connect(filePath)
-        dbCursor = db.cursor()
-        #First: create db if empty
-        if not isExist:
-            try:
-                dbCursor.execute(Primitive.STRATEARNRATE_DB_CREATE)
-            except (Exception),e:
-                Trace.output('fatal',"create stratearnrate db file Exception: "+e.message)
-        db.commit()
-        dbCursor.close()
-        db.close()
+    filePath = Configuration.get_period_working_folder(tagPeriod)+tagPeriod+'-ser.db'
+    #生成数据库文件
+    isExist = os.path.exists(filePath)
+    if isExist:
+        return
+    db = sqlite3.connect(filePath)
+    dbCursor = db.cursor()
+    try:
+        dbCursor.execute(Primitive.STRATEARNRATE_DB_CREATE)
+    except (Exception),e:
+        Trace.output('fatal',"create stratearnrate db file Exception: "+e.message)
+    db.commit()
+    dbCursor.close()
+    db.close()
 
 def insert_stratearnrate_db(periodName,dfStrategy):
     """ 外部接口API:策略产生点时，插入该策略条目信息。
