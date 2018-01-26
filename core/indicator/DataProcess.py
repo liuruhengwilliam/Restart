@@ -53,7 +53,7 @@ def process_compact_dt2num(periodIndx, dataPicked):
 
         dt2numEx = float(dataPicked.loc[indx,['dt2num']]) #记录'dt2num'前值
 
-def process_quotes_drawing_candlestick(periodName,dataWithID):
+def process_quotes_4indicator(periodName,dataWithID):
     """ 外部接口API：处理quotes数据
         1.去掉id栏
         2.调用date2num函数转换datetime
@@ -74,7 +74,13 @@ def process_quotes_drawing_candlestick(periodName,dataWithID):
     # 附加'dt2num'列
     dateDeal = []
     for tm in np.array(dataSupplementWithID['time']):
-        dateDeal.append(date2num(datetime.datetime.strptime(tm,"%Y-%m-%d %H:%M:%S")))
+        if type(tm) == unicode:#unicode需要转string
+            dateDeal.append(date2num(datetime.datetime.strptime(tm.encode('unicode-escape'),"%Y-%m-%d %H:%M:%S")))
+        elif type(tm) == str:
+            dateDeal.append(date2num(datetime.datetime.strptime(tm,"%Y-%m-%d %H:%M:%S")))
+        else:#Just joke: default would be the type of datetime.datetime
+            dateDeal.append(date2num(tm))
+
     dataSupplementWithID['dt2num'] = (dateDeal)
 
     # 为绘图时将空白时间删除，调整DataFrame中的‘dt2num’列

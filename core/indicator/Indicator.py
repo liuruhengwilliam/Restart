@@ -6,7 +6,8 @@ import BollingerBands
 import DataProcess
 from resource import Constant
 from copy import deepcopy
-
+import datetime
+from resource import Trace
 class Indicator():
     """
         指标类。蜡烛图、移动平均线、布林带。
@@ -29,11 +30,12 @@ class Indicator():
             periodName:周期名称的字符串（用于计算蜡烛图展示根数）
             dataWithId:行情数据库中dateframe结构的数据。
         """
-        dataPicked = DataProcess.process_quotes_drawing_candlestick(periodName,dataWithId)
+        dataPicked = DataProcess.process_quotes_4indicator(periodName,dataWithId)
 
         #移动平均线
         for index,tag in zip(range(len(Constant.MOVING_AVERAGE_LINE)),Constant.MOVING_AVERAGE_LINE):
             self.indiMADict[periodName][index] = MA.compute_sma(dataPicked['close'].as_matrix(),tag)
+
         #布林线
         self.indiBBandsDict[periodName] = BollingerBands.compute_BBands(dataPicked['close'].as_matrix())
 

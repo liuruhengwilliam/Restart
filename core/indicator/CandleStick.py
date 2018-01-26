@@ -84,7 +84,7 @@ def manual_show_candlestick(periodName,dataWithId):
         dataWithId:行情数据库中dateframe结构的数据。
         isDraw:是否展示图画的标志。对于后台运行模式默认不展示。
     """
-    dataPicked = DataProcess.process_quotes_drawing_candlestick(periodName,dataWithId)
+    dataPicked = DataProcess.process_quotes_4indicator(periodName,dataWithId)
 
     # 均线
     ma = [0,]*len(Constant.MOVING_AVERAGE_LINE)
@@ -111,7 +111,7 @@ def manual_show_candlestick_withCSV(periodName,path):
     dataframe = DataFrame(data,columns=title)
 
     # 组装数据进行加工
-    dataPicked = DataProcess.process_quotes_drawing_candlestick(periodName,dataframe)
+    dataPicked = DataProcess.process_quotes_4indicator(periodName,dataframe)
     # 均线
     ma = [0,]*len(Constant.MOVING_AVERAGE_LINE)
     for index,tag in zip(range(len(Constant.MOVING_AVERAGE_LINE)),Constant.MOVING_AVERAGE_LINE):
