@@ -30,11 +30,11 @@ def set_dead_price(basePrice,dirc,highPrice,lowPrice,deadTime):
         return False
 
     if dirc > 0:#“多”方向
-        deltaPrice = abs(basePrice - float(lowPrice))
+        deltaPrice = abs(float(basePrice) - float(lowPrice))
     else:#“空”方向
-        deltaPrice = abs(basePrice - float(highPrice))
+        deltaPrice = abs(float(basePrice) - float(highPrice))
 
-    if deltaPrice/basePrice >= Constant.STOP_LOSS_RATE:
+    if deltaPrice/float(basePrice) >= Constant.STOP_LOSS_RATE:
         return True
     else:
         return False

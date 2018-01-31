@@ -78,21 +78,27 @@ class Strategy():
                     dataCache[pattern] = result #增加蜡烛图组合模式的名称列
                     dfLastLine = dataCache[dataCache[pattern]!=0][-1:] #按照时间排序的最后一行即是更新行。返回DataFrame结构。
 
-                    #对unicode字符特殊处理
-                    if len(str(dfLastLine['time'].values).split('\'')) < 2:
+                    #dfLastLine['time'].values是numpy.ndarray类型
+                    dealTmValue = str(dfLastLine['time'].values)
+                    if dealTmValue.startswith('[u\''):
+                        dealTmValue = dealTmValue.strip('[u\'\']')
+                    elif dealTmValue.startswith('[datetime.datetime'):#拼装成同种格式
+                        valueList = map(lambda x: x.strip(' '), dealTmValue.strip('[datetime.datetime()]').split(','))
+                        dealTmValue = '-'.join(valueList[0:3])+' '+':'.join(valueList[3:])
+                    else:
+                        Trace.output('fatal',"  invalid target time %s"%str(dfLastLine['time'].values))
                         continue
+                    targetTime = time.strptime(dealTmValue,'%Y-%m-%d %H:%M:%S')
 
                     #按照时间进行筛选。只添加不超过一个周期时间的条目。
                     nowFloat=time.mktime(time.strptime(str(datetime.datetime.now()).split('.')[0],'%Y-%m-%d %H:%M:%S'))
-                    pttnFloat=time.mktime(time.strptime(str(dfLastLine['time'].values).split('\'')[1],'%Y-%m-%d %H:%M:%S'))
+                    pttnFloat=time.mktime(targetTime)
 
                     if float(nowFloat-pttnFloat)>float(Constant.QUOTATION_DB_PERIOD[Constant.QUOTATION_DB_PREFIX.index(tmName)]):
-                        Trace.output('info','    find outdated strategy:%s'%pattern + \
-                                    ' Time:%s'%str(dfLastLine['time'].values).split('\'')[1]+' in Period %s'%tmName)
+                        Trace.output('info','  find outdated strategy:%s'%pattern+' Time:%s'%dealTmValue+' in Period %s'%tmName)
                         continue
-
                     #匹配K线组合模式成功后，添加到本周期DataFrame记录对象中。相关统计项暂记为空值。
-                    matchItem = [int(dfLastLine['id'].values),str(dfLastLine['time'].values).split('\'')[1],\
+                    matchItem = [int(dfLastLine['id'].values),dealTmValue,\
                             float(dfLastLine['close'].values),tmName,pattern,int(dfLastLine[pattern].values),'',\
                             0,'',10000,'',0,'',10000,'',0,'',10000,'',0,'',10000,'',0,'',10000,'',0,'',10000,'',0,'',10000,'',0,15*60]
                     #最后两项的含义：设置第一个周期是'15min'--序号为0，周期计数为15*60。
@@ -104,9 +110,15 @@ class Strategy():
 
         if len(dfCollect) != 0:
             #汇总到对应总表并添加数据库条目
-            Trace.output('info','  === %s Period insert Strategy DB ===  '%tmName)
+            Trace.output('info','  === Period %s insert Strategy DateFrame ===  '%tmName)
+            for itemRow in dfCollect.itertuples():
+                Trace.output('info','    '+(' ').join(map(lambda x:str(x), itemRow)))
+
             self.dictMutexLock[tmName].acquire()
-            self.dictPolRec[tmName] = self.dictPolRec[tmName].append(dfCollect,ignore_index=True)
+            if len(self.dictPolRec[tmName]) == 0:
+                self.dictPolRec[tmName] = dfCollect
+            else:
+                self.dictPolRec[tmName] = self.dictPolRec[tmName].append(dfCollect,ignore_index=True)
             #StratEarnRate.insert_stratearnrate_db(tmName,dfCollect)#插入操作移到5min定时器中处理
             self.dictMutexLock[tmName].release()
 
@@ -130,9 +142,15 @@ class Strategy():
         """
         closeTime, highPrice, lowPrice = currentInfo#当前时间和价格信息
         for tmName in Constant.QUOTATION_DB_PREFIX[2:]:
+            #检查本周期DataFrame结构实例中是否有条目需要插入到数据库文件中。此处只读访问，不进行资源互锁。
+            StratEarnRate.insert_stratearnrate_db(tmName,self.dictPolRec[tmName])
+
             self.dictMutexLock[tmName].acquire()
             dfStrategy = self.dictPolRec[tmName]
             updatedIndxList = []
+            if dfStrategy is None or len(dfStrategy) == 0:
+                self.dictMutexLock[tmName].release()
+                continue
             for itemRow in dfStrategy.itertuples():
                 patternStr = itemRow[Constant.SER_DF_STRUCTURE.index('patternName')+1]
                 baseTime = itemRow[Constant.SER_DF_STRUCTURE.index('time')+1]
@@ -143,7 +161,7 @@ class Strategy():
                 deadTime = itemRow[deadTimeIndx+1]
                 dirc = itemRow[dircIndx+1]
                 #'M15maxEarn'为记录项基址,itemRow[-2]*4为偏移量--链式定时序号。每四个记录项为一组。
-                XmaxEarnIndx = Constant.SER_DF_STRUCTURE.index('M15maxEarn')+itemRow[-2]*4
+                XmaxEarnIndx = int(Constant.SER_DF_STRUCTURE.index('M15maxEarn'))+int(itemRow[-2]*4)
                 XmaxEarnTMIndx = XmaxEarnIndx+1
                 XmaxLossIndx = XmaxEarnIndx+2
                 XmaxLossTMIndx = XmaxEarnIndx+3
@@ -153,59 +171,59 @@ class Strategy():
                 #itemRow为Pandas元组，开头自带Index项，所以下标要加一。
                 if itemRow[XmaxEarnIndx+1]==0 or itemRow[XmaxLossIndx+1]==10000:#初始条目
                     if dirc > 0:#‘多’方向
-                        dfStrategy.ix[itemRow[0],[XmaxEarnIndx]] = highPrice
-                        dfStrategy.ix[itemRow[0],[XmaxLossIndx]] = lowPrice
+                        dfStrategy.iat[itemRow[0],XmaxEarnIndx] = highPrice
+                        dfStrategy.iat[itemRow[0],XmaxLossIndx] = lowPrice
                     else:#‘空’方向
-                        dfStrategy.ix[itemRow[0],[XmaxEarnIndx]] = lowPrice
-                        dfStrategy.ix[itemRow[0],[XmaxLossIndx]] = highPrice
+                        dfStrategy.iat[itemRow[0],XmaxEarnIndx] = lowPrice
+                        dfStrategy.iat[itemRow[0],XmaxLossIndx] = highPrice
 
-                    dfStrategy.ix[itemRow[0],[XmaxEarnTMIndx]] = \
-                        dfStrategy.ix[itemRow[0],[XmaxLossTMIndx]] = \
-                        closeTime.strftime("%Y-%m-%d %H:%M")
+                    dfStrategy.iat[itemRow[0],XmaxEarnTMIndx] = \
+                        dfStrategy.iat[itemRow[0],XmaxLossTMIndx] = closeTime.strftime("%Y-%m-%d %H:%M")
                     updatedIndxList.append(itemRow[0])#记录DataFrame数据结构中的序号
                 else:
                     if dirc > 0:#‘多’方向
                         if highPrice > itemRow[XmaxEarnIndx+1] or lowPrice < itemRow[XmaxLossIndx+1]:#避免重复添加
                             updatedIndxList.append(itemRow[0])#记录DataFrame数据结构中的序号
                         if highPrice > itemRow[XmaxEarnIndx+1]:#大于最大盈利值
-                            dfStrategy.ix[itemRow[0],[XmaxEarnIndx]] = highPrice
-                            dfStrategy.ix[itemRow[0],[XmaxEarnTMIndx]] = closeTime.strftime("%Y-%m-%d %H:%M")
+                            dfStrategy.iat[itemRow[0],XmaxEarnIndx] = highPrice
+                            dfStrategy.iat[itemRow[0],XmaxEarnTMIndx] = closeTime.strftime("%Y-%m-%d %H:%M")
                         if lowPrice < itemRow[XmaxLossIndx+1]:#小于最大亏损值
-                            dfStrategy.ix[itemRow[0],[XmaxLossIndx]] = lowPrice
-                            dfStrategy.ix[itemRow[0],[XmaxLossTMIndx]] = closeTime.strftime("%Y-%m-%d %H:%M")
+                            dfStrategy.iat[itemRow[0],XmaxLossIndx] = lowPrice
+                            dfStrategy.iat[itemRow[0],XmaxLossTMIndx] = closeTime.strftime("%Y-%m-%d %H:%M")
                     else:#‘空’方向 -- maxEarn值小于maxLoss值
                         if lowPrice < itemRow[XmaxEarnIndx+1] or highPrice > itemRow[XmaxLossIndx+1]:
                             updatedIndxList.append(itemRow[0])
                         if lowPrice<itemRow[XmaxEarnIndx+1]:#大于最大盈利值
-                            dfStrategy.ix[itemRow[0],[XmaxEarnIndx]] = lowPrice
-                            dfStrategy.ix[itemRow[0],[XmaxEarnTMIndx]] = closeTime.strftime("%Y-%m-%d %H:%M")
+                            dfStrategy.iat[itemRow[0],XmaxEarnIndx] = lowPrice
+                            dfStrategy.iat[itemRow[0],XmaxEarnTMIndx] = closeTime.strftime("%Y-%m-%d %H:%M")
                         if highPrice>itemRow[XmaxLossIndx+1]:#小于最大亏损值
-                            dfStrategy.ix[itemRow[0],[XmaxLossIndx]] = highPrice
-                            dfStrategy.ix[itemRow[0],[XmaxLossTMIndx]] = closeTime.strftime("%Y-%m-%d %H:%M")
+                            dfStrategy.iat[itemRow[0],XmaxLossIndx] = highPrice
+                            dfStrategy.iat[itemRow[0],XmaxLossTMIndx] = closeTime.strftime("%Y-%m-%d %H:%M")
 
                 #判断是否止损，止损刻度时间的精度是5min。
                 if StrategyMisc.set_dead_price(basePrice,dirc,highPrice,lowPrice,deadTime)==True:
                     Trace.output('warn','In Period %s, item DIED which bsTm %s bsPr %d dirc %d Pattern %s'\
                                      %(tmName,baseTime,basePrice,dirc,patternStr))
-                    dfStrategy.ix[itemRow[0],[deadTimeIndx]] = closeTime.strftime("%Y-%m-%d %H:%M")
+                    dfStrategy.iat[itemRow[0],deadTimeIndx] = closeTime.strftime("%Y-%m-%d %H:%M")
                     if updatedIndxList.count(itemRow[0]) == 0:
                         updatedIndxList.append(itemRow[0])
 
                 #链式定时计数小于等于0说明有相关周期策略盈亏率统计周期要增加
-                if itemRow[-1] - Constant.CHAIN_PERIOD[0] <= 0:
-                    dfStrategy.ix[itemRow[0],[-2]] = itemRow[-2]+1 #设置链式定时的下个周期序号
+                if itemRow[-1] <= Constant.CHAIN_PERIOD[0]:
+                    dfStrategy.iat[itemRow[0],-2] = itemRow[-2]+1 #设置链式定时的下个周期序号
                     #设置计数初值。需要减去前一个周期数值。
                     baseAddr = Constant.QUOTATION_DB_PERIOD.index(15*60)#周期计数值的基址
-                    dfStrategy.ix[itemRow[0],[-1]] = Constant.QUOTATION_DB_PERIOD[baseAddr+itemRow[-2]+1]
+                    dfStrategy.iat[itemRow[0],-1] = Constant.QUOTATION_DB_PERIOD[baseAddr+itemRow[-2]+1]
                     if updatedIndxList.count(itemRow[0]) == 0:
                         updatedIndxList.append(itemRow[0])
                 else:#链式计数还未到期
-                    dfStrategy.ix[itemRow[0],[-1]] -= Constant.CHAIN_PERIOD[0]
+                    dfStrategy.iat[itemRow[0],-1] -= Constant.CHAIN_PERIOD[0]
 
             self.dictMutexLock[tmName].release()
 
             #需要更新的条目序号组合成列表，然后一次性操作数据库文件。这样效率较高。
             if len(updatedIndxList) != 0:
-                Trace.output('info','  === %s Period update Strategy DB ===  '% tmName)
+                Trace.output('info','  === update Strategy DB for Period %s ===  '% tmName)
                 StratEarnRate.update_stratearnrate_db(tmName, updatedIndxList, dfStrategy)
+
 

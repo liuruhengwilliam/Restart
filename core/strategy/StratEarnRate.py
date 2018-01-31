@@ -49,10 +49,13 @@ def insert_stratearnrate_db(periodName,dfStrategy):
     #DataFrame数据插入到SER数据库中
     for itemRow in dfStrategy.itertuples():
         #dfStrategy.iloc[indx]可以获取整行数值
-        Trace.output('info',(' ').join(map(lambda x:str(x), itemRow)))
+        #只有新增条目才需要插入---新增条目的'M15maxEarn'栏必定为0（充要条件）
+        if 0 != itemRow[Constant.SER_DF_STRUCTURE.index('M15maxEarn')+1]:
+            continue
+        Trace.output('info','  insert into SER-DB with item: '+(' ').join(map(lambda x:str(x), itemRow)))
         try:
             #刨开DataFrame中特有项
-            dbCursor.execute(Primitive.STRATEARNRATE_DB_INSERT,itemRow[2:-2])
+            dbCursor.execute(Primitive.STRATEARNRATE_DB_INSERT,itemRow[2:])
         except (Exception),e:
             Trace.output('fatal',"insert into stratearnrate db Exception: " + e.message)
 
@@ -69,9 +72,19 @@ def update_stratearnrate_db(periodName,indxList,dfStrategy):
     filePath = Configuration.get_period_working_folder(periodName)+periodName+'-ser.db'
     db = sqlite3.connect(filePath)
     dbCursor = db.cursor()
+
     for indx in indxList:
         itemList = np.array(dfStrategy.iloc[indx]).tolist()
-        Trace.output('info',(' ').join(map(lambda x:str(x), itemList)))
+        Trace.output('info','  '+(' ').join(map(lambda x:str(x), itemList)))
+        dealedList = []
+        for itm in itemList:
+            if type(itm) == np.float64 or type(itm) == np.ndarray:
+                itm = float(itm)
+            elif type(itm) == np.int64:
+                itm = int(itm)
+
+            dealedList.append(itm)
+
         try:
             dbCursor.execute('update stratearnrate set time=?,price=?,tmName=?,\
                 patternName=?,patternVal=?,DeadTime=?,\
@@ -81,8 +94,8 @@ def update_stratearnrate_db(periodName,indxList,dfStrategy):
                 H2maxEarn=?,H2maxEarnTime=?,H2maxLoss=?,H2maxLossTime=?,\
                 H4maxEarn=?,H4maxEarnTime=?,H4maxLoss=?,H4maxLossTime=?,\
                 H6maxEarn=?,H6maxEarnTime=?,H6maxLoss=?,H6maxLossTime=?,\
-                H12maxEarn=?,H12maxEarnTime=?,H12maxLoss=?,H12maxLossTime=? \
-                where indx=%d'%(indx+1),itemList[1:-2])
+                H12maxEarn=?,H12maxEarnTime=?,H12maxLoss=?,H12maxLossTime=?,\
+                tmChainIndx=?,restCnt=? where indx=%d'%(indx+1),dealedList[1:])
         except (Exception),e:
             Trace.output('fatal',"update %sEarn in stratearnrate db Exception: "% periodName+e.message)
     db.commit()
