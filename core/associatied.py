@@ -303,17 +303,26 @@ def home_dir():
     print os.path.abspath(os.getcwd()+os.path.sep+"..")
 
 def update_serdb():
-    file = 'F:\\code\\python\\RESTART\\core\\2018\\2018-01\\15min\\15min-ser.db'
+    file = 'F:\\code\\python\\RESTART\\core\\2018\\2018-04\\15min\\15min-ser.db'
     db = sqlite3.connect(file)
     dbCursor = db.cursor()
-    item = ('2017/12/30  5:59:59',16,'15min','CDL3INSIDE',100,17.09,'2017/12/30  4:59:59',\
-            16.00,'2017/12/30  2:59:59',17.09,17.09,17.09,17.09,17.09,17.09,17.09,17.09,17.09,17.09)
+    item = ('2017/12/30  5:59:59',16,'15min','CDL3INSIDE',100,'',\
+            17.19,'2017/12/30  4:59:59',17.09,'2017/12/30  4:59:59',\
+            0,'',10000,'',0,'',10000,'',0,'',10000,'',0,'',10000,'',0,'',10000,'',0,'',10000,'',\
+            1,1500)
     strtmp = '2018-01-11 12:45:30'
     try:
         #dbCursor.execute("update stratearnrate set time=? where indx=11",item)
-        dbCursor.execute('update stratearnrate set time=?,price=?,tmName=?,patternName=?,patternVal=?,\
-        maxEarn=?,maxEarnTime=?,maxLoss=?,maxLossTime=?,M5Earn=?,M15Earn=?,M30Earn=?,\
-        H1Earn=?,H2Earn=?,H4Earn=?,H6Earn=?,H12Earn=?,D1Earn=?,W1Earn=? where indx = 11', item)
+        dbCursor.execute('update stratearnrate set \
+        time=?,price=?,tmName=?,patternName=?,patternVal=?,DeadTime=?,\
+        M15maxEarn=?,M15maxEarnTime=?,M15maxLoss=?,M15maxLossTime=?,\
+        M30maxEarn=?,M30maxEarnTime=?,M30maxLoss=?,M30maxLossTime=?,\
+        H1maxEarn=?,H1maxEarnTime=?,H1maxLoss=?,H1maxLossTime=?,\
+        H2maxEarn=?,H2maxEarnTime=?,H2maxLoss=?,H2maxLossTime=?,\
+        H4maxEarn=?,H4maxEarnTime=?,H4maxLoss=?,H4maxLossTime=?,\
+        H6maxEarn=?,H6maxEarnTime=?,H6maxLoss=?,H6maxLossTime=?,\
+        H12maxEarn=?,H12maxEarnTime=?,H12maxLoss=?,H12maxLossTime=?,\
+        tmChainIndx=?,restCnt=? where indx = 1', item)
     except (Exception),e:
         print("update in stratearnrate db Exception: "+e.message)
     db.commit()
@@ -433,13 +442,13 @@ if __name__ == '__main__':
     #datetime_test()
     #talib_pattern_15min()
     #sma_test()
-    #update_serdb()
+    update_serdb()
     #practice_jinten()
     #dos_cmd_test()
     #create_db_test()
     #insert_db_test()
     #update_db_test()
     #box_show_test()
-    email_send_test()
+    #email_send_test()
     #email_withattachment_send_test()
     sys.exit()
