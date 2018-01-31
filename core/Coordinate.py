@@ -36,6 +36,7 @@ class Coordinate():
 
         # 策略类初始化
         self.strategy = Strategy()
+        Trace.output('info', " ==== ==== Complete Initiation and Run Routine ==== ==== \n")
 
     # 以下是定时器回调函数:
     def work_heartbeat(self):
@@ -87,7 +88,8 @@ class Coordinate():
             recInfo = self.recordHdl.get_record_dict()['5min']
             self.strategy.update_strategy([recInfo['time'],recInfo['high'],recInfo['low']])
             markEnd5min = datetime.datetime.now()
-            Trace.output('info', "period %s update strategy cost: %s"%(periodName,str(markEnd5min-markStart)))
+            Trace.output('info', "Period %s time out at %s and update strategy cost: %s"\
+                         %(periodName, markStart, str(markEnd5min-markStart)))
             return
 
         #其他周期定时器
