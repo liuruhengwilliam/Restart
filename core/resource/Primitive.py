@@ -41,7 +41,7 @@ STRATEARNRATE_DB_CREATE = 'create table stratearnrate(\
     H4maxEarn float, H4maxEarnTime text, H4maxLoss float, H4maxLossTime text,\
     H6maxEarn float, H6maxEarnTime text, H6maxLoss float, H6maxLossTime text,\
     H12maxEarn float, H12maxEarnTime text, H12maxLoss float, H12maxLossTime text,\
-    tmChainIndx float, restCnt float);'
+    tmChainIndx int, restCnt float);'
 
 # 插入: 时间，价格，方向，周期名称，匹配模式名称
 STRATEARNRATE_DB_INSERT=\
