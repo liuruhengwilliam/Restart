@@ -67,7 +67,9 @@ class Coordinate():
 
 
         #屏幕弹框(发送消息及email--应包含策略条目详情)
-        return
+
+        if Configuration.exit_client() == True:
+            os._exit(0)
 
     def work_server_operation(self):
         """ 外部接口API: 服务器端某周期的处理回调函数。

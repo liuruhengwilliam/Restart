@@ -1,8 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <data>
-    <datasource name="web name of source data">
-        <value>SinaFinance</value>
-    </datasource>
+    <!--both for Server and Client-->
     <consoletrace name="console trace switcher">
         <value>True</value>    
     </consoletrace>
@@ -15,4 +13,18 @@
     <programrole name="program role">
         <value>Server</value>
     </programrole>
+    <!--only for Server-->
+    <datasource name="web name of source data">
+        <value>SinaFinance</value>
+    </datasource>
+    <!--only for client-->
+    <exitClient name="exit client">
+        <value>False</value>
+    </exitClient>
+    <serverUrl name="Server URL">
+        <value>http://192.168.10.81/</value>
+    </serverUrl>
+    <phaseVer name="Version Phase">
+        <value>Fx678-V093AQ</value>
+    </phaseVer>
 </data>

@@ -119,7 +119,7 @@ def get_property(strProperty):
     return ret
 
 DEFAULT_SERVER_URL = "http://192.168.10.81/"
-DEFAULT_PHRASE_VERSION = "Fx678-V093AQ"
+DEFAULT_PHASE_VERSION = "Fx678-V093AQ"
 def get_server_download_url(period):
     """ 外部接口API：获取远端服务器(only should be Linux)的下载url
         period: 周期名称字符串
@@ -132,11 +132,11 @@ def get_server_download_url(period):
     if serverUrl == None:
         serverUrl = DEFAULT_SERVER_URL
 
-    phraseVersion = get_property('phraseVer')
-    if phraseVersion == None:
-        phraseVersion = DEFAULT_PHRASE_VERSION
+    phaseVersion = get_property('phaseVer')
+    if phaseVersion == None:
+        phraseVersion = DEFAULT_PHASE_VERSION
 
-    return serverUrl + phraseVersion + '/'+year+'/'+fileNamePrefix+'/'+period+'/'
+    return serverUrl + phaseVersion + '/'+year+'/'+fileNamePrefix+'/'+period+'/'
 
 def download_realtime_file(suffix):
     """ 外部接口API:下载实时更新的文件--相关数据库文件
@@ -180,3 +180,11 @@ def download_statistic_file(suffix):
                     Trace.output('info',"download db file from %s"%(dnldUrl))
                 except Exception,e:
                     continue
+
+def exit_client():
+    """外部接口API：客户端程序退出检测
+        配置文件可设置。若未设定则默认退出。
+    """
+    exitClient = True
+    exitClient = get_property('exitClient')
+    return exitClient

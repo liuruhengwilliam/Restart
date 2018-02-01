@@ -1,5 +1,6 @@
 #coding=utf-8
 
+import os
 from resource import Constant
 import threading
 from Coordinate import *
@@ -33,8 +34,10 @@ def client_main():
     TimerMotor.start_loop_timer((coordinate.work_client_operation,),(Constant.QUOTATION_DB_PERIOD[1],))
 
 if __name__ == '__main__':
-    ROLE_DEFAULT = Configuration.get_property("programrole")#服务器端主线程
-    if ROLE_DEFAULT == "Server":
+    ROLE_DEFAULT = Configuration.get_property("programrole")
+    if ROLE_DEFAULT == "Server":#服务器端主线程
         server_main()
-    else:#客户端主线程
+    elif ROLE_DEFAULT == "Client":#客户端主线程
         client_main()
+    else:#如果没有设置就强制退出
+        os._exit(0)
