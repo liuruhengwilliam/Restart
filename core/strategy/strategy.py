@@ -85,6 +85,8 @@ class Strategy():
                     elif dealTmValue.startswith('[datetime.datetime'):#拼装成同种格式
                         valueList = map(lambda x: x.strip(' '), dealTmValue.strip('[datetime.datetime()]').split(','))
                         dealTmValue = '-'.join(valueList[0:3])+' '+':'.join(valueList[3:])
+                    elif dealTmValue.startswith('[\'') and dealTmValue.find('T'):
+                        dealTmValue = dealTmValue.strip('[\'\']').replace('T',' ').strip('.000000000')
                     else:
                         Trace.output('fatal',"  invalid target time %s"%str(dfLastLine['time'].values))
                         continue
@@ -202,7 +204,7 @@ class Strategy():
 
                 #判断是否止损，止损刻度时间的精度是5min。
                 if StrategyMisc.set_dead_price(basePrice,dirc,highPrice,lowPrice,deadTime)==True:
-                    Trace.output('warn','In Period %s, item DIED which bsTm %s bsPr %d dirc %d Pattern %s'\
+                    Trace.output('warn','  == In Period %s, item DIED which bsTm %s bsPr %d dirc %d Pattern %s'\
                                      %(tmName,baseTime,basePrice,dirc,patternStr))
                     dfStrategy.iat[itemRow[0],deadTimeIndx] = closeTime.strftime("%Y-%m-%d %H:%M")
                     if updatedIndxList.count(itemRow[0]) == 0:
