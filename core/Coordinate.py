@@ -88,7 +88,7 @@ class Coordinate():
             recInfo = self.recordHdl.get_record_dict()['5min']
             self.strategy.update_strategy([recInfo['time'],recInfo['high'],recInfo['low']])
             markEnd5min = datetime.datetime.now()
-            Trace.output('info', "Period %s time out at %s and update strategy cost: %s"\
+            Trace.output('info', "Period %s time out at %s and update strategy cost: %s\n"\
                          %(periodName, markStart, str(markEnd5min-markStart)))
             return
 
@@ -105,7 +105,7 @@ class Coordinate():
         #策略算法计算
         self.strategy.check_strategy(periodName,self.dbQuotationHdl.query_quote(periodName))
         markStrategy = datetime.datetime.now()
-        Trace.output('info', "period %s check strategy cost: %s"%(periodName,str(markStrategy-markIndicator)))
+        Trace.output('info', "period %s check strategy cost: %s\n"%(periodName,str(markStrategy-markIndicator)))
 
     def statistics_settlement(self):
         """内部接口API: 盈亏统计工作。由汇总各周期盈亏数据库生成表格文件。"""
