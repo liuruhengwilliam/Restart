@@ -88,7 +88,7 @@ class Coordinate():
         #5min周期定时器的主要任务就是更新盈亏率数据库
         if periodName == '5min':
             recInfo = self.recordHdl.get_record_dict()['5min']
-            self.strategy.update_strategy([recInfo['time'],recInfo['high'],recInfo['low']])
+            self.strategy.update_strategy([recInfo['time'],float(recInfo['high']),float(recInfo['low'])])
             markEnd5min = datetime.datetime.now()
             Trace.output('info', "Period %s time out at %s and update strategy cost: %s\n"\
                          %(periodName, markStart, str(markEnd5min-markStart)))
