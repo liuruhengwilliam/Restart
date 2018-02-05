@@ -7,7 +7,10 @@ import platform
 import threading
 import Trace
 import Constant
-
+import smtplib
+from email.mime.text import MIMEText
+from email.mime.multipart import MIMEMultipart
+from email.header import Header
 import xml.etree.ElementTree as ET
 
 def create_working_directory():
@@ -119,7 +122,7 @@ def get_property(strProperty):
     return ret
 
 DEFAULT_SERVER_URL = "http://192.168.10.81/"
-DEFAULT_PHASE_VERSION = "Fx678-V093AQ"
+DEFAULT_PHASE_VERSION = "Fx678-V110BB"
 def get_server_download_url(period):
     """ 外部接口API：获取远端服务器(only should be Linux)的下载url
         period: 周期名称字符串
@@ -188,3 +191,60 @@ def exit_client():
     exitClient = True
     exitClient = get_property('exitClient')
     return exitClient
+
+#邮箱地址和登陆密码成对放置
+DEFAULT_MAILBOX_INFO = 'liuruhengwilliam@sina.com;Joe19800116'
+DEFAULT_MAILBOX_SMTP = 'smtp.sina.com'
+def send_notification_email(title,text,attachment=None):
+    """ 外部接口API：发送通知的电子邮件
+        title: 邮件标题字符串
+        text: 邮件正文字符串
+        attachment：附件文件路径字符串的列表结构
+    """
+    #发件箱
+    senderMailbox = get_property('senderMailbox')
+    if senderMailbox == None:
+        senderMailbox = DEFAULT_MAILBOX_INFO.split(';')[0]
+    #发件箱密码
+    pwdString = get_property('pwdMailbox')
+    if pwdString == None:
+        pwdString = DEFAULT_MAILBOX_INFO.split(';')[1]
+    #发件箱代理
+    smtpString = get_property('smtpMailbox')
+    if smtpString == None:
+        smtpString = DEFAULT_MAILBOX_SMTP
+
+    #收件箱
+    recipientString = get_property('recipientMailbox')
+    if recipientString == None:
+        recipientMailbox = [DEFAULT_MAILBOX_INFO.split(';')[0]]
+    elif recipientString.find(';') != -1:#多收件箱的字符格式标记为以分号相隔
+        recipientMailbox = recipientString.split(';')
+    else:
+        recipientMailbox = [recipientString]
+
+    #邮件主体
+    msg = MIMEMultipart()
+    msg['Subject'] = Header(title,'utf-8')
+    msg["From"] = senderMailbox
+    msg['Date'] = datetime.datetime.now().strftime("%Y-%m-%d %H:%M")
+    msg.attach(MIMEText(text,"plain",_charset='utf-8'))
+
+    #邮件附件
+    if attachment != None:
+        for attach in attachment:
+            att = MIMEText(open(attach,'rb').read(),'base64','utf-8')
+            att["Content-Type"] = 'application/octet-stream'
+            att["Content-Disposition"] = 'attachment;filename=%s'%attach
+            msg.attach(att)
+
+    try:
+        smtp = smtplib.SMTP()
+        smtp.connect(smtpString,25)#SMTP端口号默认为25
+        smtp.login(senderMailbox.split('@')[0], pwdString)#用户名和密码
+        smtp.sendmail(senderMailbox, recipientMailbox, msg.as_string())
+    except Exception as e:
+        print e.message
+        Trace.output('fatal',"send Email Exception: " + e.message)
+    finally:
+        smtp.quit()

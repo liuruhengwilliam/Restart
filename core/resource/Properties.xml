@@ -27,4 +27,10 @@
     <phaseVer name="Version Phase">
         <value>Fx678-V093AQ</value>
     </phaseVer>
+    <clientPeriod name="Client Period">
+        <value>300</value>
+    </clientPeriod>
+    <recipientMailbox name="recipient Mailbox">
+        <value>joeeheng@163.com;liuruhengwilliam@sina.com</value>
+    </recipientMailbox>
 </data>
