@@ -5,13 +5,16 @@ import urllib
 import datetime
 import platform
 import threading
-import Trace
-import Constant
+import tkMessageBox
+import Tkinter
+import xml.etree.ElementTree as ET
 import smtplib
 from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
 from email.header import Header
-import xml.etree.ElementTree as ET
+import Trace
+import Constant
+
 
 def create_working_directory():
     """ 内/外部接口API：获取当前周工作目录
@@ -248,3 +251,34 @@ def send_notification_email(title,text,attachment=None):
         Trace.output('fatal',"send Email Exception: " + e.message)
     finally:
         smtp.quit()
+
+def show_notification_ondesktop(title,text):
+    """ 外部接口API：桌面通知和弹框
+        title: 邮件标题字符串
+        text: 邮件正文字符串
+        参考资料:https://www.cnblogs.com/hhh5460/p/6664021.html?utm_source=itdadao&utm_medium=referral
+    """
+    if platform.system() != 'Windows':
+        return
+
+    if get_property('popupNotification') == 'False':
+        return
+    root = Tkinter.Tk()
+    time=Tkinter.Frame()
+    time.pack(fill="x")
+    direction=Tkinter.Frame()
+    direction.pack(fill="x")
+    body=Tkinter.Frame()
+    body.pack(fill="x")
+
+    Tkinter.Label(time,text='时间：', width=8).pack(side=Tkinter.LEFT)
+    l1 = Tkinter.Label(time,text=datetime.datetime.now().strftime("%Y-%m-%d %H:%M"), width=30,height=5)
+    l1.pack(side=Tkinter.LEFT)
+    Tkinter.Label(direction,text='方向：', width=8).pack(side=Tkinter.LEFT)
+    l2 = Tkinter.Label(direction,text=title, width=30,height=5)
+    l2.pack(side=Tkinter.LEFT)
+    Tkinter.Label(body,text='详情：', width=8).pack(side=Tkinter.LEFT)
+    l3 = Tkinter.Label(body,text=text, width=30,height=5)
+    l3.pack(side=Tkinter.LEFT)
+
+    root.mainloop()

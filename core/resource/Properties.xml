@@ -33,4 +33,7 @@
     <recipientMailbox name="recipient Mailbox">
         <value>joeeheng@163.com;liuruhengwilliam@sina.com</value>
     </recipientMailbox>
+    <popupNotification name="popup Notification">
+        <value>True</value>
+    </popupNotification>
 </data>
