@@ -87,8 +87,10 @@ class Coordinate():
             self.recordHdl.reset_dict_record(periodName) #对应周期的行情记录缓存及标志复位
             return
 
+        self.dbQuotationHdl.update_quote(periodName) #更新行情数据
+
         #策略盈亏率数据库操作。先进行统计更新策略盈亏率数据，然后再分析及插入新条目。
-        #5min周期定时器的主要任务就是更新盈亏率数据库
+        #5min周期定时器的主要任务就是更新盈亏率数据库。但5min行情数据必须周期刷新，所以update_quote(period)要前置。
         if periodName == '5min':
             recInfo = self.recordHdl.get_record_dict()['5min']
             self.strategy.update_strategy([recInfo['time'],float(recInfo['high']),float(recInfo['low'])])
@@ -98,7 +100,6 @@ class Coordinate():
             return
 
         #其他周期定时器
-        self.dbQuotationHdl.update_quote(periodName) #更新行情数据
         markQuote = datetime.datetime.now()
         Trace.output('info', "period %s update quote cost: %s"%(periodName,str(markQuote-markStart)))
 
