@@ -17,7 +17,7 @@ ROLE_DEFAULT = "Server"
 def server_main():
     """执行模块"""
     # 数据抓取和行情数据库相关初始化
-    coordinate = Coordinate()
+    coordinate = Coordinate('Server')
 
     # 数据抓取模块和数据库模块挂载到周期定时器
     HBfuncHook = (coordinate.work_heartbeat,) # 心跳定时器处理回调函数
@@ -28,10 +28,16 @@ def server_main():
     TimerMotor.start_loop_timer(funcList,Constant.QUOTATION_DB_PERIOD)
 
 def client_main():
-    coordinate = Coordinate()
+    coordinate = Coordinate('Client')
     coordinate.work_client_operation()#客户端启动时就运行
-    #然后再设置定时器
-    TimerMotor.start_loop_timer((coordinate.work_client_operation,),(Constant.QUOTATION_DB_PERIOD[1],))
+    #在Linux平台下可以利用while命令循环执行shell命令
+    #参考文档：http://blog.csdn.net/daoshuti/article/details/72831256
+
+    #也可使用配置文件设置循环定时器的方式
+    clientPeriod = Configuration.get_property("clientPeriod")#单位是秒
+    if clientPeriod == None:
+        clientPeriod = Constant.QUOTATION_DB_PERIOD[1]
+    TimerMotor.start_loop_timer((coordinate.work_client_operation,),[int(clientPeriod),])
 
 if __name__ == '__main__':
     ROLE_DEFAULT = Configuration.get_property("programrole")

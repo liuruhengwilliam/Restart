@@ -21,10 +21,12 @@ class Coordinate():
     """
         协作类:衔接“数据抓取”、“行情数据库”、“策略算法”模块，协同工作。
     """
-    def __init__(self):
+    def __init__(self,role):
         self.week = (datetime.datetime.now()).strftime('%U')#本周周数记录
         self.workPath = Configuration.get_working_directory() #获取当前周工作路径
 
+        if role == 'Client':
+            return
         # Quotation record Handle
         self.recordHdl = QuotationRecord(Constant.UPDATE_PERIOD_FLAG)
         self.recordDict = self.recordHdl.get_record_dict()
@@ -36,7 +38,7 @@ class Coordinate():
 
         # 策略类初始化
         self.strategy = Strategy()
-        Trace.output('info', " ==== ==== Complete Initiation and Run Routine ==== ==== \n")
+        Trace.output('info', " ==== ==== %s Complete Initiation and Run Routine ==== ==== \n"%role)
 
     # 以下是定时器回调函数:
     def work_heartbeat(self):
@@ -56,7 +58,9 @@ class Coordinate():
 
     def work_client_operation(self):
         """ 外部接口API: 客户端线程回调函数 """
-        # 定时器名称即是周期名称(defined in Constant.py)
+        if Configuration.exit_client() == True:
+            os._exit(0)
+
         Trace.output('info', "client work on "+str(datetime.datetime.now()))
         #下载各周期的db文件
         for item in ("quote","ser"):
@@ -68,8 +72,7 @@ class Coordinate():
 
         #屏幕弹框(发送消息及email--应包含策略条目详情)
 
-        if Configuration.exit_client() == True:
-            os._exit(0)
+
 
     def work_server_operation(self):
         """ 外部接口API: 服务器端某周期的处理回调函数。
