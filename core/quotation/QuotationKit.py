@@ -24,7 +24,7 @@ def supplement_quotes(periodName,dataWithID,supplementCnt):
             break
 
         dataSupplementWithID = Primitive.translate_db_to_df(preDBfile)
-        if len(dataSupplementWithID) == 0:
+        if dataSupplementWithID is None or len(dataSupplementWithID) == 0:
             #对于无记录文件情形，dataSupplementCnt为空Series。int(dataSupplementCnt)会报错。
             supplCnt = 0
         else:
@@ -33,12 +33,15 @@ def supplement_quotes(periodName,dataWithID,supplementCnt):
 
         if supplCnt >= supplementCnt: #已经能够补全，取后面的(supplementCnt)个数据
             dataSupplement = np.array(dataSupplementWithID.ix[supplCnt-supplementCnt:])
+        elif dataSupplementWithID is None:
+            dataSupplement = None
         else: #还未补全数据继续循环
             dataSupplement = np.array(dataSupplementWithID.ix[:])
 
         weekGap+=1 #时间回溯
         supplementCnt-=supplCnt #待补全的数据调整。若为负，则跳出循环。
-        quotes = np.vstack((dataSupplement,quotes)) #按照时间顺序收集合并数据
+        if dataSupplement is not None:
+            quotes = np.vstack((dataSupplement,quotes)) #按照时间顺序收集合并数据
 
     # 抬头信息
     title = ['id'] + map(lambda x:x , Constant.QUOTATION_STRUCTURE)
