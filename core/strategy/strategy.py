@@ -143,6 +143,8 @@ class Strategy():
             currentInfo:当前时间和价格信息
         """
         closeTime, highPrice, lowPrice = currentInfo#当前时间和价格信息
+        if highPrice == 0.0 or lowPrice == 0.0:#对于抓取的异常数据不做处理
+            return
         for tmName in Constant.QUOTATION_DB_PREFIX[2:]:
             #检查本周期DataFrame结构实例中是否有条目需要插入到数据库文件中。此处只读访问，不进行资源互锁。
             StratEarnRate.insert_stratearnrate_db(tmName,self.dictPolRec[tmName])
@@ -204,7 +206,7 @@ class Strategy():
 
                 #判断是否止损，止损刻度时间的精度是5min。
                 if StrategyMisc.set_dead_price(basePrice,dirc,highPrice,lowPrice,deadTime)==True:
-                    Trace.output('warn','  == In Period %s, item DIED which bsTm %s bsPr %d dirc %d Pattern %s'\
+                    Trace.output('warn','  == In Period %s, item DIED which bsTm %s bsPr %f dirc %d Pattern %s'\
                                      %(tmName,baseTime,basePrice,dirc,patternStr))
                     dfStrategy.iat[itemRow[0],deadTimeIndx] = closeTime.strftime("%Y-%m-%d %H:%M")
                     if updatedIndxList.count(itemRow[0]) == 0:
