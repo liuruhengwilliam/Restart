@@ -22,13 +22,10 @@ def process_quotes_candlestick_pattern(periodName,dataWithID):
     #dataWithID.drop(dataWithID.columns[0:1], axis=1, inplace=True)#抛弃'id'栏
     return dataWithID
 
-def set_dead_price(basePrice,dirc,highPrice,lowPrice,deadTime):
+def set_dead_price(basePrice,dirc,highPrice,lowPrice):
     """外部接口API:检测价格是否超过止损线
        如果超过，返回True；否则返回False。
     """
-    if deadTime != '':#DeadTime已经记录，不再更新。
-        return False
-
     if dirc > 0:#“多”方向
         deltaPrice = abs(float(basePrice) - float(lowPrice))
     else:#“空”方向

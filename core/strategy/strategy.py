@@ -156,13 +156,15 @@ class Strategy():
                 self.dictMutexLock[tmName].release()
                 continue
             for itemRow in dfStrategy.itertuples():
+                deadTimeIndx = Constant.SER_DF_STRUCTURE.index('DeadTime')
+                if itemRow[deadTimeIndx+1] != '':#DeadTime已经记录，不再更新。
+                    continue
+
                 patternStr = itemRow[Constant.SER_DF_STRUCTURE.index('patternName')+1]
                 baseTime = itemRow[Constant.SER_DF_STRUCTURE.index('time')+1]
                 basePriceIndx = Constant.SER_DF_STRUCTURE.index('price')
-                deadTimeIndx = Constant.SER_DF_STRUCTURE.index('DeadTime')
                 dircIndx = Constant.SER_DF_STRUCTURE.index('patterVal')
                 basePrice = itemRow[basePriceIndx+1]
-                deadTime = itemRow[deadTimeIndx+1]
                 dirc = itemRow[dircIndx+1]
                 #'M15maxEarn'为记录项基址,itemRow[-2]*4为偏移量--链式定时序号。每四个记录项为一组。
                 XmaxEarnIndx = int(Constant.SER_DF_STRUCTURE.index('M15maxEarn'))+int(itemRow[-2]*4)
@@ -205,7 +207,7 @@ class Strategy():
                             dfStrategy.iat[itemRow[0],XmaxLossTMIndx] = closeTime.strftime("%Y-%m-%d %H:%M")
 
                 #判断是否止损，止损刻度时间的精度是5min。
-                if StrategyMisc.set_dead_price(basePrice,dirc,highPrice,lowPrice,deadTime)==True:
+                if StrategyMisc.set_dead_price(basePrice,dirc,highPrice,lowPrice)==True:
                     Trace.output('warn','  == In Period %s, item DIED which bsTm %s bsPr %f dirc %d Pattern %s'\
                                      %(tmName,baseTime,basePrice,dirc,patternStr))
                     dfStrategy.iat[itemRow[0],deadTimeIndx] = closeTime.strftime("%Y-%m-%d %H:%M")
