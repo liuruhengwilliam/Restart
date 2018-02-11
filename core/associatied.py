@@ -220,6 +220,17 @@ def talib_func():
     for item in func_dict.iteritems():
         print item
 
+def talib_macd():
+    """参考链接：https://www.cnblogs.com/hhh5460/p/5602357.html"""
+    close = {'close':np.random.random(100)}
+    macd,macdsignal,macdhist = talib.abstract.MACD(close,fastperiod=12,slowperiod=26,signalperiod=9)
+    print '==== macd ====\n',macd
+    print '\n==== macdsignal ====\n',macdsignal
+    print '\n==== macdhist ====\n',macdhist
+
+    real = talib.MOM(close['close'], timeperiod=10)
+    print '\n==== real ====\n',real
+
 def numpy_data():
     data_analyse = numpy.random.random(10)
     print type(data_analyse)
@@ -392,7 +403,7 @@ def box_show_test():
 def email_send_test():
     '''发送电子邮件'''
     MAIL_FROM='liuruhengwilliam@sina.com'
-    MAIL_TO = ['liuruhengwilliam@sina.com']
+    MAIL_TO = ['liuruhengwilliam@sina.com','joeeheng@sina.com']
     msg = MIMEText('Python email send practice',"plain",_charset='utf-8')
     msg['Subject'] = Header('email auto send','utf-8')
     msg["From"]=MAIL_FROM
@@ -434,6 +445,8 @@ if __name__ == '__main__':
     #csv_test(db_test())
     #db_test()
     #file_test()
+    #talib_func()
+    talib_macd()
     #talib_sma_test()
     #query_info()
     #get_property()
@@ -442,7 +455,7 @@ if __name__ == '__main__':
     #datetime_test()
     #talib_pattern_15min()
     #sma_test()
-    update_serdb()
+    #update_serdb()
     #practice_jinten()
     #dos_cmd_test()
     #create_db_test()
