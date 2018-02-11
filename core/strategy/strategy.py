@@ -162,7 +162,8 @@ class Strategy():
                 deadTimeIndx = Constant.SER_DF_STRUCTURE.index('DeadTime')
                 if itemRow[deadTimeIndx+1] != '':#DeadTime已经记录，不再更新。
                     continue
-
+                if itemRow[-2] >= Constant.SER_MAX_PERIOD:#最小周期从0开始计数故不能取MAX值。
+                    continue
                 try:
                     patternStr = itemRow[Constant.SER_DF_STRUCTURE.index('patternName')+1]
                     baseTime = itemRow[Constant.SER_DF_STRUCTURE.index('time')+1]
