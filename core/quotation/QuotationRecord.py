@@ -37,13 +37,17 @@ class QuotationRecord():
                 dictItem[Constant.QUOTATION_STRUCTURE[4]] = infoList[0]
                 self.updatePeriodFlag[Constant.QUOTATION_DB_PREFIX.index(tagPeriod)] = False
                 continue
-            else:
-                dictItem[Constant.QUOTATION_STRUCTURE[4]] = infoList[0]
+
+            if dictItem[Constant.QUOTATION_STRUCTURE[1]] == 0.0:#开盘价不可能为零
+                dictItem[Constant.QUOTATION_STRUCTURE[1]] = infoList[0]
+
+            dictItem[Constant.QUOTATION_STRUCTURE[4]] = infoList[0]#更新收盘价
 
             #最新价和最高/最低价格进行比较。bug fix only for FX678URL source. 2017-10-25
-            if(dictItem[Constant.QUOTATION_STRUCTURE[2]] < infoList[0]):
+            if dictItem[Constant.QUOTATION_STRUCTURE[2]] < infoList[0]:#更新最高价
                 dictItem[Constant.QUOTATION_STRUCTURE[2]] = infoList[0]
-            elif(dictItem[Constant.QUOTATION_STRUCTURE[3]] > infoList[0]):
+            elif dictItem[Constant.QUOTATION_STRUCTURE[3]] > infoList[0] \
+                    or dictItem[Constant.QUOTATION_STRUCTURE[3]] == 0.0:#最低价不可能为零
                 dictItem[Constant.QUOTATION_STRUCTURE[3]] = infoList[0]
 
     def reset_dict_record(self,periodName):
