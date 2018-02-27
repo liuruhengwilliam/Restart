@@ -78,6 +78,8 @@ def process_quotes_4indicator(periodName,dataWithID):
             dateDeal.append(date2num(datetime.datetime.strptime(tm.encode('unicode-escape'),"%Y-%m-%d %H:%M:%S")))
         elif type(tm) == str:
             dateDeal.append(date2num(datetime.datetime.strptime(tm,"%Y-%m-%d %H:%M:%S")))
+        elif type(tm) == np.datetime64:#bug fixed
+            dateDeal.append(date2num(datetime.datetime.strptime(str(tm).strip('.0').replace('T',' '),"%Y-%m-%d %H:%M:%S")))
         else:#Just joke: default would be the type of datetime.datetime
             dateDeal.append(date2num(tm))
 
