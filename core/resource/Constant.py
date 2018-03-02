@@ -141,7 +141,7 @@ CHAIN_PERIOD = (5*60,15*60-5*60,30*60-15*60,1*3600-30*60,2*3600-1*3600,4*3600-2*
 UPDATE_PERIOD_FLAG = [True]*len(QUOTATION_DB_PREFIX)
 #=====================================================================================
 # 夏令时(Daylight saving time)和冬令时(standard time)
-# 夏令时定义：3月最后一个星期日开始，10月最后一个星期日结束。
+# 夏令时定义(欧盟国家)：3月最后一个星期日开始，10月最后一个星期日结束。
 # time类中"tm_isdst"貌似有点水土不服！
 # 夏令时每日结算时间:5点到6点(6点整开盘)
 DAYLIGHT_SETTLEMENT_HOUR_TIME=5
@@ -150,18 +150,38 @@ SAT_DAYLIGHT_SETTLEMENT_HOUR_TIME=3
 STANDARD_SETTLEMENT_HOUR_TIME=6
 SAT_STANDARD_SETTLEMENT_HOUR_TIME=3
 
+def get_last_sunday_of_month(year,month):
+    """ 内部接口API:获取当月(March and October)的最后一个周日对应日期
+    """
+    #当月1号对应星期几
+    firstDayWeek = int(datetime.datetime(year, month, 1).strftime("%w"))
+    #最后一个周日的日期（该规律仅限March and October等大月份）
+    if firstDayWeek < 5:
+        return 29 - firstDayWeek
+    else:
+        return 36 - firstDayWeek
+
 def is_closing_market():
     """ 外部接口API:判断当前时间是否为闭市时间 """
     # 每工作日凌晨5点到6点为结算时间
-    t = time.localtime()
-    month,day,hour = time.strftime("%m",t),time.strftime("%d",t),time.strftime("%H",t)
-    #if int(hour) == DAYLIGHT_SETTLEMENT_HOUR_TIME:#夏令时每日结算时间
-    if int(hour) == STANDARD_SETTLEMENT_HOUR_TIME:#冬令时每日结算时间
-        return True
+    now = datetime.datetime.now()
+    year,month,day,hour = int(now.strftime("%Y")),int(now.strftime("%m")),int(now.strftime("%d")),int(now.strftime("%H"))
+    week,weekday = int(now.strftime("%U")),int(now.isoweekday())
+    if month >= 3 and month <= 10:#夏令时每日结算时间
+        if (month == 3 and day < get_last_sunday_of_month(year,month)) or \
+            (month == 10 and day > get_last_sunday_of_month(year,month)):#冬令时段的边缘日期
+            if hour == STANDARD_SETTLEMENT_HOUR_TIME:
+                return True
+        else:
+            if hour == DAYLIGHT_SETTLEMENT_HOUR_TIME:
+                return True
+    else:#冬令时每日结算时间
+        if hour == STANDARD_SETTLEMENT_HOUR_TIME:
+            return True
 
     # 对于欧美节假日休市的处理
     for dictHolidayItem in HOLIDAY_DATE:
-        if dictHolidayItem['month']==int(month) and dictHolidayItem['day']==int(day):
+        if dictHolidayItem['month']==month and dictHolidayItem['day']==day:
             return True
     return False
 
