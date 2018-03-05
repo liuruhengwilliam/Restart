@@ -16,6 +16,7 @@ from quotation.QuotationRecord import *
 from strategy.Strategy import Strategy
 from strategy import StratEarnRate
 from strategy import Decision
+from indicator import CandleStick
 
 class Coordinate():
     """
@@ -23,7 +24,6 @@ class Coordinate():
     """
     def __init__(self,role):
         self.week = (datetime.datetime.now()).strftime('%U')#本周周数记录
-        self.workPath = Configuration.get_working_directory() #获取当前周工作路径
 
         if role == 'Client':
             return
@@ -59,20 +59,23 @@ class Coordinate():
 
     def work_client_operation(self):
         """ 外部接口API: 客户端线程回调函数 """
-        if Configuration.exit_client() == True:
-            os._exit(0)
+        if Constant.is_closing_market():
+            Configuration.download_statistic_file('csv')
 
         Trace.output('info', "client work on "+str(datetime.datetime.now()))
         #下载各周期的db文件
         for item in ("quote","ser"):
             Configuration.download_realtime_file(item)
-        for item in ("csv",):
-            Configuration.download_statistic_file(item)
+
+        for tmName in Constant.QUOTATION_DB_PREFIX[2:-3]:
+            dataWithId = Primitive.translate_db_to_df('%s%s-quote.db'\
+                            %(Configuration.get_period_working_folder(tmName),tmName))
+            CandleStick.manual_show_candlestick(tmName,dataWithId)
+
         #筛选条目，最大程度匹配策略
 
 
         #屏幕弹框(发送消息及email--应包含策略条目详情)
-
 
 
     def work_server_operation(self):
