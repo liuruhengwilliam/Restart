@@ -54,6 +54,7 @@ class Coordinate():
             self.recordHdl.update_dict_record(infoList)
 
         if Constant.exit_on_weekend(self.week):#此时处理所有周期的相关内容
+            self.statistics_settlement()
             os._exit(0) #退出Python程序
 
     def work_client_operation(self):
