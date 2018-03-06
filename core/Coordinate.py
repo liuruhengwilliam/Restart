@@ -46,7 +46,6 @@ class Coordinate():
         # 全球市场结算期间不更新缓冲记录
         # 数据抓取并筛选
         if Constant.is_closing_market():
-            self.statistics_settlement()
             return
 
         infoList = DataScrape.query_info()
@@ -54,13 +53,13 @@ class Coordinate():
             self.recordHdl.update_dict_record(infoList)
 
         if Constant.exit_on_weekend(self.week):#此时处理所有周期的相关内容
-            self.statistics_settlement()
             os._exit(0) #退出Python程序
 
     def work_client_operation(self):
         """ 外部接口API: 客户端线程回调函数 """
         if Constant.is_closing_market():
-            Configuration.download_statistic_file('csv')
+            self.statistics_settlement()#统计汇总工作由客户端完成
+            return
 
         Trace.output('info', "client work on "+str(datetime.datetime.now()))
         #下载各周期的db文件
