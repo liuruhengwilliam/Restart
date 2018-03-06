@@ -67,6 +67,13 @@ class Coordinate():
             Configuration.download_realtime_file(item)
 
         for tmName in Constant.QUOTATION_DB_PREFIX[2:-3]:
+            #删除旧指标图
+            beforeHour = datetime.datetime.today() - datetime.timedelta(hours=1)
+            fileTag = beforeHour.strftime('%b%d_%H')
+            for item in os.listdir(Configuration.get_period_working_folder(tmName)):
+                if item.find(fileTag) != -1:
+                    os.remove('%s%s'%(Configuration.get_period_working_folder(tmName),item))
+            #生成新指标图
             dataWithId = Primitive.translate_db_to_df('%s%s-quote.db'\
                             %(Configuration.get_period_working_folder(tmName),tmName))
             CandleStick.manual_show_candlestick(tmName,dataWithId)
