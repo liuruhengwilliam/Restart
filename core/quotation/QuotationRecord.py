@@ -23,6 +23,9 @@ class QuotationRecord():
         """ 外部接口API: 心跳定时器回调函数。更新缓冲记录。
             入参infoList的数据接口：当前价格，当前时间
         """
+
+        if infoList[1].strftime("%S") == '00':#为减少计时中0秒带来的异常处理，强制秒计数为01
+            infoList[1] = infoList[1].replace(second=1)
         #用最快定时器（心跳定时器）来更新其他周期行情数据记录
         for tagPeriod,dictItem in self.recordPeriodDict.items():
             # 设置记录时间
