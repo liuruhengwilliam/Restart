@@ -86,10 +86,7 @@ class Strategy():
                         valueList = map(lambda x: x.strip(' '), dealTmValue.strip('[datetime.datetime()]').split(','))
                         dealTmValue = '-'.join(valueList[0:3])+' '+':'.join(valueList[3:])
                     elif dealTmValue.startswith('[\'') and dealTmValue.find('T')!=-1:
-                        if dealTmValue.find('00.000000000')!=-1:
-                            dealTmValue = dealTmValue.strip('[\'\']').replace('T',' ').replace('00.000000000','00')
-                        else:
-                            dealTmValue = dealTmValue.strip('[\'\']').replace('T',' ').strip('.0')#理解strip含义
+                        dealTmValue = dealTmValue.strip('[\'\']').replace('T',' ').strip('.0')#理解strip含义
                     else:
                         Trace.output('fatal',"  invalid target time %s"%str(dfLastLine['time'].values))
                         continue
