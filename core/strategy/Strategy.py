@@ -54,7 +54,7 @@ class Strategy():
             self.dictPolRec.update({keyTag: deepcopy(valueDf)})
 
     def check_candlestick_pattern(self,tmName,dataWithId):
-        """ 外部接口API: 蜡烛图组合图形的识别
+        """ 内部接口API: 蜡烛图组合图形的识别
             periodName: 周期名称的字符串
             dataWithID: 来自行情数据库的dataframe结构数据
         """
@@ -165,7 +165,7 @@ class Strategy():
                     patternStr = itemRow[Constant.SER_DF_STRUCTURE.index('patternName')+1]
                     baseTime = itemRow[Constant.SER_DF_STRUCTURE.index('time')+1]
                     basePriceIndx = Constant.SER_DF_STRUCTURE.index('price')
-                    dircIndx = Constant.SER_DF_STRUCTURE.index('patterVal')
+                    dircIndx = Constant.SER_DF_STRUCTURE.index('patternVal')
                     basePrice = itemRow[basePriceIndx+1]
                     dirc = itemRow[dircIndx+1]
                     #'M15maxEarn'为记录项基址,itemRow[-2]*4为偏移量--链式定时序号。每四个记录项为一组。
