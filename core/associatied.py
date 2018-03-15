@@ -28,7 +28,7 @@ from email.header import Header
 import matplotlib.pyplot as plt
 import xml.etree.ElementTree as ET
 from resource import Primitive
-from resource import Constant
+#from resource import Constant
 #from strategy import Strategy
 #from quotation import QuotationKit
 
@@ -441,12 +441,21 @@ def email_withattachment_send_test():
         print e.message
     smtp.quit()
 
+def get_week_of_month(year, month, day):
+     """
+     获取指定的某天是某个月中的第几周
+    周一作为一周的开始
+    """
+     end = int(datetime.datetime(year, month, day).strftime("%W"))
+     begin = int(datetime.datetime(year, month, 1).strftime("%W"))
+     return end - begin + 1
+
 if __name__ == '__main__':
     #csv_test(db_test())
     #db_test()
     #file_test()
     #talib_func()
-    talib_macd()
+    #talib_macd()
     #talib_sma_test()
     #query_info()
     #get_property()
@@ -464,4 +473,9 @@ if __name__ == '__main__':
     #box_show_test()
     #email_send_test()
     #email_withattachment_send_test()
+    #print get_week_of_month(2018,2,28)
+    for item in os.listdir('F:\\code\\python\\RESTART\\core\\2018\\2018-09\\15min'):
+        if item.find('.png') != -1:
+            print item
+            os.remove('F:\\code\\python\\RESTART\\core\\2018\\2018-09\\15min\%s'%item)
     sys.exit()
