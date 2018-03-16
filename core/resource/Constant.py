@@ -20,7 +20,7 @@ def get_date_code():
     month,day = dt.strftime('%m'),dt.strftime('%d')
     return MONTH_CODE[int(month)-1]+DAY_CODE[int(day)-1]
 
-VERSION_CODE = 'V1.2.0'
+VERSION_CODE = 'V1.2.1'
 def get_version_info():
     """ 内/外部接口API: """
     return VERSION_CODE + get_date_code() + "\n" + \
@@ -208,3 +208,9 @@ CRUCIFIXION_JESUS_DAY = {'month':3,'day':30}
 INDEPENDENCE_DAY = {'month':7,'day':4}
 CHRISTMAS = {'month':12,'day':25}
 HOLIDAY_DATE = (NEW_YEAR_DAY,MARTIN_LUTHER_KING_DAY,CRUCIFIXION_JESUS_DAY,INDEPENDENCE_DAY,CHRISTMAS)
+
+# KLine--组合模式；MA--趋势；MACD--金叉/死叉；BBand--压力/支撑位
+ABSTRACT_TITLE = {'KLine':'\nKLine Give suggestion with direction:',\
+                  'MA':'\nMA Give trends:',\
+                  'MACD':'\nMACD Give suggestion with:',\
+                  'BBand':'\nBBand is at position with:'}

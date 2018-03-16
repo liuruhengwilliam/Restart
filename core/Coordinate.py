@@ -15,7 +15,7 @@ from quotation.QuotationDB import *
 from quotation.QuotationRecord import *
 from strategy.Strategy import Strategy
 from strategy import StratEarnRate
-from strategy import Decision
+from strategy.ClientMatch import ClientMatch
 from indicator import CandleStick
 
 class Coordinate():
@@ -26,6 +26,7 @@ class Coordinate():
         self.week = (datetime.datetime.now()).strftime('%U')#本周周数记录
 
         if role == 'Client':
+            self.clientMatch = ClientMatch()
             return
         # Quotation record Handle
         self.recordHdl = QuotationRecord(Constant.UPDATE_PERIOD_FLAG)
@@ -63,8 +64,8 @@ class Coordinate():
 
         Trace.output('info', "client work on "+str(datetime.datetime.now()))
         #下载各周期的db文件
-        for item in ("quote","ser"):
-            Configuration.download_realtime_file(item)
+        #for item in ("quote","ser"):
+        #    Configuration.download_realtime_file(item)
 
         for tmName in Constant.QUOTATION_DB_PREFIX[2:-3]:
             #删除旧指标图
@@ -79,7 +80,7 @@ class Coordinate():
             CandleStick.manual_show_candlestick(tmName,dataWithId)
 
         #筛选条目，最大程度匹配策略
-
+        self.clientMatch.client_motor()
 
         #屏幕弹框(发送消息及email--应包含策略条目详情)
 

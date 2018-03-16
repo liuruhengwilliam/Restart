@@ -150,7 +150,7 @@ def download_realtime_file(suffix):
     """
     for tmName in Constant.QUOTATION_DB_PREFIX[1:]:
         dnldUrl = get_server_download_url(tmName)+tmName+'-'+suffix+'.db'
-        filePath = get_period_working_folder(tmName)+tmName+'-'+suffix+'-dup.db'
+        filePath = get_period_working_folder(tmName)+tmName+'-'+suffix+'.db'
         try:
             urllib.urlretrieve(dnldUrl,filename=filePath)
             Trace.output('info',"download db file from %s"%(dnldUrl))
