@@ -28,7 +28,8 @@ from email.header import Header
 import matplotlib.pyplot as plt
 import xml.etree.ElementTree as ET
 from resource import Primitive
-#from resource import Constant
+from resource import Constant
+from resource import Configuration
 #from strategy import Strategy
 #from quotation import QuotationKit
 
@@ -450,6 +451,40 @@ def get_week_of_month(year, month, day):
      begin = int(datetime.datetime(year, month, 1).strftime("%W"))
      return end - begin + 1
 
+def upate_afterwards_KLine_indicator():
+    """ 内部接口API：从策略盈亏率数据库中提取K线组合模式的指标值并更新相应实例。
+                   事后统计--依次截取数据库中每个条目。
+    """
+    # 清空摘要说明
+    #self.summaryDict['KLine']=''
+    # 策略盈亏率数据精加工
+    serData = {}
+    for period in Constant.QUOTATION_DB_PREFIX[2:3]:#前闭后开  暂时只考虑15min/30min/1hour
+        filename = Configuration.get_period_working_folder(period)+period+'-ser.db'
+        tempDf = Primitive.translate_db_to_df(filename)
+        # 填充字典。结构为"周期:DataFrame"
+        #serData.update({period:tempDf})
+        # 填充"区间格"。为后续计算多周期策略重叠区域做准备。
+        #print tempDf.iloc[0][Constant.SER_DF_STRUCTURE.index('time')]
+        prePolicyTime = ''
+        for itemRow in tempDf.itertuples():
+            time = itemRow[Constant.SER_DF_STRUCTURE.index('time')+1]
+            if time == prePolicyTime:
+                continue
+            else:
+                prePolicyTime = time
+
+            dfIndicator = tempDf[tempDf['time'] == time]
+            print dfIndicator
+            #for onePoint in dfIndicator.itertuples():
+            #    tempDf.drop(onePoint[Constant.SER_DF_STRUCTURE.index('indx')+1]-1,inplace=True)
+            #print tempDf
+            #print time.split(' ')[0],type(time.split(' ')[0])
+            #current = datetime.datetime.strptime(time,'%Y-%m-%d %H:%M:%S')
+            #weekday,hour,minute = int(current.isoweekday()),int(current.strftime("%H")),int(current.strftime("%M"))
+            #print weekday,hour,minute
+
+
 if __name__ == '__main__':
     #csv_test(db_test())
     #db_test()
@@ -474,8 +509,9 @@ if __name__ == '__main__':
     #email_send_test()
     #email_withattachment_send_test()
     #print get_week_of_month(2018,2,28)
-    for item in os.listdir('F:\\code\\python\\RESTART\\core\\2018\\2018-09\\15min'):
-        if item.find('.png') != -1:
-            print item
-            os.remove('F:\\code\\python\\RESTART\\core\\2018\\2018-09\\15min\%s'%item)
+    #for item in os.listdir('F:\\code\\python\\RESTART\\core\\2018\\2018-09\\15min'):
+    #    if item.find('.png') != -1:
+    #        print item
+    #        os.remove('F:\\code\\python\\RESTART\\core\\2018\\2018-09\\15min\%s'%item)
+    upate_afterwards_KLine_indicator()
     sys.exit()
