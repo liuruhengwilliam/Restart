@@ -1,11 +1,13 @@
 #coding=utf-8
-
+import datetime
 import numpy as np
+import pandas as pd
 from pandas import DataFrame
 from resource import Primitive
 from resource import Constant
 from resource import Configuration
 from resource import Trace
+import ClientNotify
 
 class ClientMatch():
     """ 各种方案匹配搜索类
@@ -22,27 +24,120 @@ class ClientMatch():
         #四种指标指示摘要说明的字典
         self.summaryDict = dict(zip(['KLine','MA','BBand','MACD'],['','','','']))
 
-    def get_indicator(self,indicator,period):
-        """ 外部接口API: 获取特定指标的某周期参考信号
-            indicator: 特定指标的字符串描述符
+        #按周期定义的策略区间格
+        self.PeriodLattice = {}
+        structType = np.dtype([('value',np.int16),('time',np.str_,40)])
+        for period in Constant.QUOTATION_DB_PREFIX[1:-2]:
+            value = Constant.QUOTATION_DB_PERIOD[Constant.QUOTATION_DB_PREFIX.index(period)]
+            structValue = [(0,' '),]*(3600/value)*7*24
+            self.PeriodLattice.update({period:np.array(structValue,dtype=structType)})
+
+    def get_lattice_map(self,period,time):
+        """ 内部接口API: 获取特定周期的区间格参考信号
+            返回值：字符串的数组组合 -- 值+时间
             period: 周期字符串
+            time: 时间字符串
         """
-        if indicator == 'KLine':
-            return self.KLineIndicator[period]
+        ddTime = datetime.datetime.strptime(time,'%Y-%m-%d %H:%M:%S')
+        weekday,hour,minute = int(ddTime.isoweekday()),int(ddTime.strftime("%H")),int(ddTime.strftime("%M"))
+        if Constant.QUOTATION_DB_PREFIX.index(period) < Constant.QUOTATION_DB_PREFIX.index('1hour'):
+            # 倍乘因子
+            quotient = 3600/Constant.QUOTATION_DB_PERIOD[Constant.QUOTATION_DB_PREFIX.index(period)]
+            # 余数因子
+            remainder = minute*60/Constant.QUOTATION_DB_PERIOD[Constant.QUOTATION_DB_PREFIX.index(period)]
+            return self.PeriodLattice[period][((weekday-1)*24+hour)*quotient + remainder]
+        else:
+            # 除数因子
+            divisor = Constant.QUOTATION_DB_PERIOD[Constant.QUOTATION_DB_PREFIX.index(period)]/3600
+            return self.PeriodLattice[period][((weekday-1)*24+hour)/divisor]
 
-        return None
-
-    def set_indicator(self,indicator,period,value):
-        """ 外部接口API: 设定特定指标的某周期参考信号
-            indicator: 特定指标的字符串描述符
+    def set_lattice_map(self,period,time,value):
+        """ 内部接口API: 设定特定周期的区间格参考信号
             period: 周期字符串
-            value: 参考信号值--后续对于其他类型指标可能有异构情况
+            time: 时间字符串
+            value: 待设定模式值(int整型)
         """
-        if indicator == 'KLine':
-            self.KLineIndicator[period] = value
+        ddTime = datetime.datetime.strptime(time,'%Y-%m-%d %H:%M:%S')
+        weekday,hour,minute = int(ddTime.isoweekday()),int(ddTime.strftime("%H")),int(ddTime.strftime("%M"))
+        if Constant.QUOTATION_DB_PREFIX.index(period) < Constant.QUOTATION_DB_PREFIX.index('1hour'):
+            # 倍乘因子
+            quotient = 3600/Constant.QUOTATION_DB_PERIOD[Constant.QUOTATION_DB_PREFIX.index(period)]
+            # 余数因子
+            remainder = minute*60/Constant.QUOTATION_DB_PERIOD[Constant.QUOTATION_DB_PREFIX.index(period)]
+            cursor = self.PeriodLattice[period][((weekday-1)*24+hour)*quotient + remainder]
+            cursor['value'] = value
+            cursor['time'] = time
+        else:
+            # 除数因子
+            divisor = Constant.QUOTATION_DB_PERIOD[Constant.QUOTATION_DB_PREFIX.index(period)]/3600
+            cursor = self.PeriodLattice[period][((weekday-1)*24+hour)/divisor]
+            cursor['value'] = value
+            cursor['time'] = time
 
-    def upate_KLine_indicator(self):
-        """ 内部接口API：从策略盈亏率数据库中提取K线组合模式的指标值并更新相应实例
+    def upate_afterwards_KLine_indicator(self,path):
+        """ 外部接口API：从策略盈亏率数据库中提取K线组合模式的指标值并更新相应实例。
+                       事后统计--依次截取数据库中每个条目。
+            path: 文件路径
+        """
+        # 清空摘要说明
+        self.summaryDict['KLine']=''
+        # 策略盈亏率数据精加工
+        serData = {}
+        for period in Constant.QUOTATION_DB_PREFIX[2:5]:#前闭后开  暂时只考虑15min/30min/1hour
+            filename = Configuration.get_period_anyone_folder(path,period)+period+'-ser.db'
+            tempDf = Primitive.translate_db_to_df(filename)
+
+            # 填充字典。结构为"周期:DataFrame"
+            serData.update({period:tempDf})
+
+            # 填充"区间格"。为后续计算多周期策略重叠区域做准备。
+            prePolicyTime = ''
+            for itemRow in tempDf.itertuples():
+                policyTime = itemRow[Constant.SER_DF_STRUCTURE.index('time')+1]
+                if policyTime == prePolicyTime:#同一个时间点给出的策略不重复处理
+                    continue
+                else:
+                    prePolicyTime = policyTime
+                dfIndicator = tempDf[tempDf['time'] == policyTime]#找到若干个（大于等于一个）最新参考指示
+                patternValSum = 0
+                for timePoint in dfIndicator.itertuples():
+                    #累加K线组合模式值
+                    patternValSum += timePoint[Constant.SER_DF_STRUCTURE.index('patternVal')+1]
+                self.set_lattice_map(period,policyTime,patternValSum)
+        print self.PeriodLattice['15min'],self.PeriodLattice['30min'],self.PeriodLattice['1hour']
+
+        recTime = ''
+        saveDf = DataFrame(columns=Constant.SER_DF_STRUCTURE)
+        #前提假定：小周期定时器给出策略条目的频率大于大周期定时器
+        for itemRow in serData['15min'].itertuples():
+            policyTime = itemRow[Constant.SER_DF_STRUCTURE.index('time')+1]
+            if policyTime == recTime:#同一个时间点给出的策略不重复处理
+                continue
+            else:
+                recTime = policyTime
+            block15min = self.get_lattice_map('15min',policyTime)
+            block15minVal = int(block15min['value'])
+            block15minTime = block15min['time']
+
+            block30min = self.get_lattice_map('30min',policyTime)
+            block30minVal = int(block30min['value'])
+            block30minTime = block30min['time']
+
+            block1hour = self.get_lattice_map('1hour',policyTime)
+            block1hourVal = int(block1hour['value'])
+            block1hourTime = block1hour['time']
+
+            if (block15minVal * block30minVal)>0 and (block15minVal * block1hourVal)>0:
+                # 多个dataframe数据叠加在一起然后(在循环外)写文件
+                print block15min,block30min,block1hour
+                saveDf = pd.concat([saveDf,serData['15min'][serData['15min']['time'] == block15minTime]],ignore_index=True)
+                saveDf = pd.concat([saveDf,serData['30min'][serData['30min']['time'] == block30minTime]],ignore_index=True)
+                saveDf = pd.concat([saveDf,serData['1hour'][serData['1hour']['time'] == block1hourTime]],ignore_index=True)
+                saveDf.to_csv(path+'check.csv',sep=',',header=True)
+
+    def upate_realtime_KLine_indicator(self):
+        """ 内部接口API：从策略盈亏率数据库中提取K线组合模式的指标值并更新相应实例。
+                       实时更新--只需截取数据库中最后若干条目。
             说明：暂时只考虑15min/30min/1hour
         """
         # 清空摘要说明
@@ -87,10 +182,13 @@ class ClientMatch():
         # MACD指示信号
 
 
-    def client_motor(self):
-        """ 外部接口API: 客户端程序驱动函数 """
-        # 更新K线组合模式指示
-        self.upate_KLine_indicator()
+    def client_match(self):
+        """
+            外部接口API: 客户端程序驱动函数
+            mode:调用者模式--realtime or afterwards
+        """
+        # 实时更新K线组合模式指示
+        self.upate_realtime_KLine_indicator()
 
         # 更新其他各种指标指示
 
@@ -101,24 +199,5 @@ class ClientMatch():
         # self.actionDict中有非0项，需要将对应摘要说明字符串存档。
         for item in self.actionDict.iteritems():
             if item[1] != 0:
-                self.write_abstract(item[0],self.summaryDict[item[0]])
-
-    def write_abstract(self,indicator,strAbstract):
-        """ 内部接口API: 各指标的指示摘要说明字符串存档函数
-            strAbstract: 待写入的摘要字符串
-        """
-        filePath = Configuration.get_working_directory()+'abstract.txt'
-
-        fd = open(filePath,'a+')
-        fd.write(Constant.ABSTRACT_TITLE[indicator])
-        if indicator == 'KLine':
-            fd.write(' %s'%self.actionDict[indicator])
-            # 对于别的指标，可写入其他信息：MA--趋势；MACD--金叉/死叉；BBand--压力/支撑位等
-
-        fd.write('\n')
-        fd.write(strAbstract)
-        fd.close()
-
-    def read_abstract(self):
-        """ 内部接口API: 各指标的指示摘要说明字符串读档函数 """
+                ClientNotify.write_abstract(item[0],self.summaryDict[item[0]])
 
