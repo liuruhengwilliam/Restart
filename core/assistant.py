@@ -5,8 +5,10 @@ import sys
 import os
 from resource import Primitive
 from resource import Constant
+from resource import Configuration
 from quotation import QuotationKit
 from indicator import CandleStick
+from strategy.ClientMatch import ClientMatch
 
 """
     辅助类：
@@ -14,7 +16,10 @@ from indicator import CandleStick
     2.画图方法；
 """
 if __name__ == '__main__':
-    choiceIndex = raw_input("Please choose:\n"+"1.db translate to csv\n"+"2.drawing plotting\n"+"Your choice:\n")
+    choiceIndex = raw_input("Please choose:\n"+"  1.db translate to csv\n"\
+                            +"  2.drawing plotting\n"\
+                            +"  3.analyse KLine Indicator afterward\n"\
+                            +"Your choice:\n")
     if choiceIndex == '1':
         filename = raw_input("file name input: ")
         cnt = raw_input("cnt to be translated: ")
@@ -33,5 +38,11 @@ if __name__ == '__main__':
             CandleStick.manual_show_candlestick_withCSV(tmName,filename)
         else:
             print "Error file name input!"
+    elif choiceIndex == '3':
+        path = raw_input("folder path input: ")
+        if path=='':
+            path = Configuration.get_working_directory()
+        clientMatchHdl = ClientMatch()
+        clientMatchHdl.upate_afterwards_KLine_indicator(path)
     else:
         print "Error choice!"
