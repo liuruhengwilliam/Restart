@@ -120,4 +120,4 @@ def manual_show_candlestick_withCSV(periodName,path):
     # 布林线
     bbands = BollingerBands.compute_BBands(dataPicked['close'].as_matrix())
 
-    show_candlestick(dataPicked,periodName)
+    show_candlestick(dataPicked,ma,bbands,periodName)
