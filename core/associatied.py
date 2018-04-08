@@ -9,6 +9,8 @@ import time
 import datetime
 import threading
 import talib
+import pandas as pd
+from pandas import DataFrame
 import numpy as np
 import requests
 import urllib
@@ -27,7 +29,7 @@ from email.header import Header
 #from quotation.QuotationDB import *
 import matplotlib.pyplot as plt
 import xml.etree.ElementTree as ET
-from resource import Primitive
+#from resource import Primitive
 from resource import Constant
 from resource import Configuration
 #from strategy import Strategy
@@ -51,14 +53,27 @@ def func():
     # 收到事件后进入运行状态
     print '%s recv event.' % threading.currentThread().getName()
 
-def csv_test(priceList):
-    csvFile = 'D:/misc/future/2017-44/5min.csv'
-    #挑取对应周期字典项
-    csvFile = file(csvFile, 'wb')
-    csvWriter = csv.writer(csvFile, dialect='excel')
-    for item in priceList:
-        csvWriter.writerow(item)
-    csvFile.close()
+def csv_test():
+    if False:
+        csvFile = 'D:/misc/future/2017-44/5min.csv'
+        #挑取对应周期字典项
+        csvFile = file(csvFile, 'wb')
+        csvWriter = csv.writer(csvFile, dialect='excel')
+        for item in [0,1]:
+            csvWriter.writerow(item)
+        csvFile.close()
+    else:
+        F15M_30M_1H = DataFrame(columns=Constant.SER_DF_STRUCTURE)
+        csvFile = 'D:\\misc\\2018-11\\15min\\15min-ser2018-03-27.csv'
+        csv_reader = csv.reader(open(csvFile, 'r'))
+        #print pd.DataFrame(columns=Constant.SER_DF_STRUCTURE)
+        for row in csv_reader:
+            #print pd.concat(row,keys=Constant.SER_DF_STRUCTURE)
+            if row != list(Constant.SER_DF_STRUCTURE):
+                F15M_30M_1H = F15M_30M_1H.append(DataFrame(dict(zip(Constant.SER_DF_STRUCTURE,row)),index=[row[0],]))
+            #print pd.DataFrame(dict(zip(Constant.SER_DF_STRUCTURE,row)),index=[0])
+            #F15M_30M_1H = pd.DataFrame(row,columns=Constant.SER_DF_STRUCTURE,index=['a'])
+        print (F15M_30M_1H)
 
 def file_test():
     for line in open('D:/misc/future/2017-44/5min.db'):
@@ -486,7 +501,7 @@ def upate_afterwards_KLine_indicator():
 
 
 if __name__ == '__main__':
-    #csv_test(db_test())
+    csv_test()
     #db_test()
     #file_test()
     #talib_func()
@@ -513,5 +528,5 @@ if __name__ == '__main__':
     #    if item.find('.png') != -1:
     #        print item
     #        os.remove('F:\\code\\python\\RESTART\\core\\2018\\2018-09\\15min\%s'%item)
-    upate_afterwards_KLine_indicator()
+    #upate_afterwards_KLine_indicator()
     sys.exit()
