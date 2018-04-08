@@ -140,3 +140,16 @@ def translate_db_to_df(dbFile):
     else:
         dataframe = DataFrame(ret,columns=title)
     return dataframe
+
+def translate_csv_to_df(csvFile,clmns):
+    """ 外部接口API: 将csv文件中的条目转换成dateframe格式。
+        返回值：DataFrame结构。注：DataFrame结构中列的顺序可能不同于csv文件中。
+        csvFile: 文件名（含文件路径）
+        clmns：DataFrame结构列名的元组
+    """
+    dfTmp = DataFrame(columns=clmns)
+    csv_reader = csv.reader(open(csvFile, 'r'))
+    for row in csv_reader:
+        if row != list(clmns):
+            dfTmp.append(DataFrame(dict(zip(clmns,row)),index=[row[0],]))
+    return dfTmp
