@@ -146,9 +146,6 @@ class ClientMatch():
                        事后统计--依次截取数据库中每个条目。
             path: 文件路径
         """
-        # 清空摘要说明
-        self.summaryDict['KLine']=''
-        # 策略盈亏率数据精加工
         serData = {}
         for period in Constant.QUOTATION_DB_PREFIX[2:-2]:#前闭后开
             filename = Configuration.get_period_anyone_folder(path,period)+period+'-ser.db'
@@ -161,6 +158,16 @@ class ClientMatch():
 
         # 进行交叉周期的分析统计
         self.statistics_by_period(path,serData)
+
+    def draw_SERData_statistics(self,path):
+        """ 外部接口API：策略盈亏率数据库的统计分析数据制图。
+            path: 文件路径
+        """
+        DF15M_30M = Primitive.translate_csv_to_df(path+'15M-30M-ser.csv',Constant.SER_DF_STRUCTURE)
+        DF30M_1H = Primitive.translate_csv_to_df(path+'30M-1H-ser.csv',Constant.SER_DF_STRUCTURE)
+        DF15M_1H = Primitive.translate_csv_to_df(path+'15M-1H-ser.csv',Constant.SER_DF_STRUCTURE)
+        DF15M_30M_1H = Primitive.translate_csv_to_df(path+'15M-30M-1H-ser.csv',Constant.SER_DF_STRUCTURE)
+
 
     def upate_realtime_KLine_indicator(self):
         """ 内部接口API：从策略盈亏率数据库中提取K线组合模式的指标值并更新相应实例。

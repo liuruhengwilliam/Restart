@@ -17,8 +17,8 @@ from strategy.ClientMatch import ClientMatch
 """
 if __name__ == '__main__':
     choiceIndex = raw_input("Please choose:\n"+"  1.db translate to csv\n"\
-                            +"  2.drawing plotting\n"\
-                            +"  3.analyse KLine Indicator afterward\n"\
+                            +"  2.drawing picture of indicator\n"\
+                            +"  3.analyse earn rate of strategy afterward\n"\
                             +"Your choice:\n")
     if choiceIndex == '1':
         filename = raw_input("file name input: ")
@@ -44,5 +44,6 @@ if __name__ == '__main__':
             path = Configuration.get_working_directory()
         clientMatchHdl = ClientMatch()
         clientMatchHdl.upate_afterwards_KLine_indicator(path)
+        clientMatchHdl.draw_SERData_statistics(path)
     else:
         print "Error choice!"

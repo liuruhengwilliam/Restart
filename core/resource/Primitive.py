@@ -150,6 +150,7 @@ def translate_csv_to_df(csvFile,clmns):
     dfTmp = DataFrame(columns=clmns)
     csv_reader = csv.reader(open(csvFile, 'r'))
     for row in csv_reader:
-        if row != list(clmns):
-            dfTmp.append(DataFrame(dict(zip(clmns,row)),index=[row[0],]))
+        if row[1:] != list(clmns):
+            dfTmp = dfTmp.append(DataFrame(dict(zip(clmns,row[1:])),index=[row[0],]))
+
     return dfTmp
