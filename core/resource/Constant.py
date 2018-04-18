@@ -36,8 +36,8 @@ def envi_init():
         sys.path.append(os.getcwd()+'/engine')
         sys.path.append(os.getcwd()+'/timer')
 
-#止损率定义。波动超过基础价格的1%。
-STOP_LOSS_RATE = 0.01
+#止损率定义。波动超过基础价格的10%。
+STOP_LOSS_RATE = 0.1
 # =========================================================================================
 # 蜡烛图相关
 # 各种周期的尺度定义
