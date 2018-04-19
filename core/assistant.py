@@ -43,7 +43,6 @@ if __name__ == '__main__':
         if path=='':
             path = Configuration.get_working_directory()
         clientMatchHdl = ClientMatch()
-        clientMatchHdl.upate_afterwards_KLine_indicator(path)
-        clientMatchHdl.draw_SERData_statistics(path)
+        clientMatchHdl.show_statistics(path)
     else:
         print "Error choice!"

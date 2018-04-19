@@ -1,6 +1,12 @@
 #coding=utf-8
 import datetime
+import platform
+if (platform.system() == "Linux"):#适配Linux系统下运行环境
+    import matplotlib
+    matplotlib.use("Pdf")
+import matplotlib.pyplot as plt
 import numpy as np
+np.set_printoptions(suppress=True)
 import pandas as pd
 from pandas import DataFrame
 from resource import Primitive
@@ -19,12 +25,13 @@ class ClientMatch():
         self.BBandIndicator = {}
         self.MAIndicator = {}
         self.MACDIndicator = {}
-        #四种指标指示记录字典
+        # 四种指标指示记录字典
         self.actionDict = dict(zip(['KLine','MA','BBand','MACD'],[0,0,0,0]))
-        #四种指标指示摘要说明的字典
+        # 四种指标指示摘要说明的字典
         self.summaryDict = dict(zip(['KLine','MA','BBand','MACD'],['','','','']))
-
-        #按周期定义的策略区间格
+        # 相关记录的字典--周期+DataFrame
+        self.serDict = {}
+        # 按周期定义的策略区间格字典--周期+位图数组（值，时间）
         self.PeriodLattice = {}
         structType = np.dtype([('value',np.int16),('time',np.str_,40)])
         for period in Constant.QUOTATION_DB_PREFIX[1:-2]:
@@ -74,37 +81,33 @@ class ClientMatch():
             cursor['value'] = value
             cursor['time'] = time
 
-    def update_lattice_map(self,period,serdf):
+    def update_lattice_map(self,period,serDF):
         """ 内部接口API: 更新指定周期的区间格参考信号映射位图
             period: 周期字符串
             serdf: 指定周期DataFrame数据
         """
         # 填充"区间格"。为后续计算多周期策略重叠区域做准备。
         prePolicyTime = ''
-        for itemRow in serdf.itertuples():
-            policyTime = itemRow[Constant.SER_DF_STRUCTURE.index('time')+1]
-            if policyTime == prePolicyTime:#同一个时间点给出的策略不重复处理
-                continue
-            else:
-                prePolicyTime = policyTime
-            dfIndicator = serdf[serdf['time'] == policyTime]#找到若干个（大于等于一个）最新参考指示
-            patternValSum = 0
-            for timePoint in dfIndicator.itertuples():
+        patternValSum = 0
+        for itemRow in serDF.itertuples(index=False):
+            curPolicyTime = itemRow[Constant.SER_DF_STRUCTURE.index('time')]
+            if curPolicyTime == prePolicyTime:#同一个时间点给出的策略不重复处理
                 #累加K线组合模式值
-                patternValSum += timePoint[Constant.SER_DF_STRUCTURE.index('patternVal')+1]
-            self.set_lattice_map(period,policyTime,patternValSum)
-        print self.PeriodLattice[period]
+                patternValSum += itemRow[Constant.SER_DF_STRUCTURE.index('patternVal')]
+            else:
+                patternValSum = itemRow[Constant.SER_DF_STRUCTURE.index('patternVal')]
+                prePolicyTime = curPolicyTime
+            self.set_lattice_map(period,curPolicyTime,patternValSum)
 
-    def statistics_by_period(self,path,serData):
+    def statistics_M15M30H1_period(self,path):
         """ 内部接口API：按交叉周期类型进行统计。
             path: 文件路径
-            serData: 策略盈亏率数据字典--周期名字符串:DataFrame结构
         """
         recTime = ''
         F15M_30M = F30M_1H = F15M_1H = F15M_30M_1H = DataFrame(columns=Constant.SER_DF_STRUCTURE)
         #前提假定：小周期定时器给出策略条目的频率大于大周期定时器
-        for itemRow in serData['15min'].itertuples():
-            policyTime = itemRow[Constant.SER_DF_STRUCTURE.index('time')+1]
+        for itemRow in self.serDict['15min'].itertuples(index=False):
+            policyTime = itemRow[Constant.SER_DF_STRUCTURE.index('time')]
             if policyTime == recTime:#同一个时间点给出的策略不重复处理
                 continue
             else:
@@ -122,52 +125,143 @@ class ClientMatch():
             block1hourTime = block1hour['time']
 
             if (block15minVal * block30minVal)>0:
-                F15M_30M = pd.concat([F15M_30M,serData['15min'][serData['15min']['time'] == block15minTime]],ignore_index=True)
-                F15M_30M = pd.concat([F15M_30M,serData['30min'][serData['30min']['time'] == block30minTime]],ignore_index=True)
+                F15M_30M = pd.concat([F15M_30M,self.serDict['15min'][self.serDict['15min']['time'] == block15minTime]],ignore_index=True)
+                F15M_30M = pd.concat([F15M_30M,self.serDict['30min'][self.serDict['30min']['time'] == block30minTime]],ignore_index=True)
                 F15M_30M.to_csv(path+'15M-30M-ser.csv',sep=',',header=True)
+                self.serDict.update({'15min-30min':F15M_30M})
             if (block15minVal * block1hourVal)>0:
-                F15M_1H = pd.concat([F15M_1H,serData['15min'][serData['15min']['time'] == block15minTime]],ignore_index=True)
-                F15M_1H = pd.concat([F15M_1H,serData['1hour'][serData['1hour']['time'] == block1hourTime]],ignore_index=True)
+                F15M_1H = pd.concat([F15M_1H,self.serDict['15min'][self.serDict['15min']['time'] == block15minTime]],ignore_index=True)
+                F15M_1H = pd.concat([F15M_1H,self.serDict['1hour'][self.serDict['1hour']['time'] == block1hourTime]],ignore_index=True)
                 F15M_1H.to_csv(path+'15M-1H-ser.csv',sep=',',header=True)
+                self.serDict.update({'15min-1hour':F15M_1H})
             if (block1hourVal * block30minVal)>0:
-                F30M_1H = pd.concat([F30M_1H,serData['1hour'][serData['1hour']['time'] == block1hourTime]],ignore_index=True)
-                F30M_1H = pd.concat([F30M_1H,serData['30min'][serData['30min']['time'] == block30minTime]],ignore_index=True)
+                F30M_1H = pd.concat([F30M_1H,self.serDict['1hour'][self.serDict['1hour']['time'] == block1hourTime]],ignore_index=True)
+                F30M_1H = pd.concat([F30M_1H,self.serDict['30min'][self.serDict['30min']['time'] == block30minTime]],ignore_index=True)
                 F30M_1H.to_csv(path+'30M-1H-ser.csv',sep=',',header=True)
-
+                self.serDict.update({'30min-1hour':F30M_1H})
             if (block15minVal * block30minVal)>0 and (block15minVal * block1hourVal)>0:
                 # 多个dataframe数据叠加在一起
-                F15M_30M_1H = pd.concat([F15M_30M_1H,serData['15min'][serData['15min']['time'] == block15minTime]],ignore_index=True)
-                F15M_30M_1H = pd.concat([F15M_30M_1H,serData['30min'][serData['30min']['time'] == block30minTime]],ignore_index=True)
-                F15M_30M_1H = pd.concat([F15M_30M_1H,serData['1hour'][serData['1hour']['time'] == block1hourTime]],ignore_index=True)
-                F15M_30M_1H.to_csv(path+'15M-30M-1H-ser.csv',sep=',',header=True)
+                F15M_30M_1H = pd.concat([F15M_30M_1H,self.serDict['15min'][self.serDict['15min']['time'] == block15minTime]],ignore_index=True)
+                F15M_30M_1H = pd.concat([F15M_30M_1H,self.serDict['30min'][self.serDict['30min']['time'] == block30minTime]],ignore_index=True)
+                F15M_30M_1H = pd.concat([F15M_30M_1H,self.serDict['1hour'][self.serDict['1hour']['time'] == block1hourTime]],ignore_index=True)
+                #F15M_30M_1H.to_csv(path+'15M-30M-1H-ser.csv',sep=',',header=True)
+                self.serDict.update({'15min-30min-1hour':F15M_30M_1H})
 
     def upate_afterwards_KLine_indicator(self,path):
         """ 外部接口API：从策略盈亏率数据库中提取K线组合模式的指标值并更新相应实例。
                        事后统计--依次截取数据库中每个条目。
             path: 文件路径
         """
-        serData = {}
         for period in Constant.QUOTATION_DB_PREFIX[2:-2]:#前闭后开
             filename = Configuration.get_period_anyone_folder(path,period)+period+'-ser.db'
             tempDf = Primitive.translate_db_to_df(filename)
 
             # 填充字典。结构为"周期:DataFrame"
-            serData.update({period:tempDf})
+            self.serDict.update({period:tempDf})
             # 更新区间格映射位图
             self.update_lattice_map(period,tempDf)
 
-        # 进行交叉周期的分析统计
-        self.statistics_by_period(path,serData)
+    def calculate_rate(self,dataDF):
+        """ 内部接口API: 计算盈亏比率。
+            返回值: 盈亏百分比的numpy.array结构。
+            dataDF: DataFrame结构数据
+        """
+        # 盈亏列表的字典
+        retDict = {}
+        # 字符串的numpy.ndarray结构，策略方向
+        patternVal = dataDF["patternVal"].as_matrix()
 
-    def draw_SERData_statistics(self,path):
+        # 获取方向因子
+        direction = patternVal.astype(int)/np.abs(patternVal.astype(int))
+
+        # basePrice: 字符串的numpy.ndarray结构，策略给出时的基准价格
+        basePrice = dataDF["price"].as_matrix()
+
+        # earnPrice/lossPrice: 字符串的numpy.ndarray结构，某周期内的极值价格
+        for tag in Constant.SER_DF_STRUCTURE[7:-2:4]:
+            earnPrice = dataDF[tag].as_matrix()
+            # 价格差值
+            earnDelta = earnPrice.astype(float) - basePrice.astype(float)
+            # 盈亏百分比--相对于basePrice
+            retDict.update({tag:earnDelta*direction*100/basePrice.astype(float)})
+
+        for tag in Constant.SER_DF_STRUCTURE[9:-2:4]:
+            lossPrice = dataDF[tag].as_matrix()
+            lossDelta = lossPrice.astype(float) - basePrice.astype(float)
+            retDict.update({tag:lossDelta*direction*100/basePrice.astype(float)})
+
+        # 过滤比率异常的数据点
+        for key,list in retDict.items():
+            for item in list:
+                if abs(item) > Constant.STOP_LOSS_RATE*100:# 大于10%的比率记为异常比率
+                    retDict[key][retDict[key].tolist().index(item)]=0
+                    Trace.output('warn',"change key:"+key+" value:%d"%item)
+        return retDict
+
+    def filter_trash_item(self,period,serDataTag):
+        """ 内部接口：去除干扰项。某周期下同一时刻会生成多条矛盾条目，剔除弱势一方
+            返回值：过滤后的DataFrame类型数据。某周期下一个时刻只保留一个条目
+            period：周期名称字符串
+            serDataTag: 字典项的键值--字符串
+        """
+        recTime = ''
+        filterDF = None
+        serData = self.serDict[serDataTag][self.serDict[serDataTag]['tmName']=='15min']
+
+        for indx in range(len(serData)):
+            patternVal = serData.iloc[indx]['patternVal']
+            policyTime = serData.iloc[indx]['time']
+            latticeVal = self.get_lattice_map(period,policyTime)['value']
+
+            #从数据源中剔除同一个时间点的冗余策略条目或者与位图映射值不符的策略条目（干扰条目）
+            if policyTime != recTime and int(latticeVal*patternVal) > 0:
+                if filterDF is None:
+                    filterDF = DataFrame([serData.iloc[indx]])#用Series填充DataFrame结构
+                else:
+                    filterDF = filterDF.append([serData.iloc[indx]],ignore_index=True)
+                recTime = policyTime
+
+        return filterDF
+        #for itemRow in serData.itertuples(index=False):
+
+    def draw_statistics(self,dataDict):
         """ 外部接口API：策略盈亏率数据库的统计分析数据制图。
+            dataDict: 策略的盈利字典项
+        """
+        # X轴有7个刻度：15min/30min/1hour/2hour/4hour/6hour/12hour
+        # Y轴为盈利比率。有正有负
+        rate15MEarn = dataDict['M15maxEarn']
+        rate30MEarn = dataDict['M30maxEarn']
+        rate1HEarn = dataDict['H1maxEarn']
+        rate2HEarn = dataDict['H2maxEarn']
+        rate4HEarn = dataDict['H4maxEarn']
+        rate6HEarn = dataDict['H6maxEarn']
+        rate12HEarn = dataDict['H12maxEarn']
+        rate15MLoss = dataDict['M15maxLoss']
+        rate30MLoss = dataDict['M30maxLoss']
+        rate1HLoss = dataDict['H1maxLoss']
+        rate2HLoss = dataDict['H2maxLoss']
+        rate4HLoss = dataDict['H4maxLoss']
+        rate6HLoss = dataDict['H6maxLoss']
+        rate12HLoss = dataDict['H12maxLoss']
+
+        plt.plot(rate15MEarn,'cx--')
+        plt.show()
+
+    def show_statistics(self,path):
+        """ 外部接口API：策略盈亏率数据库的统计分析数据展示。
             path: 文件路径
         """
-        DF15M_30M = Primitive.translate_csv_to_df(path+'15M-30M-ser.csv',Constant.SER_DF_STRUCTURE)
-        DF30M_1H = Primitive.translate_csv_to_df(path+'30M-1H-ser.csv',Constant.SER_DF_STRUCTURE)
-        DF15M_1H = Primitive.translate_csv_to_df(path+'15M-1H-ser.csv',Constant.SER_DF_STRUCTURE)
-        DF15M_30M_1H = Primitive.translate_csv_to_df(path+'15M-30M-1H-ser.csv',Constant.SER_DF_STRUCTURE)
-
+        # 填充字典项
+        self.upate_afterwards_KLine_indicator(path)
+        # 进行M15 M30 H1周期的交叉分析统计--以下操作基于这些交叉周期
+        self.statistics_M15M30H1_period(path)
+        # 过滤数据--提纯操作
+        pureDf = self.filter_trash_item('15min','15min-30min-1hour')
+        # 计算盈亏比率
+        rateDict = self.calculate_rate(pureDf)
+        # 制图
+        self.draw_statistics(rateDict)
 
     def upate_realtime_KLine_indicator(self):
         """ 内部接口API：从策略盈亏率数据库中提取K线组合模式的指标值并更新相应实例。
