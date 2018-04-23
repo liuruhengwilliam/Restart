@@ -78,6 +78,17 @@ class ClientMatch():
             cursor['time'] = curPolicyTime
             cursor['value'] = patternValSum
 
+        # 位图中的空白点使用前值进行填充
+        preValue = 0
+        preTime = ' '
+        for item in self.PeriodLattice[period]:
+            if item['value']==0 and item['time']==' ':# 空白点
+                item['value'] = preValue
+                item['time'] = preTime
+            else:
+                preValue = item['value']
+                preTime = item['time']
+
     def upate_afterwards_KLine_indicator(self,path):
         """ 内部接口API：从策略盈亏率数据库中提取K线组合模式的指标值并更新相应实例。
                        事后统计--依次截取数据库中每个条目。
