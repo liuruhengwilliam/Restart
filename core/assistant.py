@@ -39,10 +39,10 @@ if __name__ == '__main__':
         else:
             print "Error file name input!"
     elif choiceIndex == '3':
-        path = raw_input("folder path input: ")
+        path = raw_input("Please input folder path WITH THE END OF '\\': ")
         if path=='':
             path = Configuration.get_working_directory()
         clientMatchHdl = ClientMatch()
-        clientMatchHdl.show_statistics(path)
+        clientMatchHdl.research_statistics(path)
     else:
         print "Error choice!"

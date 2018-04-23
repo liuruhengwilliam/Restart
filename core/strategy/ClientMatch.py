@@ -58,29 +58,6 @@ class ClientMatch():
             divisor = Constant.QUOTATION_DB_PERIOD[Constant.QUOTATION_DB_PREFIX.index(period)]/3600
             return self.PeriodLattice[period][((weekday-1)*24+hour)/divisor]
 
-    def set_lattice_map(self,period,time,value):
-        """ 内部接口API: 设定特定周期的区间格参考信号
-            period: 周期字符串
-            time: 时间字符串
-            value: 待设定模式值(int整型)
-        """
-        ddTime = datetime.datetime.strptime(time,'%Y-%m-%d %H:%M:%S')
-        weekday,hour,minute = int(ddTime.isoweekday()),int(ddTime.strftime("%H")),int(ddTime.strftime("%M"))
-        if Constant.QUOTATION_DB_PREFIX.index(period) < Constant.QUOTATION_DB_PREFIX.index('1hour'):
-            # 倍乘因子
-            quotient = 3600/Constant.QUOTATION_DB_PERIOD[Constant.QUOTATION_DB_PREFIX.index(period)]
-            # 余数因子
-            remainder = minute*60/Constant.QUOTATION_DB_PERIOD[Constant.QUOTATION_DB_PREFIX.index(period)]
-            cursor = self.PeriodLattice[period][((weekday-1)*24+hour)*quotient + remainder]
-            cursor['value'] = value
-            cursor['time'] = time
-        else:
-            # 除数因子
-            divisor = Constant.QUOTATION_DB_PERIOD[Constant.QUOTATION_DB_PREFIX.index(period)]/3600
-            cursor = self.PeriodLattice[period][((weekday-1)*24+hour)/divisor]
-            cursor['value'] = value
-            cursor['time'] = time
-
     def update_lattice_map(self,period,serDF):
         """ 内部接口API: 更新指定周期的区间格参考信号映射位图
             period: 周期字符串
@@ -97,7 +74,23 @@ class ClientMatch():
             else:
                 patternValSum = itemRow[Constant.SER_DF_STRUCTURE.index('patternVal')]
                 prePolicyTime = curPolicyTime
-            self.set_lattice_map(period,curPolicyTime,patternValSum)
+            cursor = self.get_lattice_map(period,curPolicyTime)
+            cursor['time'] = curPolicyTime
+            cursor['value'] = patternValSum
+
+    def upate_afterwards_KLine_indicator(self,path):
+        """ 内部接口API：从策略盈亏率数据库中提取K线组合模式的指标值并更新相应实例。
+                       事后统计--依次截取数据库中每个条目。
+            path: 文件路径
+        """
+        for period in Constant.QUOTATION_DB_PREFIX[2:-2]:#前闭后开
+            filename = Configuration.get_period_anyone_folder(path,period)+period+'-ser.db'
+            tempDf = Primitive.translate_db_to_df(filename)
+
+            # 填充字典。结构为"周期:DataFrame"
+            self.serDict.update({period:tempDf})
+            # 更新区间格映射位图
+            self.update_lattice_map(period,tempDf)
 
     def statistics_M15M30H1_period(self,path):
         """ 内部接口API：按交叉周期类型进行统计。
@@ -144,22 +137,33 @@ class ClientMatch():
                 F15M_30M_1H = pd.concat([F15M_30M_1H,self.serDict['15min'][self.serDict['15min']['time'] == block15minTime]],ignore_index=True)
                 F15M_30M_1H = pd.concat([F15M_30M_1H,self.serDict['30min'][self.serDict['30min']['time'] == block30minTime]],ignore_index=True)
                 F15M_30M_1H = pd.concat([F15M_30M_1H,self.serDict['1hour'][self.serDict['1hour']['time'] == block1hourTime]],ignore_index=True)
-                #F15M_30M_1H.to_csv(path+'15M-30M-1H-ser.csv',sep=',',header=True)
+                F15M_30M_1H.to_csv(path+'15M-30M-1H-ser.csv',sep=',',header=True)
                 self.serDict.update({'15min-30min-1hour':F15M_30M_1H})
 
-    def upate_afterwards_KLine_indicator(self,path):
-        """ 外部接口API：从策略盈亏率数据库中提取K线组合模式的指标值并更新相应实例。
-                       事后统计--依次截取数据库中每个条目。
-            path: 文件路径
+    def filter_trash_item(self,period,serDataTag):
+        """ 内部接口：去除干扰项。某周期下同一时刻会生成多条矛盾条目，剔除弱势一方
+            返回值：过滤后的DataFrame类型数据。某周期下一个时刻只保留一个条目
+            period：周期名称字符串
+            serDataTag: 字典项的键值--字符串
         """
-        for period in Constant.QUOTATION_DB_PREFIX[2:-2]:#前闭后开
-            filename = Configuration.get_period_anyone_folder(path,period)+period+'-ser.db'
-            tempDf = Primitive.translate_db_to_df(filename)
+        recTime = ''
+        filterDF = None
+        serData = self.serDict[serDataTag][self.serDict[serDataTag]['tmName']=='15min']
 
-            # 填充字典。结构为"周期:DataFrame"
-            self.serDict.update({period:tempDf})
-            # 更新区间格映射位图
-            self.update_lattice_map(period,tempDf)
+        for indx in range(len(serData)):
+            patternVal = serData.iloc[indx]['patternVal']
+            policyTime = serData.iloc[indx]['time']
+            latticeVal = self.get_lattice_map(period,policyTime)['value']
+
+            #从数据源中剔除同一个时间点的冗余策略条目或者与位图映射值不符的策略条目（干扰条目）
+            if policyTime != recTime and int(latticeVal*patternVal) > 0:
+                if filterDF is None:
+                    filterDF = DataFrame([serData.iloc[indx]])#用Series填充DataFrame结构
+                else:
+                    filterDF = filterDF.append([serData.iloc[indx]],ignore_index=True)
+                recTime = policyTime
+
+        return filterDF
 
     def calculate_rate(self,dataDF):
         """ 内部接口API: 计算盈亏比率。
@@ -198,32 +202,6 @@ class ClientMatch():
                     Trace.output('warn',"change key:"+key+" value:%d"%item)
         return retDict
 
-    def filter_trash_item(self,period,serDataTag):
-        """ 内部接口：去除干扰项。某周期下同一时刻会生成多条矛盾条目，剔除弱势一方
-            返回值：过滤后的DataFrame类型数据。某周期下一个时刻只保留一个条目
-            period：周期名称字符串
-            serDataTag: 字典项的键值--字符串
-        """
-        recTime = ''
-        filterDF = None
-        serData = self.serDict[serDataTag][self.serDict[serDataTag]['tmName']=='15min']
-
-        for indx in range(len(serData)):
-            patternVal = serData.iloc[indx]['patternVal']
-            policyTime = serData.iloc[indx]['time']
-            latticeVal = self.get_lattice_map(period,policyTime)['value']
-
-            #从数据源中剔除同一个时间点的冗余策略条目或者与位图映射值不符的策略条目（干扰条目）
-            if policyTime != recTime and int(latticeVal*patternVal) > 0:
-                if filterDF is None:
-                    filterDF = DataFrame([serData.iloc[indx]])#用Series填充DataFrame结构
-                else:
-                    filterDF = filterDF.append([serData.iloc[indx]],ignore_index=True)
-                recTime = policyTime
-
-        return filterDF
-        #for itemRow in serData.itertuples(index=False):
-
     def draw_statistics(self,dataDict):
         """ 外部接口API：策略盈亏率数据库的统计分析数据制图。
             dataDict: 策略的盈利字典项
@@ -248,15 +226,15 @@ class ClientMatch():
         plt.plot(rate15MEarn,'cx--')
         plt.show()
 
-    def show_statistics(self,path):
+    def research_statistics(self,path):
         """ 外部接口API：策略盈亏率数据库的统计分析数据展示。
             path: 文件路径
         """
-        # 填充字典项
+        # 填充字典项:策略盈亏周期字典，策略方向周期位图字典
         self.upate_afterwards_KLine_indicator(path)
-        # 进行M15 M30 H1周期的交叉分析统计--以下操作基于这些交叉周期
+        # M15 M30 H1周期的同向时间点条目汇总--以下操作基于这些交叉周期
         self.statistics_M15M30H1_period(path)
-        # 过滤数据--提纯操作
+        # 过滤数据(同向中的干扰条目，即弱势项)--提纯操作
         pureDf = self.filter_trash_item('15min','15min-30min-1hour')
         # 计算盈亏比率
         rateDict = self.calculate_rate(pureDf)
