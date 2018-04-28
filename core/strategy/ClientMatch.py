@@ -264,27 +264,27 @@ class ClientMatch():
         rateEarnDF = rateDF.ix[:,Constant.SER_DF_STRUCTURE[7:-2:4]]
         rateLossDF = rateDF.ix[:,Constant.SER_DF_STRUCTURE[9:-2:4]]
         plt.title("%s Rate based on Time-Cost"%path)
-        #   Period     Earn marker styles      Color     Loss marker styles      Color
-        #  15Minute  >(Triangle right marker)  r(red)  <(Triangle left marker)  g(green)
-        #  30Minute  ^(Triangle up marker)     r(red)  v(Triangle down marker)  g(green)
-        #  1Hour     4(Tripod right marker)    r(red)  3(Triangle left marker)  g(green)
-        #  2Hour     2(Tripod up marker)       r(red)  1(Tripod down marker)    g(green)
-        #  4Hour     o(Circle marker)          r(red)  s(Square marker)         g(green)
-        #  6Hour     p(Pentagon marker)        r(red)  h(Hexagon marker)        g(green)
-        #  12Hour    d(Thin diamond marker)    r(red)  *(Star marker)           g(green)
-        plt.plot(deltaTmDF.ix[:,'M15maxEarnTime']/3600,rateEarnDF['M15maxEarn'].as_matrix(),'b>',\
-                 deltaTmDF.ix[:,'M15maxLossTime']/3600,rateLossDF['M15maxLoss'].as_matrix(),'c<',\
-                 deltaTmDF.ix[:,'M30maxEarnTime']/3600,rateEarnDF['M30maxEarn'].as_matrix(),'m^',\
-                 deltaTmDF.ix[:,'M30maxLossTime']/3600,rateLossDF['M30maxLoss'].as_matrix(),'gv',\
-                 deltaTmDF.ix[:,'H1maxEarnTime']/3600,rateEarnDF['H1maxEarn'].as_matrix(),'r4',\
-                 deltaTmDF.ix[:,'H1maxLossTime']/3600,rateLossDF['H1maxLoss'].as_matrix(),'y3',\
-                 deltaTmDF.ix[:,'H2maxEarnTime']/3600,rateEarnDF['H2maxEarn'].as_matrix(),'mo',\
-                 deltaTmDF.ix[:,'H2maxLossTime']/3600,rateLossDF['H2maxLoss'].as_matrix(),'ms',\
-                 deltaTmDF.ix[:,'H4maxEarnTime']/3600,rateEarnDF['H4maxEarn'].as_matrix(),'rp',\
-                 deltaTmDF.ix[:,'H4maxLossTime']/3600,rateLossDF['H4maxLoss'].as_matrix(),'rh',\
-                 deltaTmDF.ix[:,'H6maxEarnTime']/3600,rateEarnDF['H6maxEarn'].as_matrix(),'yd',\
-                 deltaTmDF.ix[:,'H6maxLossTime']/3600,rateLossDF['H6maxLoss'].as_matrix(),'y*')
-
+        #   Period     Earn marker styles          Loss marker styles      Color
+        #  15Minute  >(Triangle right marker)    <(Triangle left marker)   blue
+        #  30Minute  ^(Triangle up marker)       v(Triangle down marker)   magenta
+        #  1Hour     4(Tripod right marker)      3(Triangle left marker)    red
+        #  2Hour     2(Tripod up marker)         1(Tripod down marker)      cyan
+        #  4Hour     o(Circle marker)            s(Square marker)           green
+        #  6Hour     p(Pentagon marker)          h(Hexagon marker)          yellow
+        #  12Hour    d(Thin diamond marker)      *(Star marker)            undefine
+        plt.plot(deltaTmDF.ix[:,'M15maxEarnTime']/3600,rateEarnDF['M15maxEarn'].as_matrix(),'b>',label="M15")
+        plt.plot(deltaTmDF.ix[:,'M15maxLossTime']/3600,rateLossDF['M15maxLoss'].as_matrix(),'b<')
+        plt.plot(deltaTmDF.ix[:,'M30maxEarnTime']/3600,rateEarnDF['M30maxEarn'].as_matrix(),'m^',label="M30")
+        plt.plot(deltaTmDF.ix[:,'M30maxLossTime']/3600,rateLossDF['M30maxLoss'].as_matrix(),'mv')
+        plt.plot(deltaTmDF.ix[:,'H1maxEarnTime']/3600,rateEarnDF['H1maxEarn'].as_matrix(),'r4',label="H1")
+        plt.plot(deltaTmDF.ix[:,'H1maxLossTime']/3600,rateLossDF['H1maxLoss'].as_matrix(),'r3')
+        plt.plot(deltaTmDF.ix[:,'H2maxEarnTime']/3600,rateEarnDF['H2maxEarn'].as_matrix(),'c2',label="H2")
+        plt.plot(deltaTmDF.ix[:,'H2maxLossTime']/3600,rateLossDF['H2maxLoss'].as_matrix(),'c1')
+        plt.plot(deltaTmDF.ix[:,'H4maxEarnTime']/3600,rateEarnDF['H4maxEarn'].as_matrix(),'go',label="H4")
+        plt.plot(deltaTmDF.ix[:,'H4maxLossTime']/3600,rateLossDF['H4maxLoss'].as_matrix(),'gs')
+        plt.plot(deltaTmDF.ix[:,'H6maxEarnTime']/3600,rateEarnDF['H6maxEarn'].as_matrix(),'yp',label="H6")
+        plt.plot(deltaTmDF.ix[:,'H6maxLossTime']/3600,rateLossDF['H6maxLoss'].as_matrix(),'yh')
+        plt.legend()
         plt.savefig('%s%s.png'%(path,datetime.datetime.now().strftime("%Y-%m-%d_%H_%M")),dpi=200)
         plt.show()
 
