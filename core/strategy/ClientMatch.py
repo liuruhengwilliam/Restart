@@ -1,4 +1,5 @@
 #coding=utf-8
+
 import datetime
 import platform
 if (platform.system() == "Linux"):#适配Linux系统下运行环境
@@ -159,7 +160,7 @@ class ClientMatch():
         """
         recTime = ''
         filterDF = None
-        serData = self.serDict[serDataTag][self.serDict[serDataTag]['tmName']=='15min']
+        serData = self.serDict[serDataTag][self.serDict[serDataTag]['tmName']==period]
 
         for indx in range(len(serData)):
             patternVal = serData.iloc[indx]['patternVal']
@@ -178,11 +179,12 @@ class ClientMatch():
 
     def calculate_rate(self,dataDF):
         """ 内部接口API: 计算盈亏比率。
-            返回值: 盈亏百分比的numpy.array结构。
+            返回值: 盈亏百分比的DataFrame结构。
             dataDF: DataFrame结构数据
         """
         # 盈亏列表的字典
         retDict = {}
+        clmn = []
         # 字符串的numpy.ndarray结构，策略方向
         patternVal = dataDF["patternVal"].as_matrix()
 
@@ -193,17 +195,18 @@ class ClientMatch():
         basePrice = dataDF["price"].as_matrix()
 
         # earnPrice/lossPrice: 字符串的numpy.ndarray结构，某周期内的极值价格
-        for tag in Constant.SER_DF_STRUCTURE[7:-2:4]:
-            earnPrice = dataDF[tag].as_matrix()
-            # 价格差值
-            earnDelta = earnPrice.astype(float) - basePrice.astype(float)
-            # 盈亏百分比--相对于basePrice
-            retDict.update({tag:earnDelta*direction*100/basePrice.astype(float)})
-
-        for tag in Constant.SER_DF_STRUCTURE[9:-2:4]:
-            lossPrice = dataDF[tag].as_matrix()
-            lossDelta = lossPrice.astype(float) - basePrice.astype(float)
-            retDict.update({tag:lossDelta*direction*100/basePrice.astype(float)})
+        for tag in Constant.SER_DF_STRUCTURE[7:-2:2]:
+            clmn.append(tag)
+            if tag.find('Earn'):
+                earnPrice = dataDF[tag].as_matrix()
+                # 价格差值
+                earnDelta = earnPrice.astype(float) - basePrice.astype(float)
+                # 盈亏百分比--相对于basePrice
+                retDict.update({tag:earnDelta*direction*100/basePrice.astype(float)})
+            else:
+                lossPrice = dataDF[tag].as_matrix()
+                lossDelta = lossPrice.astype(float) - basePrice.astype(float)
+                retDict.update({tag:lossDelta*direction*100/basePrice.astype(float)})
 
         # 过滤比率异常的数据点
         for key,list in retDict.items():
@@ -211,30 +214,78 @@ class ClientMatch():
                 if abs(item) > Constant.STOP_LOSS_RATE*100:# 大于10%的比率记为异常比率
                     retDict[key][retDict[key].tolist().index(item)]=0
                     Trace.output('warn',"change key:"+key+" value:%d"%item)
-        return retDict
+        return pd.DataFrame(retDict,columns=clmn)
 
-    def draw_statistics(self,dataDict):
-        """ 外部接口API：策略盈亏率数据库的统计分析数据制图。
-            dataDict: 策略的盈利字典项
+    def calculate_time_cost(self,dataDF):
+        """ 内部接口API: 计算策略各周期下出现极值的耗时。
+            返回值: 各周期极值的耗时DataFrame结构。
+            dataDF: DataFrame结构数据
         """
-        # X轴有7个刻度：15min/30min/1hour/2hour/4hour/6hour/12hour
-        # Y轴为盈利比率。有正有负
-        rate15MEarn = dataDict['M15maxEarn']
-        rate30MEarn = dataDict['M30maxEarn']
-        rate1HEarn = dataDict['H1maxEarn']
-        rate2HEarn = dataDict['H2maxEarn']
-        rate4HEarn = dataDict['H4maxEarn']
-        rate6HEarn = dataDict['H6maxEarn']
-        rate12HEarn = dataDict['H12maxEarn']
-        rate15MLoss = dataDict['M15maxLoss']
-        rate30MLoss = dataDict['M30maxLoss']
-        rate1HLoss = dataDict['H1maxLoss']
-        rate2HLoss = dataDict['H2maxLoss']
-        rate4HLoss = dataDict['H4maxLoss']
-        rate6HLoss = dataDict['H6maxLoss']
-        rate12HLoss = dataDict['H12maxLoss']
+        timeDict = {}
+        clmn = []
 
-        plt.plot(rate15MEarn,'cx--')
+        # 转换极值时间列字符串为Datetime结构。[0:16]----刨去秒计时。
+        for tag in Constant.SER_DF_STRUCTURE[8:-2:2]:
+            cacheList = []
+            clmn.append(tag)
+            for row in dataDF.itertuples(index=False):
+                # 转换策略给出时间的字符串为Datetime结构。
+                baseTimeDT = datetime.datetime.strptime(row[Constant.SER_DF_STRUCTURE.index('time')],"%Y-%m-%d %H:%M:%S")
+                tm = row[Constant.SER_DF_STRUCTURE.index(tag)]
+                if tm == '':# 没有时间记录
+                    deltaTm = 0
+                else:
+                    tagDT = datetime.datetime.strptime(tm,"%Y-%m-%d %H:%M")# 无秒单位的计数
+                    deltaTm = (tagDT-baseTimeDT).total_seconds()
+
+                cacheList.append(deltaTm)
+
+            timeDict.update({tag:cacheList})
+
+        return pd.DataFrame(timeDict,columns=clmn)
+
+    def draw_statistics(self,path,rateDF,deltaTmDF):
+        """ 外部接口API：策略盈亏率数据库的统计分析数据制图。
+                    为了将所有数据绘制在一张图中，采用X轴为比率值，Y轴为时间周期（固定数目）
+            rateDF: 策略盈利比率的DataFrame结构数据
+            deltaTmDF: 策略盈利极值时间的DataFrame结构数据
+        """
+        plt.figure(figsize=(16,10))
+        #plt.grid(True)
+        plt.xlabel("Time")
+        plt.ylabel("Rate")
+
+        # X轴的尺度设定为24个单位
+        x_scale = 24
+        # X轴设置7个刻度
+        x = ['0','H2','H4','H6','H8','H10','H12','H14','H16','H18','H20','H22']
+        plt.xticks(range(0,x_scale,2),x)
+        # Y轴为盈利比率。有正有负
+        rateEarnDF = rateDF.ix[:,Constant.SER_DF_STRUCTURE[7:-2:4]]
+        rateLossDF = rateDF.ix[:,Constant.SER_DF_STRUCTURE[9:-2:4]]
+        plt.title("%s Rate based on Time-Cost"%path)
+        #   Period     Earn marker styles      Color     Loss marker styles      Color
+        #  15Minute  >(Triangle right marker)  r(red)  <(Triangle left marker)  g(green)
+        #  30Minute  ^(Triangle up marker)     r(red)  v(Triangle down marker)  g(green)
+        #  1Hour     4(Tripod right marker)    r(red)  3(Triangle left marker)  g(green)
+        #  2Hour     2(Tripod up marker)       r(red)  1(Tripod down marker)    g(green)
+        #  4Hour     o(Circle marker)          r(red)  s(Square marker)         g(green)
+        #  6Hour     p(Pentagon marker)        r(red)  h(Hexagon marker)        g(green)
+        #  12Hour    d(Thin diamond marker)    r(red)  *(Star marker)           g(green)
+        plt.plot(deltaTmDF.ix[:,'M15maxEarnTime']/3600,rateEarnDF['M15maxEarn'].as_matrix(),'b>',\
+                 deltaTmDF.ix[:,'M15maxLossTime']/3600,rateLossDF['M15maxLoss'].as_matrix(),'c<',\
+                 deltaTmDF.ix[:,'M30maxEarnTime']/3600,rateEarnDF['M30maxEarn'].as_matrix(),'m^',\
+                 deltaTmDF.ix[:,'M30maxLossTime']/3600,rateLossDF['M30maxLoss'].as_matrix(),'gv',\
+                 deltaTmDF.ix[:,'H1maxEarnTime']/3600,rateEarnDF['H1maxEarn'].as_matrix(),'r4',\
+                 deltaTmDF.ix[:,'H1maxLossTime']/3600,rateLossDF['H1maxLoss'].as_matrix(),'y3',\
+                 deltaTmDF.ix[:,'H2maxEarnTime']/3600,rateEarnDF['H2maxEarn'].as_matrix(),'mo',\
+                 deltaTmDF.ix[:,'H2maxLossTime']/3600,rateLossDF['H2maxLoss'].as_matrix(),'ms',\
+                 deltaTmDF.ix[:,'H4maxEarnTime']/3600,rateEarnDF['H4maxEarn'].as_matrix(),'rp',\
+                 deltaTmDF.ix[:,'H4maxLossTime']/3600,rateLossDF['H4maxLoss'].as_matrix(),'rh',\
+                 deltaTmDF.ix[:,'H6maxEarnTime']/3600,rateEarnDF['H6maxEarn'].as_matrix(),'yd',\
+                 deltaTmDF.ix[:,'H6maxLossTime']/3600,rateLossDF['H6maxLoss'].as_matrix(),'y*')
+
+        plt.savefig('%s%s.png'%(path,datetime.datetime.now().strftime("%Y-%m-%d_%H_%M")),dpi=200)
         plt.show()
 
     def research_statistics(self,path):
@@ -248,9 +299,11 @@ class ClientMatch():
         # 过滤数据(同向中的干扰条目，即弱势项)--提纯操作
         pureDf = self.filter_trash_item('15min','15min-30min-1hour')
         # 计算盈亏比率
-        rateDict = self.calculate_rate(pureDf)
+        rateDF = self.calculate_rate(pureDf)
+        # 计算时间差值
+        deltaTimeDF = self.calculate_time_cost(pureDf)
         # 制图
-        self.draw_statistics(rateDict)
+        self.draw_statistics(path,rateDF,deltaTimeDF)
 
     def upate_realtime_KLine_indicator(self):
         """ 内部接口API：从策略盈亏率数据库中提取K线组合模式的指标值并更新相应实例。
@@ -299,7 +352,7 @@ class ClientMatch():
         # MACD指示信号
 
 
-    def client_match(self):
+    def client_motor(self):
         """
             外部接口API: 客户端程序驱动函数
             mode:调用者模式--realtime or afterwards
@@ -310,7 +363,6 @@ class ClientMatch():
         # 更新其他各种指标指示
 
         # 匹配模式
-        self.match_indicator()
 
         # 汇总各指标
         # self.actionDict中有非0项，需要将对应摘要说明字符串存档。
