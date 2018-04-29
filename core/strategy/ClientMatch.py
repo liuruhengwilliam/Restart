@@ -244,7 +244,7 @@ class ClientMatch():
 
         return pd.DataFrame(timeDict,columns=clmn)
 
-    def draw_statistics(self,path,rateDF,deltaTmDF):
+    def draw_statistics(self,path,mixTag,rateDF,deltaTmDF):
         """ 外部接口API：策略盈亏率数据库的统计分析数据制图。
                     为了将所有数据绘制在一张图中，采用X轴为比率值，Y轴为时间周期（固定数目）
             rateDF: 策略盈利比率的DataFrame结构数据
@@ -263,7 +263,7 @@ class ClientMatch():
         # Y轴为盈利比率。有正有负
         rateEarnDF = rateDF.ix[:,Constant.SER_DF_STRUCTURE[7:-2:4]]
         rateLossDF = rateDF.ix[:,Constant.SER_DF_STRUCTURE[9:-2:4]]
-        plt.title("%s Rate based on Time-Cost"%path)
+        plt.title("%s"%path[-8:-1]+" %s"%mixTag+" Rate based on Time-Cost")
         #   Period     Earn marker styles          Loss marker styles      Color
         #  15Minute  >(Triangle right marker)    <(Triangle left marker)   blue
         #  30Minute  ^(Triangle up marker)       v(Triangle down marker)   magenta
@@ -285,8 +285,8 @@ class ClientMatch():
         plt.plot(deltaTmDF.ix[:,'H6maxEarnTime']/3600,rateEarnDF['H6maxEarn'].as_matrix(),'yp',label="H6")
         plt.plot(deltaTmDF.ix[:,'H6maxLossTime']/3600,rateLossDF['H6maxLoss'].as_matrix(),'yh')
         plt.legend()
-        plt.savefig('%s%s.png'%(path,datetime.datetime.now().strftime("%Y-%m-%d_%H_%M")),dpi=200)
-        plt.show()
+        plt.savefig('%s%s_%s.png'%(path,datetime.datetime.now().strftime("%Y-%m-%d_%H_%M"),mixTag),dpi=200)
+        #plt.show()
 
     def research_statistics(self,path):
         """ 外部接口API：策略盈亏率数据库的统计分析数据展示。
@@ -296,14 +296,16 @@ class ClientMatch():
         self.upate_afterwards_KLine_indicator(path)
         # M15 M30 H1周期的同向时间点条目汇总--以下操作基于这些交叉周期
         self.statistics_M15M30H1_period(path)
-        # 过滤数据(同向中的干扰条目，即弱势项)--提纯操作
-        pureDf = self.filter_trash_item('15min','15min-30min-1hour')
-        # 计算盈亏比率
-        rateDF = self.calculate_rate(pureDf)
-        # 计算时间差值
-        deltaTimeDF = self.calculate_time_cost(pureDf)
-        # 制图
-        self.draw_statistics(path,rateDF,deltaTimeDF)
+
+        for mixTag in ['15min-30min','15min-1hour','15min-30min-1hour']:
+            # 过滤数据(同向中的干扰条目，即弱势项)--提纯操作
+            pureDf = self.filter_trash_item('15min',mixTag)
+            # 计算盈亏比率
+            rateDF = self.calculate_rate(pureDf)
+            # 计算时间差值
+            deltaTimeDF = self.calculate_time_cost(pureDf)
+            # 制图
+            self.draw_statistics(path,mixTag,rateDF,deltaTimeDF)
 
     def upate_realtime_KLine_indicator(self):
         """ 内部接口API：从策略盈亏率数据库中提取K线组合模式的指标值并更新相应实例。
