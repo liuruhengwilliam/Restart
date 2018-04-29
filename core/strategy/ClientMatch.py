@@ -14,7 +14,7 @@ from resource import Primitive
 from resource import Constant
 from resource import Configuration
 from resource import Trace
-import ClientNotify
+#import ClientNotify
 
 class ClientMatch():
     """ 各种方案匹配搜索类
@@ -152,7 +152,7 @@ class ClientMatch():
                 F15M_30M_1H.to_csv(path+'15M-30M-1H-ser.csv',sep=',',header=True)
                 self.serDict.update({'15min-30min-1hour':F15M_30M_1H})
 
-    def filter_trash_item(self,period,serDataTag):
+    def pickup_pure_item(self,period,serDataTag):
         """ 内部接口：去除干扰项。某周期下同一时刻会生成多条矛盾条目，剔除弱势一方
             返回值：过滤后的DataFrame类型数据。某周期下一个时刻只保留一个条目
             period：周期名称字符串
@@ -176,6 +176,30 @@ class ClientMatch():
                 recTime = policyTime
 
         return filterDF
+
+    def filter_item(self,dataDF,ruler):
+        """ 内部接口：依据不同时段来过滤条目。
+            返回值：过滤后的DataFrame类型数据。
+            dataDF：DataFrame结构数据
+            ruler: 过滤规则的时间字符串
+        """
+        retDF = None
+        for indx in range(len(dataDF)):
+            policyTime = dataDF.iloc[indx]['time']
+            baseTimeDT = datetime.datetime.strptime(policyTime,"%Y-%m-%d %H:%M:%S")
+            rulerTmBegin = policyTime.split(" ")[0]+" "+Constant.TIME_SEGMENT_DICT[ruler][0]
+            rulerTmEnd = policyTime.split(" ")[0]+" "+Constant.TIME_SEGMENT_DICT[ruler][1]
+            rulerTimeBeginDT = datetime.datetime.strptime(rulerTmBegin,"%Y-%m-%d %H:%M:%S")
+            rulerTimeEndDT = datetime.datetime.strptime(rulerTmEnd,"%Y-%m-%d %H:%M:%S")
+
+            #从数据源中剔除同一个时间点的冗余策略条目或者与位图映射值不符的策略条目（干扰条目）
+            if baseTimeDT >= rulerTimeBeginDT and baseTimeDT <= rulerTimeEndDT:
+                if retDF is None:
+                    retDF = DataFrame([dataDF.iloc[indx]])#用Series填充DataFrame结构
+                else:
+                    retDF = retDF.append([dataDF.iloc[indx]],ignore_index=True)
+
+        return retDF
 
     def calculate_rate(self,dataDF):
         """ 内部接口API: 计算盈亏比率。
@@ -244,7 +268,7 @@ class ClientMatch():
 
         return pd.DataFrame(timeDict,columns=clmn)
 
-    def draw_statistics(self,path,mixTag,rateDF,deltaTmDF):
+    def draw_statistics(self,path,tag,rateDF,deltaTmDF):
         """ 外部接口API：策略盈亏率数据库的统计分析数据制图。
                     为了将所有数据绘制在一张图中，采用X轴为比率值，Y轴为时间周期（固定数目）
             rateDF: 策略盈利比率的DataFrame结构数据
@@ -263,7 +287,7 @@ class ClientMatch():
         # Y轴为盈利比率。有正有负
         rateEarnDF = rateDF.ix[:,Constant.SER_DF_STRUCTURE[7:-2:4]]
         rateLossDF = rateDF.ix[:,Constant.SER_DF_STRUCTURE[9:-2:4]]
-        plt.title("%s"%path[-8:-1]+" %s"%mixTag+" Rate based on Time-Cost")
+        plt.title("%s"%path[-8:-1]+" %s"%tag+" Rate based on Time-Cost")
         #   Period     Earn marker styles          Loss marker styles      Color
         #  15Minute  >(Triangle right marker)    <(Triangle left marker)   blue
         #  30Minute  ^(Triangle up marker)       v(Triangle down marker)   magenta
@@ -285,7 +309,7 @@ class ClientMatch():
         plt.plot(deltaTmDF.ix[:,'H6maxEarnTime']/3600,rateEarnDF['H6maxEarn'].as_matrix(),'yp',label="H6")
         plt.plot(deltaTmDF.ix[:,'H6maxLossTime']/3600,rateLossDF['H6maxLoss'].as_matrix(),'yh')
         plt.legend()
-        plt.savefig('%s%s_%s.png'%(path,datetime.datetime.now().strftime("%Y-%m-%d_%H_%M"),mixTag),dpi=200)
+        plt.savefig('%s%s_%s.png'%(path,datetime.datetime.now().strftime("%Y-%m-%d_%H_%M"),tag),dpi=200)
         #plt.show()
 
     def research_statistics(self,path):
@@ -299,13 +323,16 @@ class ClientMatch():
 
         for mixTag in ['15min-30min','15min-1hour','15min-30min-1hour']:
             # 过滤数据(同向中的干扰条目，即弱势项)--提纯操作
-            pureDf = self.filter_trash_item('15min',mixTag)
-            # 计算盈亏比率
-            rateDF = self.calculate_rate(pureDf)
-            # 计算时间差值
-            deltaTimeDF = self.calculate_time_cost(pureDf)
-            # 制图
-            self.draw_statistics(path,mixTag,rateDF,deltaTimeDF)
+            pureDf = self.pickup_pure_item('15min',mixTag)
+            for ruler in ["Gold_saint","Silver_saint","Copper_saint"]:
+                # 依据时间段提取条目
+                filterDf = self.filter_item(pureDf,ruler)
+                # 计算盈亏比率
+                rateDF = self.calculate_rate(filterDf)
+                # 计算时间差值
+                deltaTimeDF = self.calculate_time_cost(filterDf)
+                # 制图
+                self.draw_statistics(path,mixTag+ruler,rateDF,deltaTimeDF)
 
     def upate_realtime_KLine_indicator(self):
         """ 内部接口API：从策略盈亏率数据库中提取K线组合模式的指标值并更新相应实例。
@@ -368,7 +395,5 @@ class ClientMatch():
 
         # 汇总各指标
         # self.actionDict中有非0项，需要将对应摘要说明字符串存档。
-        for item in self.actionDict.iteritems():
-            if item[1] != 0:
-                ClientNotify.write_abstract(item[0],self.summaryDict[item[0]])
+        #for item in self.actionDict.iteritems():
 
