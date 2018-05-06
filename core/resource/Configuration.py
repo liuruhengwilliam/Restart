@@ -15,6 +15,22 @@ from email.header import Header
 import Trace
 import Constant
 
+def get_field_from_string(str,separator=None):
+    """ 内外部接口API: 获取字符串中某分隔符下的字段
+        返回列值：列表
+        str: 待分解的字符串
+        separator: 分隔符的定义。默认分解文件路径字符串。
+    """
+    sysName = platform.system()
+    if (sysName == "Windows"):
+        if separator == None:
+            retList = str.split('\\')
+    elif (sysName == "Linux"):
+        if separator == None:
+            retList = str.split('/')
+    else :# 未知操作系统
+        retList = []
+    return retList
 
 def create_working_directory():
     """ 内/外部接口API：获取当前周工作目录
@@ -55,18 +71,28 @@ def get_working_directory():
 
     return dirPath
 
-def get_backweek_period_directory(backDeepCnt,periodName):
-    """ 外部接口API：获取前若干周某周期下的目录
+def get_back_week_period_directory(path,backDeepCnt):
+    """ 外部接口API：搜索前若干周的路径
         backDeepCnt: 追溯的历史周数
-        periodName: 当前周名称的字符串
+        path: 当前目录（含有周期字符串）
     """
-    someday = datetime.date.today() - datetime.timedelta(weeks=backDeepCnt)
-    year,week = someday.strftime('%Y'),someday.strftime('%U')# 获取前一周的年份和周数
     sysName = platform.system()
     if (sysName == "Windows"):
-        dirPath = os.getcwd()+'\\'+year+'\\'+'%s-%s'%(year,week)+'\\'+periodName+'\\'
+        year,week = path.split('\\')[-3].split('-')
+        periodName = path.split('\\')[-2]
+        if int(week)-backDeepCnt <= 0:
+            dirPath = os.getcwd()+'\\'+str(int(year)-1)+'\\'+\
+                      '%s-%s'%(str(int(year)-1),str(52+int(week)-backDeepCnt))+'\\'+periodName+'\\'
+        else:
+            dirPath = os.getcwd()+'\\'+year+'\\'+'%s-%s'%(year,str(int(week)-backDeepCnt))+'\\'+periodName+'\\'
     elif (sysName == "Linux"):
-        dirPath = os.getcwd()+'/'+year+'/'+'%s-%s'%(year,week)+'/'+periodName+'/'
+        year,week = path.split('/')[-3].split('-')
+        periodName = path.split('/')[-2]
+        if int(week)-backDeepCnt <= 0:
+            dirPath = os.getcwd()+'/'+str(int(year)-1)+'/'+\
+                      '%s-%s'%(str(int(year)-1),str(52+int(week)-backDeepCnt))+'/'+periodName+'/'
+        else:
+            dirPath = os.getcwd()+'/'+year+'/'+'%s-%s'%(year,str(int(week)-backDeepCnt))+'/'+periodName+'/'
     else :# 未知操作系统
         dirPath = get_working_directory()
 

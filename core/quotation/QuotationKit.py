@@ -9,17 +9,18 @@ from resource import Constant
 from resource import Primitive
 from resource import Trace
 
-def supplement_quotes(periodName,dataWithID,supplementCnt):
+def supplement_quotes(path,dataWithID,supplementCnt):
     """ 外部接口API：补齐某个数目的行情序列。不考虑*.csv格式文件转换（可手动编辑）。
-        periodName：周期名称字符串
+        path：路径字符串
         dataWithID: 当前周期行情数据库文件的dataframe结构数据
         supplementCnt: 需要增补的数目
         返回值: 增补后的dateframe结构行情数据
     """
     quotes = np.array(dataWithID.ix[:])
     weekGap = 1 # 从前一周开始搜索
+    period = Configuration.get_field_from_string(path)[-2]
     while supplementCnt > 0:
-        preDBfile = Configuration.get_backweek_period_directory(weekGap, periodName)+periodName+'-quote.db'
+        preDBfile = Configuration.get_back_week_period_directory(path,weekGap)+period+'-quote.db'
         if not os.path.exists(preDBfile): #若回溯文件完毕，则退出循环。
             break
 

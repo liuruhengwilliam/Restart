@@ -2,20 +2,22 @@
 
 import numpy as np
 from resource import Constant
+from resource import Configuration
 from quotation import QuotationKit
 
-def process_quotes_candlestick_pattern(periodName,dataWithID):
+def process_quotes_candlestick_pattern(path,dataWithID):
     """ 外部接口API:蜡烛图组合模式或图形的预处理函数
-        periodName: 周期名称的字符串
+        path: 路径名字符串
         dataWithID: dataframe结构的数据
         返回值：dateframe结构数据
     """
     dataCnt = dataWithID.iloc[-1:]['id']
+    periodName = Configuration.get_field_from_string(path)[-2]
     indx = Constant.QUOTATION_DB_PREFIX.index(periodName)
     gap = Constant.CANDLESTICK_PATTERN_MATCH_CNT[indx] - int(dataCnt)
 
     if gap > 0:# 要补齐蜡烛图中K线数目
-        dataWithID = QuotationKit.supplement_quotes(periodName,dataWithID,int(gap))
+        dataWithID = QuotationKit.supplement_quotes(path,dataWithID,int(gap))
     else:# 截取指定数目记录。从第（dataCnt - Constant.CANDLESTICK_PATTERN_CNT[index]）行到最后一行
         dataWithID = dataWithID[int(abs(gap)):]
 

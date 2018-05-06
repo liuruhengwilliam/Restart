@@ -15,6 +15,7 @@ from quotation.QuotationDB import *
 from quotation.QuotationRecord import *
 from strategy.Strategy import Strategy
 from strategy import StratEarnRate
+from strategy import StrategyMisc
 from strategy.ClientMatch import ClientMatch
 from indicator import CandleStick
 
@@ -80,7 +81,7 @@ class Coordinate():
             CandleStick.manual_show_candlestick(tmName,dataWithId)
 
         #筛选条目，最大程度匹配策略
-        self.clientMatch.client_motor()
+        #self.clientMatch.client_motor()
 
         #屏幕弹框(发送消息及email--应包含策略条目详情)
 
@@ -104,7 +105,7 @@ class Coordinate():
         #5min周期定时器的主要任务就是更新盈亏率数据库。但5min行情数据必须周期刷新，所以update_quote(period)要前置。
         if periodName == '5min':
             recInfo = self.recordHdl.get_record_dict()['5min']
-            self.strategy.update_strategy([recInfo['time'],float(recInfo['high']),float(recInfo['low'])])
+            self.strategy.update_strategy([recInfo['time'],float(recInfo['high']),float(recInfo['low'])],True)
             markEnd5min = datetime.datetime.now()
             Trace.output('info', "Period %s time out at %s and update strategy cost: %s\n"\
                          %(periodName, markStart, str(markEnd5min-markStart)))
@@ -120,7 +121,10 @@ class Coordinate():
         Trace.output('info', "period %s process indicator cost: %s"%(periodName,str(markIndicator-markQuote)))
 
         #策略算法计算
-        self.strategy.check_strategy(periodName,self.dbQuotationHdl.query_quote(periodName))
+        #数据加工补全
+        dataDealed = StrategyMisc.process_quotes_candlestick_pattern\
+            (Configuration.get_period_working_folder(periodName),self.dbQuotationHdl.query_quote(periodName))
+        self.strategy.check_strategy(periodName,dataDealed)
         markStrategy = datetime.datetime.now()
         Trace.output('info', "period %s check strategy cost: %s\n"%(periodName,str(markStrategy-markIndicator)))
 

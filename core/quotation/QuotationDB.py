@@ -57,7 +57,8 @@ class QuotationDB():
             # 取从第（dataCnt-X个）到最后一个（第dataCnt）的数据（共X个）
             dataSupplementWithID = dataWithID.ix[int(gap):]
         else:# 要补齐蜡烛图中K线数目
-            dataSupplementWithID = QuotationKit.supplement_quotes(period,dataWithID,int(abs(gap)))
+            dataSupplementWithID = QuotationKit.supplement_quotes\
+                (Configuration.get_period_working_folder(period),dataWithID,int(abs(gap)))
 
         return dataSupplementWithID
 

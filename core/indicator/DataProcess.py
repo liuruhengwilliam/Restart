@@ -8,6 +8,7 @@ from matplotlib.dates import date2num
 from resource import Constant
 from quotation import QuotationKit
 from resource import Trace
+from resource import Configuration
 
 def process_xaxis_labels(periodIndx, tmList):
     """ 外部接口API：生成X轴的标签字符串列表
@@ -68,7 +69,8 @@ def process_quotes_4indicator(periodName,dataWithID):
         # 取从第（dataCnt-X个）到最后一个（第dataCnt）的数据（共X个）
         dataSupplementWithID = dataWithID.ix[int(gap):]
     else:# 要补齐蜡烛图中K线数目
-        dataSupplementWithID = QuotationKit.supplement_quotes(periodName,dataWithID,int(abs(gap)))
+        dataSupplementWithID = QuotationKit.supplement_quotes\
+            (Configuration.get_period_working_folder(periodName),dataWithID,int(abs(gap)))
 
     dataSupplementWithID.is_copy = False #消除告警信息
     # 附加'dt2num'列
