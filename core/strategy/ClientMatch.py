@@ -1,5 +1,6 @@
 #coding=utf-8
 
+import os
 import datetime
 import platform
 if (platform.system() == "Linux"):#适配Linux系统下运行环境
@@ -14,13 +15,14 @@ from resource import Primitive
 from resource import Constant
 from resource import Configuration
 from resource import Trace
-#import ClientNotify
+import StrategyMisc
 
 class ClientMatch():
     """ 各种方案匹配搜索类
         各周期的匹配搜索实例包含：K线组合信号、MA趋势、BBand支撑/压力值、MACD指示信号
     """
     def __init__(self):
+        self.strategy = None
         """ 初始化相关指标各周期的实例 """
         self.KLineIndicator = dict(zip(Constant.QUOTATION_DB_PREFIX[1:-2],[0]*len(Constant.QUOTATION_DB_PREFIX[1:-2])))
         self.BBandIndicator = {}
@@ -30,7 +32,9 @@ class ClientMatch():
         self.actionDict = dict(zip(['KLine','MA','BBand','MACD'],[0,0,0,0]))
         # 四种指标指示摘要说明的字典
         self.summaryDict = dict(zip(['KLine','MA','BBand','MACD'],['','','','']))
-        # 相关记录的字典--周期+DataFrame
+        # 行情数据的记录字典--周期+DataFrame
+        self.quoteDict = {}
+        # 策略盈亏的记录字典--周期+DataFrame
         self.serDict = {}
         # 按周期定义的策略区间格字典--周期+位图数组（值，时间）
         self.PeriodLattice = {}
@@ -90,19 +94,27 @@ class ClientMatch():
                 preValue = item['value']
                 preTime = item['time']
 
-    def upate_afterwards_KLine_indicator(self,path):
+    def upate_afterwards_KLine_indicator(self,path,type):
         """ 内部接口API：从策略盈亏率数据库中提取K线组合模式的指标值并更新相应实例。
                        事后统计--依次截取数据库中每个条目。
             path: 文件路径
+            type: quote or ser file
         """
         for period in Constant.QUOTATION_DB_PREFIX[2:-2]:#前闭后开
-            filename = Configuration.get_period_anyone_folder(path,period)+period+'-ser.db'
-            tempDf = Primitive.translate_db_to_df(filename)
-
-            # 填充字典。结构为"周期:DataFrame"
-            self.serDict.update({period:tempDf})
-            # 更新区间格映射位图
-            self.update_lattice_map(period,tempDf)
+            if type == 'ser':
+                filename = Configuration.get_period_anyone_folder(path,period)+period+'-ser.db'
+                tempDf = Primitive.translate_db_to_df(filename)
+                # 填充字典。结构为"周期:DataFrame"
+                self.serDict.update({period:tempDf})
+                # 更新区间格映射位图
+                self.update_lattice_map(period,tempDf)
+            else:
+                filename = Configuration.get_period_anyone_folder(path,period)+period+'-quote.db'
+                if not os.path.exists(filename):
+                    Trace.output('fatal','LEAK FOR %s quote.db FILE'%period)
+                    return
+                tmpDf = Primitive.translate_db_to_df(filename)
+                self.quoteDict.update({period:tmpDf})
 
     def statistics_M15M30H1_period(self,path):
         """ 内部接口API：按交叉周期类型进行统计。
@@ -312,12 +324,56 @@ class ClientMatch():
         plt.savefig('%s%s_%s.png'%(path,datetime.datetime.now().strftime("%Y-%m-%d_%H_%M"),tag),dpi=200)
         #plt.show()
 
-    def research_statistics(self,path):
+    def analyse_ser_data_in_history(self,path):
         """ 外部接口API：策略盈亏率数据库的统计分析数据展示。
             path: 文件路径
         """
         # 填充字典项:策略盈亏周期字典，策略方向周期位图字典
-        self.upate_afterwards_KLine_indicator(path)
+        self.upate_afterwards_KLine_indicator(path,'ser')
+
+    def analyse_quote_data_in_history(self,path):
+        """ 内部接口API：从策略盈亏率数据库中提取K线组合模式的指标值并更新相应实例。
+                       实时更新--只需截取数据库中最后若干条目。
+            说明：暂时只考虑15min/30min/1hour
+        """
+        self.upate_afterwards_KLine_indicator(path,'quote')
+
+        # 模式匹配
+        for period in Constant.QUOTATION_DB_PREFIX[2:-2]:
+            subsetDF = None
+            for indx in range(len(self.quoteDict[period])):
+                if subsetDF is None:
+                    subsetDF = DataFrame(self.quoteDict[period].iloc[indx])
+                else:
+                    subsetDF = subsetDF.append(self.quoteDict[period].iloc[indx])
+                dataDealed = StrategyMisc.process_quotes_candlestick_pattern(path,subsetDF)
+                # 逐条进行匹配
+                self.strategy.check_strategy(period,dataDealed)
+
+        # 更新策略条目的极值
+        quotefile5M = Configuration.get_period_anyone_folder(path,'5min')+'5min-quote.db'
+        for item in Primitive.translate_db_to_df(quotefile5M).itertuples(index=False):
+            self.strategy.update_strategy([item['time'],float(item['high']),float(item['low'])])
+
+        for period in Constant.QUOTATION_DB_PREFIX[2:-2]:#前闭后开
+            # 填充字典。结构为"周期:DataFrame"
+            self.serDict.update({period:self.strategy.get_police_record(period)})
+            # 更新区间格映射位图
+            self.update_lattice_map(period,self.strategy.get_police_record(period))
+
+
+    def match_KLineIndicator(self,strategy,path):
+        """ 外部接口API: K线指标组合模式
+            strategy: 策略匹配实例
+            path： 路径字符串
+        """
+        self.strategy = strategy
+        filename15M = Configuration.get_period_anyone_folder(path,'15min')+'15min-ser.db'
+        if not os.path.exists(filename15M):# 从行情数据库中提取并匹配策略组合模式，生成策略盈亏数据
+            self.analyse_quote_data_in_history(path)
+        else:
+            self.analyse_ser_data_in_history(path)
+
         # M15 M30 H1周期的同向时间点条目汇总--以下操作基于这些交叉周期
         self.statistics_M15M30H1_period(path)
 
@@ -334,60 +390,12 @@ class ClientMatch():
                 # 制图
                 self.draw_statistics(path,mixTag+ruler,rateDF,deltaTimeDF)
 
-    def upate_realtime_KLine_indicator(self):
-        """ 内部接口API：从策略盈亏率数据库中提取K线组合模式的指标值并更新相应实例。
-                       实时更新--只需截取数据库中最后若干条目。
-            说明：暂时只考虑15min/30min/1hour
-        """
-        # 清空摘要说明
-        self.summaryDict['KLine']=''
-        for period in Constant.QUOTATION_DB_PREFIX[2:5]:#前闭后开
-            filename = Configuration.get_period_working_folder(period)+period+'-ser.db'
-            serData = Primitive.translate_db_to_df(filename)
-            if len(serData) == 0:#没有生成的条目就略过
-                continue
-
-            lastSerItem = serData.ix[len(serData)-1:,['time']]#获取最后一个条目
-            latestIndicatorTm = str(lastSerItem.values).strip('[u\']')#提取最新参考指示的给出时间点
-            dfLatestIndicator = serData[serData['time'] == latestIndicatorTm]#找到若干个最新参考指示
-
-            patternValSum = 0
-            for itemRow in dfLatestIndicator.itertuples():
-                #累加K线组合模式值
-                patternValSum += itemRow[Constant.SER_DF_STRUCTURE.index('patternVal')+1]
-
-                #拼装摘要说明
-                record = np.array(itemRow).tolist()[Constant.SER_DF_STRUCTURE.index('indx')+2:\
-                                                    Constant.SER_DF_STRUCTURE.index('patternVal')+2]
-                self.summaryDict['KLine']='%s%s\n'%(self.summaryDict['KLine'],' '.join(record).replace('u\'',''))
-
-            self.KLineIndicator[period] = patternValSum#更新对应实例值
-
-    def match_indicator(self):
-        """ 内部接口API: 综合考虑各种指标，给出指示 """
-        # K线组合模式
-        period1, period2, period3 = Constant.QUOTATION_DB_PREFIX[2:5]#前闭后开
-        if self.KLineIndicator[period1]>0 and self.KLineIndicator[period2]>0 and self.KLineIndicator[period3]>0:
-            self.actionDict['KLine'] = 1
-        elif self.KLineIndicator[period1]<0 and self.KLineIndicator[period2]<0 and self.KLineIndicator[period3]<0:
-            self.actionDict['KLine'] = -1
-        else:
-            self.actionDict['KLine'] = 0
-
-        # MA趋势
-
-        # BBand支撑/压力值
-
-        # MACD指示信号
-
-
     def client_motor(self):
         """
             外部接口API: 客户端程序驱动函数
             mode:调用者模式--realtime or afterwards
         """
         # 实时更新K线组合模式指示
-        self.upate_realtime_KLine_indicator()
 
         # 更新其他各种指标指示
 

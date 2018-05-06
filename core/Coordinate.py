@@ -26,7 +26,11 @@ class Coordinate():
     def __init__(self,role):
         self.week = (datetime.datetime.now()).strftime('%U')#本周周数记录
 
+        # 策略类初始化
+        self.strategy = Strategy()
+
         if role == 'Client':
+            # 策略类初始化并作为参数传入
             self.clientMatch = ClientMatch()
             return
         # Quotation record Handle
@@ -38,8 +42,6 @@ class Coordinate():
         # 指标类初始化
         self.indicator = Indicator()
 
-        # 策略类初始化
-        self.strategy = Strategy()
         Trace.output('info', " ==== ==== %s Complete Initiation and Run Routine ==== ==== \n"%role)
 
     # 以下是定时器回调函数:
@@ -105,7 +107,7 @@ class Coordinate():
         #5min周期定时器的主要任务就是更新盈亏率数据库。但5min行情数据必须周期刷新，所以update_quote(period)要前置。
         if periodName == '5min':
             recInfo = self.recordHdl.get_record_dict()['5min']
-            self.strategy.update_strategy([recInfo['time'],float(recInfo['high']),float(recInfo['low'])],True)
+            self.strategy.update_strategy([recInfo['time'],float(recInfo['high']),float(recInfo['low'])])
             markEnd5min = datetime.datetime.now()
             Trace.output('info', "Period %s time out at %s and update strategy cost: %s\n"\
                          %(periodName, markStart, str(markEnd5min-markStart)))

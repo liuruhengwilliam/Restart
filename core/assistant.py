@@ -9,6 +9,7 @@ from resource import Configuration
 from quotation import QuotationKit
 from indicator import CandleStick
 from strategy.ClientMatch import ClientMatch
+from strategy.Strategy import Strategy
 
 """
     辅助类：
@@ -18,7 +19,7 @@ from strategy.ClientMatch import ClientMatch
 if __name__ == '__main__':
     choiceIndex = raw_input("Please choose:\n"+"  1.db translate to csv\n"\
                             +"  2.drawing picture of indicator\n"\
-                            +"  3.analyse earn rate of strategy afterward\n"\
+                            +"  3.analyse quote data in history\n"\
                             +"Your choice:\n")
     if choiceIndex == '1':
         filename = raw_input("file name input: ")
@@ -42,7 +43,8 @@ if __name__ == '__main__':
         path = raw_input("Please input folder path WITH THE END OF '\\': ")
         if path=='':
             path = Configuration.get_working_directory()
+        strategyIns = Strategy()
         clientMatchHdl = ClientMatch()
-        clientMatchHdl.research_statistics(path)
+        clientMatchHdl.match_KLineIndicator(strategyIns,path)
     else:
         print "Error choice!"
