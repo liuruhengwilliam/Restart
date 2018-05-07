@@ -365,7 +365,8 @@ class ClientMatch():
                     subsetDF = DataFrame(self.quoteDict[period].iloc[indx])
                 else:
                     subsetDF = subsetDF.append(self.quoteDict[period].iloc[indx])
-                dataDealed = StrategyMisc.process_quotes_candlestick_pattern(path,subsetDF)
+                dataDealed = StrategyMisc.process_quotes_candlestick_pattern\
+                    (Configuration.get_period_anyone_folder(path,period),subsetDF)
                 # 逐条进行匹配
                 self.strategy.check_strategy(period,dataDealed)
 

@@ -133,9 +133,9 @@ def get_period_anyone_folder(path,period):
     """
     sysName = platform.system()
     if (sysName == "Windows"):
-        dirPath = path+'\\'+period+'\\'
+        dirPath = path+period+'\\'
     elif (sysName == "Linux"):
-        dirPath = path+'/'+period+'/'
+        dirPath = path+period+'/'
     else :# 未知操作系统
         dirPath = period
     return dirPath

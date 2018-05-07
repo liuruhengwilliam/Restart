@@ -11,7 +11,8 @@ def process_quotes_candlestick_pattern(path,dataWithID):
         dataWithID: dataframe结构的数据
         返回值：dateframe结构数据
     """
-    dataCnt = dataWithID.iloc[-1:]['id']
+    #dataCnt = dataWithID.iloc[-1:]['id']
+    dataCnt = len(dataWithID)
     periodName = Configuration.get_field_from_string(path)[-2]
     indx = Constant.QUOTATION_DB_PREFIX.index(periodName)
     gap = Constant.CANDLESTICK_PATTERN_MATCH_CNT[indx] - int(dataCnt)
