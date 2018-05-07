@@ -155,11 +155,6 @@ class ClientMatch():
                 F15M_1H = pd.concat([F15M_1H,self.serDict['1hour'][self.serDict['1hour']['time'] == block1hourTime]],ignore_index=True)
                 F15M_1H.to_csv(path+'15M-1H-ser.csv',sep=',',header=True)
                 self.serDict.update({'15min-1hour':F15M_1H})
-            if (block1hourVal * block30minVal)>0:
-                F30M_1H = pd.concat([F30M_1H,self.serDict['1hour'][self.serDict['1hour']['time'] == block1hourTime]],ignore_index=True)
-                F30M_1H = pd.concat([F30M_1H,self.serDict['30min'][self.serDict['30min']['time'] == block30minTime]],ignore_index=True)
-                F30M_1H.to_csv(path+'30M-1H-ser.csv',sep=',',header=True)
-                self.serDict.update({'30min-1hour':F30M_1H})
             if (block15minVal * block30minVal)>0 and (block15minVal * block1hourVal)>0:
                 # 多个dataframe数据叠加在一起
                 F15M_30M_1H = pd.concat([F15M_30M_1H,self.serDict['15min'][self.serDict['15min']['time'] == block15minTime]],ignore_index=True)
@@ -167,6 +162,26 @@ class ClientMatch():
                 F15M_30M_1H = pd.concat([F15M_30M_1H,self.serDict['1hour'][self.serDict['1hour']['time'] == block1hourTime]],ignore_index=True)
                 F15M_30M_1H.to_csv(path+'15M-30M-1H-ser.csv',sep=',',header=True)
                 self.serDict.update({'15min-30min-1hour':F15M_30M_1H})
+
+        recTime = ''
+        for itemRow in self.serDict['30min'].itertuples(index=False):
+            policyTime = itemRow[Constant.SER_DF_STRUCTURE.index('time')]
+            if policyTime == recTime:#同一个时间点给出的策略不重复处理
+                continue
+            else:
+                recTime = policyTime
+            block30min = self.get_lattice_map('30min',policyTime)
+            block30minVal = int(block30min['value'])
+            block30minTime = block30min['time']
+
+            block1hour = self.get_lattice_map('1hour',policyTime)
+            block1hourVal = int(block1hour['value'])
+            block1hourTime = block1hour['time']
+            if (block1hourVal * block30minVal)>0:
+                F30M_1H = pd.concat([F30M_1H,self.serDict['30min'][self.serDict['30min']['time'] == block30minTime]],ignore_index=True)
+                F30M_1H = pd.concat([F30M_1H,self.serDict['1hour'][self.serDict['1hour']['time'] == block1hourTime]],ignore_index=True)
+                F30M_1H.to_csv(path+'30M-1H-ser.csv',sep=',',header=True)
+                self.serDict.update({'30min-1hour':F30M_1H})
 
     def pickup_pure_item(self,period,serDataTag):
         """ 内部接口：去除干扰项。某周期下同一时刻会生成多条矛盾条目，剔除弱势一方
