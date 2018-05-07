@@ -38,7 +38,7 @@ class Coordinate():
         self.recordDict = self.recordHdl.get_record_dict()
         # Quotation DB Handle
         self.dbQuotationHdl = QuotationDB(Constant.UPDATE_PERIOD_FLAG,self.recordDict)
-
+        self.strategy.create_ser_db()
         # 指标类初始化
         self.indicator = Indicator()
 

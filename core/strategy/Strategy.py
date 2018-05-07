@@ -41,10 +41,7 @@ class Strategy():
         valueDf = DataFrame(columns=Constant.SER_DF_STRUCTURE)#建立空的DataFrame数据结构
         for keyTag in Constant.QUOTATION_DB_PREFIX[1:]:
             serfilename = Configuration.get_period_working_folder(keyTag)+keyTag+'-ser.db'
-            if not os.path.exists(serfilename):#当周程序首次运行，不存在对应数据库文件（需要创建）
-                #valueDf = DataFrame(columns=Constant.SER_DF_STRUCTURE)#建立空的DataFrame数据结构
-                StratEarnRate.create_stratearnrate_db(keyTag)
-            else:#非首次运行就存在数据库文件
+            if os.path.exists(serfilename):#非首次运行就存在数据库文件
                 valueDf = Primitive.translate_db_to_df(serfilename)
                 if valueDf is not None and len(valueDf) != 0:#若存在接续的数据记录
                     Trace.output('info'," === %s Period to be continued from SerDB === "%keyTag)
@@ -52,6 +49,15 @@ class Strategy():
                         Trace.output('info','    '+(' ').join(map(lambda x:str(x), itemRow)))
 
             self.dictPolRec.update({keyTag: deepcopy(valueDf)})
+
+    def create_ser_db(self):
+        """
+            外部接口API: 创建策略盈亏数据库文件
+        """
+        for keyTag in Constant.QUOTATION_DB_PREFIX[1:]:
+            serfile = Configuration.get_period_working_folder(keyTag)+keyTag+'-ser.db'
+            if not os.path.exists(serfile):#当周程序首次运行，不存在对应数据库文件（需要创建）
+                StratEarnRate.create_stratearnrate_db(keyTag)
 
     def get_police_record(self,period):
         """ 外部接口API: 获取某周期的策略记录
