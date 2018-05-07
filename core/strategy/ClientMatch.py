@@ -122,6 +122,10 @@ class ClientMatch():
         """
         recTime = ''
         F15M_30M = F30M_1H = F15M_1H = F15M_30M_1H = DataFrame(columns=Constant.SER_DF_STRUCTURE)
+        self.serDict.update({'15min-30min':F15M_30M})
+        self.serDict.update({'30min-1hour':F15M_30M})
+        self.serDict.update({'15min-1hour':F15M_30M})
+        self.serDict.update({'15min-30min-1hour':F15M_30M})
         #前提假定：小周期定时器给出策略条目的频率大于大周期定时器
         for itemRow in self.serDict['15min'].itertuples(index=False):
             policyTime = itemRow[Constant.SER_DF_STRUCTURE.index('time')]
@@ -204,7 +208,7 @@ class ClientMatch():
             rulerTimeBeginDT = datetime.datetime.strptime(rulerTmBegin,"%Y-%m-%d %H:%M:%S")
             rulerTimeEndDT = datetime.datetime.strptime(rulerTmEnd,"%Y-%m-%d %H:%M:%S")
 
-            #从数据源中剔除同一个时间点的冗余策略条目或者与位图映射值不符的策略条目（干扰条目）
+            # 累积介于该ruler时间段中间的条目
             if baseTimeDT >= rulerTimeBeginDT and baseTimeDT <= rulerTimeEndDT:
                 if retDF is None:
                     retDF = DataFrame([dataDF.iloc[indx]])#用Series填充DataFrame结构
@@ -380,9 +384,13 @@ class ClientMatch():
         for mixTag in ['15min-30min','15min-1hour','15min-30min-1hour']:
             # 过滤数据(同向中的干扰条目，即弱势项)--提纯操作
             pureDf = self.pickup_pure_item('15min',mixTag)
+            if pureDf is None:
+                continue
             for ruler in ["Gold_saint","Silver_saint","Copper_saint"]:
                 # 依据时间段提取条目
                 filterDf = self.filter_item(pureDf,ruler)
+                if filterDf is None:
+                    continue
                 # 计算盈亏比率
                 rateDF = self.calculate_rate(filterDf)
                 # 计算时间差值
