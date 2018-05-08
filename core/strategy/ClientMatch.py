@@ -362,9 +362,9 @@ class ClientMatch():
             subsetDF = None
             for indx in range(len(self.quoteDict[period])):
                 if subsetDF is None:
-                    subsetDF = DataFrame(self.quoteDict[period].iloc[indx])
+                    subsetDF = self.quoteDict[period].iloc[indx:indx+1]
                 else:
-                    subsetDF = subsetDF.append(self.quoteDict[period].iloc[indx])
+                    subsetDF = subsetDF.append(self.quoteDict[period].iloc[indx:indx+1])
                 dataDealed = StrategyMisc.process_quotes_candlestick_pattern\
                     (Configuration.get_period_anyone_folder(path,period),subsetDF)
                 # 逐条进行匹配
@@ -380,7 +380,6 @@ class ClientMatch():
             self.serDict.update({period:self.strategy.get_police_record(period)})
             # 更新区间格映射位图
             self.update_lattice_map(period,self.strategy.get_police_record(period))
-
 
     def match_KLineIndicator(self,strategy,path):
         """ 外部接口API: K线指标组合模式
