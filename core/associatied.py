@@ -499,9 +499,24 @@ def upate_afterwards_KLine_indicator():
             #weekday,hour,minute = int(current.isoweekday()),int(current.strftime("%H")),int(current.strftime("%M"))
             #print weekday,hour,minute
 
+def numpy_shape_test():
+    structType = np.dtype([('id',np.int16),('time',np.str_,24),('open',np.float16),('high',np.float16),\
+                           ('low',np.float16),('close',np.float16)])
+    structValue = [(0,'2018-05-07 06:15:40',16.51,16.5243,16.5037,16.5203)]
+
+    npTest = np.array(structValue,dtype=structType)
+    print type(npTest),npTest
+    print type(structValue),structValue
+
+    print "=== dataframe transfer numpy.array"
+    structDF = DataFrame([(0,'2018-05-07 06:15:40',16.51,16.5243,16.5037,16.5203)],\
+                         columns=('id','time','open','high','low','close'))
+    print structDF
+    dataDF = np.array(structDF)
+    print dataDF,type(dataDF)
 
 if __name__ == '__main__':
-    csv_test()
+    #csv_test()
     #db_test()
     #file_test()
     #talib_func()
@@ -529,4 +544,5 @@ if __name__ == '__main__':
     #        print item
     #        os.remove('F:\\code\\python\\RESTART\\core\\2018\\2018-09\\15min\%s'%item)
     #upate_afterwards_KLine_indicator()
+    numpy_shape_test()
     sys.exit()
