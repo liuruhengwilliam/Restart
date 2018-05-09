@@ -116,7 +116,7 @@ class ClientMatch():
                 tmpDf = Primitive.translate_db_to_df(filename)
                 self.quoteDict.update({period:tmpDf})
 
-    def statistics_M15M30H1_period(self,path):
+    def count_cross_M15M30H1_period(self,path):
         """ 内部接口API：按交叉周期类型进行统计。
             path: 文件路径
         """
@@ -208,7 +208,7 @@ class ClientMatch():
 
         return filterDF
 
-    def filter_item(self,dataDF,ruler):
+    def filter_time_phase_item(self,dataDF,ruler):
         """ 内部接口：依据不同时段来过滤条目。
             返回值：过滤后的DataFrame类型数据。
             dataDF：DataFrame结构数据
@@ -232,7 +232,7 @@ class ClientMatch():
 
         return retDF
 
-    def calculate_rate(self,dataDF):
+    def calculate_profit_rate(self,dataDF):
         """ 内部接口API: 计算盈亏比率。
             返回值: 盈亏百分比的DataFrame结构。
             dataDF: DataFrame结构数据
@@ -271,7 +271,7 @@ class ClientMatch():
                     Trace.output('warn',"change key:"+key+" value:%d"%item)
         return pd.DataFrame(retDict,columns=clmn)
 
-    def calculate_time_cost(self,dataDF):
+    def calculate_time_cost_on_peak(self,dataDF):
         """ 内部接口API: 计算策略各周期下出现极值的耗时。
             返回值: 各周期极值的耗时DataFrame结构。
             dataDF: DataFrame结构数据
@@ -373,7 +373,8 @@ class ClientMatch():
         # 更新策略条目的极值
         quotefile5M = Configuration.get_period_anyone_folder(path,'5min')+'5min-quote.db'
         for item in Primitive.translate_db_to_df(quotefile5M).itertuples(index=False):
-            self.strategy.update_strategy([item['time'],float(item['high']),float(item['low'])])
+            self.strategy.update_strategy([datetime.datetime.strptime(item[1],\
+                                '%Y-%m-%d %H:%M:%S'),float(item[3]),float(item[4])])
 
         for period in Constant.QUOTATION_DB_PREFIX[2:-2]:#前闭后开
             # 填充字典。结构为"周期:DataFrame"
@@ -394,7 +395,7 @@ class ClientMatch():
             self.analyse_ser_data_in_history(path)
 
         # M15 M30 H1周期的同向时间点条目汇总--以下操作基于这些交叉周期
-        self.statistics_M15M30H1_period(path)
+        self.count_cross_M15M30H1_period(path)
 
         for mixTag in ['15min-30min','15min-1hour','15min-30min-1hour']:
             # 过滤数据(同向中的干扰条目，即弱势项)--提纯操作
@@ -403,13 +404,13 @@ class ClientMatch():
                 continue
             for ruler in ["Gold_saint","Silver_saint","Copper_saint"]:
                 # 依据时间段提取条目
-                filterDf = self.filter_item(pureDf,ruler)
+                filterDf = self.filter_time_phase_item(pureDf,ruler)
                 if filterDf is None:
                     continue
                 # 计算盈亏比率
-                rateDF = self.calculate_rate(filterDf)
+                rateDF = self.calculate_profit_rate(filterDf)
                 # 计算时间差值
-                deltaTimeDF = self.calculate_time_cost(filterDf)
+                deltaTimeDF = self.calculate_time_cost_on_peak(filterDf)
                 # 制图
                 self.draw_statistics(path,mixTag+ruler,rateDF,deltaTimeDF)
 

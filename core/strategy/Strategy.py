@@ -165,14 +165,16 @@ class Strategy():
             if dfStrategy is None or len(dfStrategy) == 0:
                 self.dictMutexLock[tmName].release()
                 continue
+            rowNo = -1#行号定义为-1，简化后续循环的逻辑处理
             for itemRow in dfStrategy.itertuples(index=False):
+                rowNo+=1#行号自增
                 deadTimeIndx = Constant.SER_DF_STRUCTURE.index('DeadTime')
                 #if itemRow[deadTimeIndx] != '':#DeadTime已经记录，不再更新。
                 #    continue
                 if itemRow[-2] >= Constant.SER_MAX_PERIOD:#最小周期从0开始计数故不能取MAX值。
                     continue
                 #不更新过期（相对于策略盈亏条目的生成时间）的收盘价格。入参closeTime是datetime类型
-                if closeTime < datetime.datetime.strptime(itemRow['time'],"%Y-%m-%d %H:%M"):
+                if closeTime < datetime.datetime.strptime(itemRow[Constant.SER_DF_STRUCTURE.index('time')],"%Y-%m-%d %H:%M:%S"):
                     continue
                 try:
                     patternStr = itemRow[Constant.SER_DF_STRUCTURE.index('patternName')]
@@ -192,43 +194,44 @@ class Strategy():
                     #itemRow为Pandas元组，开头自带Index项，所以下标要加一。也可以通过index=False去掉最开头的索引。
                     if itemRow[XmaxEarnIndx]==0 or itemRow[XmaxLossIndx]==10000:#初始条目
                         if dirc > 0:#‘多’方向
-                            itemRow[XmaxEarnIndx] = highPrice
-                            itemRow[XmaxLossIndx] = lowPrice
+                            dfStrategy.iat[rowNo,XmaxEarnIndx] = highPrice
+                            dfStrategy.iat[rowNo,XmaxLossIndx] = lowPrice
                         else:#‘空’方向
-                            itemRow[XmaxEarnIndx] = lowPrice
-                            itemRow[XmaxLossIndx] = highPrice
-                        itemRow[XmaxEarnTMIndx] = itemRow[XmaxLossTMIndx] = closeTimeStr
+                            dfStrategy.iat[rowNo,XmaxEarnIndx] = lowPrice
+                            dfStrategy.iat[rowNo,XmaxLossIndx] = highPrice
+                        dfStrategy.iat[rowNo,XmaxEarnTMIndx] = \
+                        dfStrategy.iat[rowNo,XmaxLossTMIndx] = closeTimeStr
                     else:
                         if dirc > 0:#‘多’方向
                             if highPrice > itemRow[XmaxEarnIndx]:#大于最大盈利值
-                                itemRow[XmaxEarnIndx] = highPrice
-                                itemRow[XmaxEarnTMIndx] = closeTimeStr
+                                dfStrategy.iat[rowNo,XmaxEarnIndx] = highPrice
+                                dfStrategy.iat[rowNo,XmaxEarnTMIndx] = closeTimeStr
                             if lowPrice < itemRow[XmaxLossIndx]:#小于最大亏损值
-                                itemRow[XmaxLossIndx] = lowPrice
-                                itemRow[XmaxLossTMIndx] = closeTimeStr
+                                dfStrategy.iat[rowNo,XmaxLossIndx] = lowPrice
+                                dfStrategy.iat[rowNo,XmaxLossTMIndx] = closeTimeStr
                         else:#‘空’方向 -- maxEarn值小于maxLoss值
                             if lowPrice<itemRow[XmaxEarnIndx]:#大于最大盈利值
-                                itemRow[XmaxEarnIndx] = lowPrice
-                                itemRow[XmaxEarnTMIndx] = closeTimeStr
+                                dfStrategy.iat[rowNo,XmaxEarnIndx] = lowPrice
+                                dfStrategy.iat[rowNo,XmaxEarnTMIndx] = closeTimeStr
                             if highPrice>itemRow[XmaxLossIndx]:#小于最大亏损值
-                                itemRow[XmaxLossIndx] = highPrice
-                                itemRow[XmaxLossTMIndx] = closeTimeStr
+                                dfStrategy.iat[rowNo,XmaxLossIndx] = highPrice
+                                dfStrategy.iat[rowNo,XmaxLossTMIndx] = closeTimeStr
 
                     #判断是否止损，止损刻度时间的精度是5min。
                     if StrategyMisc.set_dead_price(basePrice,dirc,highPrice,lowPrice)==True:
                         Trace.output('warn','  == In Period %s, item DIED which bsTm %s bsPr %f dirc %d Pattern %s'\
                                      %(tmName,baseTime,basePrice,dirc,patternStr))
-                        itemRow[deadTimeIndx] = closeTimeStr
+                        dfStrategy.iat[rowNo,deadTimeIndx] = closeTimeStr
 
                     #链式定时计数小于等于0说明有相关周期策略盈亏率统计周期要增加
                     if itemRow[-1] <= Constant.CHAIN_PERIOD[0]:
-                        itemRow[-2] += 1 #设置链式定时的下个周期序号
+                        dfStrategy.iat[rowNo,-2] += 1 #设置链式定时的下个周期序号
                         #设置计数初值。需要减去前一个周期数值。
                         baseAddr = Constant.QUOTATION_DB_PERIOD.index(15*60)#周期计数值的基址
                         if itemRow[-2] < Constant.SER_MAX_PERIOD:# fix bug :'tuple index out of range'. Noted 20180301
-                            itemRow[-1] = Constant.QUOTATION_DB_PERIOD[baseAddr+int(itemRow[-2])]
+                            dfStrategy.iat[rowNo,-1] = Constant.QUOTATION_DB_PERIOD[baseAddr+int(itemRow[-2])]
                     else:#链式计数还未到期
-                        itemRow[-1] -= Constant.CHAIN_PERIOD[0]
+                        dfStrategy.iat[rowNo,-1] -= Constant.CHAIN_PERIOD[0]
                 except (Exception),e:
                     exc_type,exc_value,exc_tb = sys.exc_info()
                     traceback.print_exception(exc_type, exc_value, exc_tb)
