@@ -509,11 +509,14 @@ def numpy_shape_test():
     print type(structValue),structValue
 
     print "=== dataframe transfer numpy.array"
-    structDF = DataFrame([(0,'2018-05-07 06:15:40',16.51,16.5243,16.5037,16.5203)],\
-                         columns=('id','time','open','high','low','close'))
+    structDF = DataFrame([('2018-05-07 06:15:40',16.51,16.5243,16.5037,16.5203),\
+                          ('2018-05-08 09:15:40',16.81,16.43,16.57,16.03)],\
+                         columns=('time','open','high','low','close'))
     print structDF
-    dataDF = np.array(structDF)
-    print dataDF,type(dataDF)
+    for itemRow in structDF.itertuples(index=False):
+        print itemRow.value
+    #dataDF = np.array(structDF)
+    #print dataDF,type(dataDF)
 
 if __name__ == '__main__':
     #csv_test()
