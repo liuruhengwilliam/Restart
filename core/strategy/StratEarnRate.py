@@ -47,10 +47,10 @@ def insert_stratearnrate_db(periodName,dfStrategy):
     db = sqlite3.connect(filePath)
     dbCursor = db.cursor()
     #DataFrame数据插入到SER数据库中
-    for itemRow in dfStrategy.itertuples():
+    for itemRow in dfStrategy.itertuples(index=False):
         #dfStrategy.iloc[indx]可以获取整行数值
         #只有新增条目才需要插入---新增条目的'M15maxEarn'栏必定为0（充要条件）
-        if 0 != itemRow[Constant.SER_DF_STRUCTURE.index('M15maxEarn')+1]:
+        if 0 != itemRow[Constant.SER_DF_STRUCTURE.index('M15maxEarn')]:
             continue
         Trace.output('info','  insert into SER-DB with item: '+(' ').join(map(lambda x:str(x), itemRow)))
         try:

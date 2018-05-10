@@ -24,7 +24,7 @@ class Coordinate():
         协作类:衔接“数据抓取”、“行情数据库”、“策略算法”模块，协同工作。
     """
     def __init__(self,role):
-        self.week = (datetime.datetime.now()).strftime('%U')#本周周数记录
+        #self.week = (datetime.datetime.now()).strftime('%U')#本周周数记录
 
         # 策略类初始化
         self.strategy = Strategy()
@@ -56,13 +56,10 @@ class Coordinate():
         if len(infoList) != 0:
             self.recordHdl.update_dict_record(infoList)
 
-        if Constant.exit_on_weekend(self.week):#此时处理所有周期的相关内容
-            os._exit(0) #退出Python程序
-
     def work_client_operation(self):
         """ 外部接口API: 客户端线程回调函数 """
         if Constant.is_closing_market():
-            self.statistics_settlement()#统计汇总工作由客户端完成
+            #self.statistics_settlement()#统计汇总工作由客户端完成
             return
 
         Trace.output('info', "client work on "+str(datetime.datetime.now()))
@@ -99,6 +96,8 @@ class Coordinate():
         #结算期间由更新标志控制不会多次更新
         if Constant.is_closing_market():
             self.recordHdl.reset_dict_record(periodName) #对应周期的行情记录缓存及标志复位
+            if periodName == '5min':#由‘5min’定时器处理其他周期的统计内容
+                self.statistics_settlement()#统计汇总工作由客户端完成
             return
 
         self.dbQuotationHdl.update_quote(periodName) #更新行情数据
@@ -111,6 +110,8 @@ class Coordinate():
             markEnd5min = datetime.datetime.now()
             Trace.output('info', "Period %s time out at %s and update strategy cost: %s\n"\
                          %(periodName, markStart, str(markEnd5min-markStart)))
+            if Constant.is_weekend():
+                os._exit(0) #退出Python程序
             return
 
         #其他周期定时器
@@ -133,6 +134,7 @@ class Coordinate():
     def statistics_settlement(self):
         """内部接口API: 盈亏统计工作。由汇总各周期盈亏数据库生成表格文件。"""
         for tmName in Constant.QUOTATION_DB_PREFIX[1:]:
+            StratEarnRate.insert_stratearnrate_db(tmName,self.strategy.get_police_record(tmName))
             quotefile = Configuration.get_period_working_folder(tmName)+tmName+'-quote.db'
             serfile = Configuration.get_period_working_folder(tmName)+tmName+'-ser.db'
             Primitive.translate_db_into_csv(quotefile) #转csv文件存档

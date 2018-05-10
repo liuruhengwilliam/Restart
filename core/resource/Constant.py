@@ -187,7 +187,7 @@ def is_closing_market():
     for dictHolidayItem in HOLIDAY_DATE:
         if dictHolidayItem['month']==month and dictHolidayItem['day']==day:
             return True
-    return False
+    return is_weekend()
 
 def is_weekend():
     """ 是否周末---周末闭市 """
@@ -196,14 +196,6 @@ def is_weekend():
     if(int(day) == 6 and int(hour) > SAT_STANDARD_SETTLEMENT_HOUR_TIME) or int(day) == 7:
         return True
     return False
-
-def exit_on_weekend(workWeek):
-    """ 到周末就退出 """
-    curWeek = (datetime.datetime.now()).strftime('%U')
-    if curWeek != workWeek:
-        return True
-
-    return is_weekend()
 
 # 欧美国家节假日的定义
 NEW_YEAR_DAY = {'month':1,'day':1}
