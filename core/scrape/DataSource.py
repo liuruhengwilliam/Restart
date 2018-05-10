@@ -22,9 +22,9 @@ SINA_XAG_JS_URL = 'http://hq.sinajs.cn/?_=%s/&list=hf_XAG'
 
 #汇通网报价
 #黄金报价URL
-FX678_XAU_URL = 'http://api.q.fx678.com/quotes.php?exchName=WGJS&symbol=XAU'
+FX678_XAU_URL = 'http://api.q.fx678.com/getQuote.php?exchName=WGJS&symbol=XAU'
 #白银报价URL及关键字段
-FX678_XAG_URL = 'http://api.q.fx678.com/quotes.php?exchName=WGJS&symbol=XAG'
+FX678_XAG_URL = 'http://api.q.fx678.com/getQuote.php?exchName=WGJS&symbol=XAG'
 # 开盘价 --- p
 # 最新价 --- b
 # 最高价 --- h
@@ -32,6 +32,16 @@ FX678_XAG_URL = 'http://api.q.fx678.com/quotes.php?exchName=WGJS&symbol=XAG'
 # 时间戳 --- t
 # 买入价 --- b
 # 卖出价 --- se
+FX678_REQUEST_HEADER = {
+    'Accept':'application/json, text/javascript, */*; q=0.01',
+    'Accept-Encoding':'gzip, deflate, sdch',
+    'Accept-Language':'zh-CN,zh;q=0.8',
+    'Connection':'keep-alive',
+    'Host':'api.q.fx678.com',
+    'Origin':'http://quote.fx678.com',
+    'Referer':'http://quote.fx678.com/symbol/XAG',
+    'User-Agent':'Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/55.0.2883.87 Safari/537.36',
+}
 
 #东方财富网
 #EASTMONEY_XAG_URL = 'http://quote.eastmoney.com/globalfuture/SI00Y.html'
