@@ -4,6 +4,7 @@ import re
 import os
 import sys
 import csv
+import json
 import sqlite3
 import time
 import datetime
@@ -304,18 +305,56 @@ def query_info():
     #print (time_tick_beijin)
     ret_timestamp = time.strftime("%Y-%m-%d %H:%M:%S",time.localtime())
     ret_price = ''
-
-    #eastmoney_url = "http://nufm.dfcfw.com/EM_Finance2014NumericApplication/JS.aspx?type=CT&cmd=C._SG&sty=MPNSBAS&st=c&sr=-1&p=1&ps=5&cb=jQuery%s_%s&js=([(x)])&token=7bc05d0d4c3c22ef9fca8c2a912d779c"%(unknow_timestamp,str(time_tick_beijin))
+    fx678_request_header = {
+        'Accept':'application/json, text/javascript, */*; q=0.01',
+        'Accept-Encoding':'gzip, deflate, sdch',
+        'Accept-Language':'zh-CN,zh;q=0.8',
+        'Connection':'keep-alive',
+        'Host':'api.q.fx678.com',
+        'Origin':'http://quote.fx678.com',
+        'Referer':'http://quote.fx678.com/symbol/XAG',
+        'User-Agent':'Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/55.0.2883.87 Safari/537.36',
+    }
+    eastmoney_request_header = {
+        'Accept':'*/*',
+        'Accept-Encoding':'gzip, deflate, sdch',
+        'Accept-Language':'zh-CN,zh;q=0.8',
+        'Connection':'keep-alive',
+        'Host':'nufm.dfcfw.com',
+        'Referer':'http://quote.eastmoney.com/globalfuture/SI00Y.html',
+        'User-Agent':'Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/55.0.2883.87 Safari/537.36',
+    }
+    eastmoney_url = 'http://nufm.dfcfw.com/EM_Finance2014NumericApplication/JS.aspx?type=CT&cmd=C._SG&sty=MPNSBAS&st=c&sr=-1\
+                     &p=1&ps=5&cb=jQuery172046138363863737863_1525940471507&js=([(x)])&token=7bc05d0d4c3c22ef9fca8c2a912d779c&_=1525940511559'
     hexun_url = 'http://quote.forex.hexun.com/ForexXML/QTMI_CUR3/QTMI_CUR3_5_xagusd.xml?0.8608891293406487&ts=1511505692039'
-    r = requests.get(hexun_url)
+    fx678_url = 'http://api.q.fx678.com/getQuote.php?exchName=WGJS&symbol=XAG'
+    #fx678_url = 'http://api.q.fx678.com/histories.php?symbol=XAG&limit=1&resolution=5&codeType=5c00'
+    r = requests.get(fx678_url,headers=fx678_request_header)
+    if r.status_code != 200:
+        return
     print r.text
+    kw_json = json.loads(r.text)
+    print kw_json['t'],kw_json['s'],kw_json['c']
+    close_price = str(kw_json['c']).strip('[u\'\']')
+    print type(close_price),close_price,float(close_price)
+
+    lst = []
+    for item in r.text.split(','):
+        lst.append(item.split(':'))
+    print lst
+    dct = dict(lst)
+    print dct
+    print dct[u'"c"'].strip('["]'),str(dct[u'"c"'].strip('["]'))
+    print datetime.datetime.fromtimestamp(float(dct[u'"t"'].strip('["]')))
+    return
+
     info_content = r.text.split('(')[1].split(')')[0]
-    #print info_content
-    #print (info_content.split('%"'))
+    print info_content
+    print (info_content.split('%"'))
     for item in (info_content.split('%"')):
-        #print (item)
+        print (item)
         if item.find('XAG') != -1:
-            #print item.split(',')
+            print item.split(',')
             ret_price = item.split(',')[4]
             break
     return [ret_price,ret_timestamp]
@@ -525,7 +564,7 @@ if __name__ == '__main__':
     #talib_func()
     #talib_macd()
     #talib_sma_test()
-    #query_info()
+    query_info()
     #get_property()
     #db_test()
     #home_dir()
@@ -547,5 +586,5 @@ if __name__ == '__main__':
     #        print item
     #        os.remove('F:\\code\\python\\RESTART\\core\\2018\\2018-09\\15min\%s'%item)
     #upate_afterwards_KLine_indicator()
-    numpy_shape_test()
+    #numpy_shape_test()
     sys.exit()
