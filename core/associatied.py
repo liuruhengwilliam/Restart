@@ -30,7 +30,7 @@ from email.header import Header
 #from quotation.QuotationDB import *
 import matplotlib.pyplot as plt
 import xml.etree.ElementTree as ET
-#from resource import Primitive
+from resource import Primitive
 from resource import Constant
 from resource import Configuration
 #from strategy import Strategy
@@ -505,6 +505,16 @@ def get_week_of_month(year, month, day):
      begin = int(datetime.datetime(year, month, 1).strftime("%W"))
      return end - begin + 1
 
+def dataframe_transfer_csv():
+    filename = Configuration.get_period_working_folder('15min')+'15min-quote.db'
+    tempDf = Primitive.translate_db_to_df(filename)
+    print tempDf
+    tempDf.to_csv(path_or_buf=Configuration.get_period_working_folder('15min')+'temp.csv',\
+                  columns=Constant.QUOTATION_STRUCTURE,index=False)
+
+    df2 = pd.read_csv(Configuration.get_period_working_folder('15min')+'temp.csv')
+    print df2,type(df2)
+
 def upate_afterwards_KLine_indicator():
     """ 内部接口API：从策略盈亏率数据库中提取K线组合模式的指标值并更新相应实例。
                    事后统计--依次截取数据库中每个条目。
@@ -564,7 +574,8 @@ if __name__ == '__main__':
     #talib_func()
     #talib_macd()
     #talib_sma_test()
-    query_info()
+    #query_info()
+    dataframe_transfer_csv()
     #get_property()
     #db_test()
     #home_dir()
