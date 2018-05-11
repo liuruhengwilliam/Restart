@@ -13,7 +13,6 @@ import copy
 from copy import deepcopy
 from pandas import DataFrame
 import StrategyMisc
-import StratEarnRate
 from resource import Constant
 from resource import Configuration
 from resource import Trace
@@ -40,24 +39,15 @@ class Strategy():
         #该字典的键为周期名称字符串，值为DataFrame条目（见下）。
         valueDf = DataFrame(columns=Constant.SER_DF_STRUCTURE)#建立空的DataFrame数据结构
         for keyTag in Constant.QUOTATION_DB_PREFIX[1:]:
-            serfilename = Configuration.get_period_working_folder(keyTag)+keyTag+'-ser.db'
-            if os.path.exists(serfilename):#非首次运行就存在数据库文件
-                valueDf = Primitive.translate_db_to_df(serfilename)
+            filename = Configuration.get_period_working_folder(keyTag)+keyTag+'-ser.csv'
+            if os.path.exists(filename):#非首次运行就存在数据库文件
+                valueDf = pd.read_csv(filename)
                 if valueDf is not None and len(valueDf) != 0:#若存在接续的数据记录
                     Trace.output('info'," === %s Period to be continued from SerDB === "%keyTag)
                     for itemRow in valueDf.itertuples(index=False):
                         Trace.output('info','    '+(' ').join(map(lambda x:str(x), itemRow)))
 
             self.dictPolRec.update({keyTag: deepcopy(valueDf)})
-
-    def create_ser_db(self):
-        """
-            外部接口API: 创建策略盈亏数据库文件
-        """
-        for keyTag in Constant.QUOTATION_DB_PREFIX[1:]:
-            serfile = Configuration.get_period_working_folder(keyTag)+keyTag+'-ser.db'
-            if not os.path.exists(serfile):#当周程序首次运行，不存在对应数据库文件（需要创建）
-                StratEarnRate.create_stratearnrate_db(keyTag)
 
     def get_police_record(self,period):
         """ 外部接口API: 获取某周期的策略记录
@@ -110,8 +100,7 @@ class Strategy():
                         Trace.output('info','  find outdated strategy:%s'%pattern+' Time:%s'%dealTmValue+' in Period %s'%tmName)
                         continue
                     #匹配K线组合模式成功后，添加到本周期DataFrame记录对象中。相关统计项暂记为空值。
-                    matchItem = [int(dfLastLine['id'].values),dealTmValue,\
-                            float(dfLastLine['close'].values),tmName,pattern,int(dfLastLine[pattern].values),'',\
+                    matchItem = [dealTmValue,float(dfLastLine['close'].values),tmName,pattern,int(dfLastLine[pattern].values),'',\
                             0,'',10000,'',0,'',10000,'',0,'',10000,'',0,'',10000,'',0,'',10000,'',0,'',10000,'',0,'',10000,'',0,15*60]
                     #最后两项的含义：设置第一个周期是'15min'--序号为0，周期计数为15*60。
                     dfCollect = dfCollect.append(pd.Series(matchItem,index=Constant.SER_DF_STRUCTURE),ignore_index=True)
@@ -131,7 +120,6 @@ class Strategy():
                 self.dictPolRec[tmName] = dfCollect
             else:
                 self.dictPolRec[tmName] = self.dictPolRec[tmName].append(dfCollect,ignore_index=True)
-            #StratEarnRate.insert_stratearnrate_db(tmName,dfCollect)#插入操作移到5min定时器中处理
             self.dictMutexLock[tmName].release()
 
     def check_strategy(self,periodName,dataWithId):
