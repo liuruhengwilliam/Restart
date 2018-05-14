@@ -4,7 +4,7 @@ import os
 import platform
 import Configuration
 
-DEBUG_LEVEL = ('fatal','warn','debug','info')
+DEBUG_LEVEL = ('fatal','warn','info','debug')
 
 def output(requestLevel, content):
     """ 外部接口API：调试输出及日志信息

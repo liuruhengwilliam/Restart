@@ -6,7 +6,6 @@ import urllib
 from resource import Trace
 from resource import Configuration
 from resource import Constant
-from resource import ExceptDeal
 from resource import Primitive
 from scrape import DataScrape
 from indicator.Indicator import Indicator
