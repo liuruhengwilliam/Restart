@@ -20,7 +20,7 @@ def get_date_code():
     month,day = dt.strftime('%m'),dt.strftime('%d')
     return MONTH_CODE[int(month)-1]+DAY_CODE[int(day)-1]
 
-VERSION_CODE = 'V1.4.1Q'
+VERSION_CODE = 'V1.4.2Q'
 def get_version_info():
     """ 内/外部接口API: """
     return VERSION_CODE + get_date_code() + "\n" + \
@@ -187,7 +187,7 @@ def is_closing_market():
     for dictHolidayItem in HOLIDAY_DATE:
         if dictHolidayItem['month']==month and dictHolidayItem['day']==day:
             return True
-    return is_weekend()
+    return False
 
 def is_weekend():
     """ 是否周末---周末闭市 """
