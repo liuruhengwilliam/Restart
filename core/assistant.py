@@ -38,8 +38,7 @@ if __name__ == '__main__':
         path = raw_input("Please input folder path WITH THE END OF '\\': ")
         if path=='':
             path = Configuration.get_working_directory()
-        strategyIns = Strategy()
         clientMatchHdl = ClientMatch()
-        clientMatchHdl.match_KLineIndicator(strategyIns,path)
+        clientMatchHdl.match_KLineIndicator(path)
     else:
         print "Error choice!"

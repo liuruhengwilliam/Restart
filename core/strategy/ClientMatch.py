@@ -16,13 +16,13 @@ from resource import Constant
 from resource import Configuration
 from resource import Trace
 import StrategyMisc
+import Strategy
 
 class ClientMatch():
     """ 各种方案匹配搜索类
         各周期的匹配搜索实例包含：K线组合信号、MA趋势、BBand支撑/压力值、MACD指示信号
     """
     def __init__(self):
-        self.strategy = None
         """ 初始化相关指标各周期的实例 """
         self.KLineIndicator = dict(zip(Constant.QUOTATION_DB_PREFIX[1:-2],[0]*len(Constant.QUOTATION_DB_PREFIX[1:-2])))
         self.BBandIndicator = {}
@@ -93,28 +93,6 @@ class ClientMatch():
             else:
                 preValue = item['value']
                 preTime = item['time']
-
-    def upate_afterwards_KLine_indicator(self,path,type):
-        """ 内部接口API：从策略盈亏率数据库中提取K线组合模式的指标值并更新相应实例。
-                       事后统计--依次截取数据库中每个条目。
-            path: 文件路径
-            type: quote or ser file
-        """
-        for period in Constant.QUOTATION_DB_PREFIX[2:-2]:#前闭后开
-            if type == 'ser':
-                filename = Configuration.get_period_anyone_folder(path,period)+period+'-ser.db'
-                tempDf = Primitive.translate_db_to_df(filename)
-                # 填充字典。结构为"周期:DataFrame"
-                self.serDict.update({period:tempDf})
-                # 更新区间格映射位图
-                self.update_lattice_map(period,tempDf)
-            else:
-                filename = Configuration.get_period_anyone_folder(path,period)+period+'-quote.db'
-                if not os.path.exists(filename):
-                    Trace.output('fatal','LEAK FOR %s quote.db FILE'%period)
-                    return
-                tmpDf = Primitive.translate_db_to_df(filename)
-                self.quoteDict.update({period:tmpDf})
 
     def count_cross_M15M30H1_period(self,path):
         """ 内部接口API：按交叉周期类型进行统计。
@@ -343,22 +321,36 @@ class ClientMatch():
         plt.savefig('%s%s_%s.png'%(path,datetime.datetime.now().strftime("%Y-%m-%d_%H_%M"),tag),dpi=200)
         #plt.show()
 
-    def analyse_ser_data_in_history(self,path):
+    def analyse_ser_data_in_history(self,strategyIns,path):
         """ 外部接口API：策略盈亏率数据库的统计分析数据展示。
             path: 文件路径
         """
         # 填充字典项:策略盈亏周期字典，策略方向周期位图字典
-        self.upate_afterwards_KLine_indicator(path,'ser')
+        for period in Constant.QUOTATION_DB_PREFIX[2:-2]:#前闭后开
+            filename = Configuration.get_period_anyone_folder(path,period)+period+'-ser.csv'
+            if os.path.exists(filename):
+                tempDf = pd.read_csv(filename)
+            else:
+                tempDf = strategyIns.query_strategy_record(period)
+            # 填充字典。结构为"周期:DataFrame"
+            self.serDict.update({period:tempDf})
+            # 更新区间格映射位图
+            self.update_lattice_map(period,tempDf)
 
-    def analyse_quote_data_in_history(self,path):
+    def analyse_quote_data_in_history(self,strategyIns,path):
         """ 内部接口API：从策略盈亏率数据库中提取K线组合模式的指标值并更新相应实例。
                        实时更新--只需截取数据库中最后若干条目。
             说明：暂时只考虑15min/30min/1hour
         """
-        self.upate_afterwards_KLine_indicator(path,'quote')
+        for period in Constant.QUOTATION_DB_PREFIX[2:-2]:#前闭后开
+            filename = Configuration.get_period_anyone_folder(path,period)+period+'-quote.db'
+            if not os.path.exists(filename):
+                Trace.output('fatal','LEAK FOR %s quote.db FILE'%period)
+                return
+            tmpDf = Primitive.translate_db_to_df(filename)
+            self.quoteDict.update({period:tmpDf})
 
-        # 模式匹配
-        for period in Constant.QUOTATION_DB_PREFIX[2:-2]:
+            # 模式匹配
             subsetDF = None
             for indx in range(len(self.quoteDict[period])):
                 if subsetDF is None:
@@ -368,31 +360,31 @@ class ClientMatch():
                 dataDealed = StrategyMisc.process_quotes_candlestick_pattern\
                     (Configuration.get_period_anyone_folder(path,period),subsetDF)
                 # 逐条进行匹配
-                self.strategy.check_strategy(period,dataDealed)
+                strategyIns.check_strategy(period,dataDealed)
 
         # 更新策略条目的极值
         quotefile5M = Configuration.get_period_anyone_folder(path,'5min')+'5min-quote.db'
         for item in Primitive.translate_db_to_df(quotefile5M).itertuples(index=False):
-            self.strategy.update_strategy([datetime.datetime.strptime(item[1],\
+            strategyIns.update_strategy([datetime.datetime.strptime(item[1],\
                                 '%Y-%m-%d %H:%M:%S'),float(item[3]),float(item[4])])
 
         for period in Constant.QUOTATION_DB_PREFIX[2:-2]:#前闭后开
             # 填充字典。结构为"周期:DataFrame"
-            self.serDict.update({period:self.strategy.get_police_record(period)})
+            self.serDict.update({period:strategyIns.query_strategy_record(period)})
             # 更新区间格映射位图
-            self.update_lattice_map(period,self.strategy.get_police_record(period))
+            self.update_lattice_map(period,strategyIns.query_strategy_record(period))
 
-    def match_KLineIndicator(self,strategy,path):
+    def match_KLineIndicator(self,path):
         """ 外部接口API: K线指标组合模式
             strategy: 策略匹配实例
             path： 路径字符串
         """
-        self.strategy = strategy
-        filename15M = Configuration.get_period_anyone_folder(path,'15min')+'15min-ser.db'
+        strategyIns = Strategy()
+        filename15M = Configuration.get_period_anyone_folder(path,'15min')+'15min-ser.csv'
         if not os.path.exists(filename15M):# 从行情数据库中提取并匹配策略组合模式，生成策略盈亏数据
-            self.analyse_quote_data_in_history(path)
+            self.analyse_quote_data_in_history(strategyIns,path)
         else:
-            self.analyse_ser_data_in_history(path)
+            self.analyse_ser_data_in_history(strategyIns,path)
 
         # M15 M30 H1周期的同向时间点条目汇总--以下操作基于这些交叉周期
         self.count_cross_M15M30H1_period(path)
@@ -414,18 +406,4 @@ class ClientMatch():
                 # 制图
                 self.draw_statistics(path,mixTag+ruler,rateDF,deltaTimeDF)
 
-    def client_motor(self):
-        """
-            外部接口API: 客户端程序驱动函数
-            mode:调用者模式--realtime or afterwards
-        """
-        # 实时更新K线组合模式指示
-
-        # 更新其他各种指标指示
-
-        # 匹配模式
-
-        # 汇总各指标
-        # self.actionDict中有非0项，需要将对应摘要说明字符串存档。
-        #for item in self.actionDict.iteritems():
 

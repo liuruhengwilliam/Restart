@@ -49,7 +49,7 @@ class Strategy():
 
             self.dictPolRec.update({keyTag: deepcopy(valueDf)})
 
-    def get_police_record(self,period):
+    def query_strategy_record(self,period):
         """ 外部接口API: 获取某周期的策略记录
             period: 周期字符串
         """
