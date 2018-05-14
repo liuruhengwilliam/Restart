@@ -506,14 +506,19 @@ def get_week_of_month(year, month, day):
      return end - begin + 1
 
 def dataframe_transfer_csv():
-    filename = Configuration.get_period_working_folder('15min')+'15min-quote.db'
+    filename = 'F:\\code\\python\\RESTART\\core\\2018\\2018-16\\5min\\5min-quote.db'
     tempDf = Primitive.translate_db_to_df(filename)
     print tempDf
-    tempDf.to_csv(path_or_buf=Configuration.get_period_working_folder('15min')+'temp.csv',\
+    time1 = datetime.datetime.now()
+    tempDf.to_csv(path_or_buf=Configuration.get_period_working_folder('5min')+'temp.csv',\
                   columns=Constant.QUOTATION_STRUCTURE,index=False)
-
-    df2 = pd.read_csv(Configuration.get_period_working_folder('15min')+'temp.csv')
-    print df2,type(df2)
+    time2 = datetime.datetime.now()
+    print time2-time1
+    df2 = pd.read_csv('F:\\code\\python\\RESTART\\core\\2018\\2018-16\\30M-1H-ser.csv')
+    time3 = datetime.datetime.now()
+    #print df2
+    print "cost time:"
+    print time3-time2
 
 def upate_afterwards_KLine_indicator():
     """ 内部接口API：从策略盈亏率数据库中提取K线组合模式的指标值并更新相应实例。
