@@ -34,9 +34,8 @@ class Coordinate():
             return
         # Quotation record Handle
         self.recordHdl = QuotationRecord(Constant.UPDATE_PERIOD_FLAG)
-        self.recordDict = self.recordHdl.get_record_dict()
         # Quotation DB Handle
-        self.dbQuotationHdl = QuotationDB(Constant.UPDATE_PERIOD_FLAG,self.recordDict)
+        self.dbQuotationHdl = QuotationDB(Constant.UPDATE_PERIOD_FLAG,self.recordHdl.get_record_dict())
 
         # 指标类初始化
         self.indicator = Indicator()
@@ -95,8 +94,6 @@ class Coordinate():
         #结算期间由更新标志控制不会多次更新
         if Constant.is_closing_market():
             self.recordHdl.reset_dict_record(periodName) #对应周期的行情记录缓存及标志复位
-            if periodName == '5min':#由‘5min’定时器处理其他周期的统计内容
-                self.statistics_settlement()#统计汇总工作由客户端完成
             return
 
         self.dbQuotationHdl.update_quote(periodName) #更新行情数据
@@ -109,7 +106,7 @@ class Coordinate():
             markEnd5min = datetime.datetime.now()
             Trace.output('info', "Period %s time out at %s and update strategy cost: %s\n"\
                          %(periodName, markStart, str(markEnd5min-markStart)))
-            self.statistics_settlement()#统计汇总工作由客户端完成
+            self.statistics_settlement()#统计汇总工作
             if Constant.is_weekend():
                 os._exit(0) #退出Python程序
             return
@@ -135,6 +132,8 @@ class Coordinate():
         """内部接口API: 盈亏统计工作。由汇总各周期盈亏数据库生成表格文件。"""
         for tmName in Constant.QUOTATION_DB_PREFIX[1:]:
             path = Configuration.get_period_working_folder(tmName)
-            self.strategy.get_police_record(tmName).to_csv(path_or_buf=path+tmName+'-ser.csv',\
+            self.strategy.query_strategy_record(tmName).to_csv(path_or_buf=path+tmName+'-ser.csv',\
                                     columns=Constant.SER_DF_STRUCTURE, index=False)
-            Primitive.translate_db_into_csv(path+tmName+'-quote.db') #转csv文件存档
+            self.dbQuotationHdl.query_quote(tmName).to_csv(path_or_buf=path+tmName+'-quote.csv',\
+                                    columns=Constant.QUOTATION_STRUCTURE, index=False)
+
