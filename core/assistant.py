@@ -17,15 +17,10 @@ from strategy.Strategy import Strategy
     2.画图方法；
 """
 if __name__ == '__main__':
-    choiceIndex = raw_input("Please choose:\n"+"  1.db translate to csv\n"\
-                            +"  2.drawing picture of indicator\n"\
-                            +"  3.analyse quote data in history\n"\
+    choiceIndex = raw_input("Please choose:\n"+"  1.drawing picture of indicator\n"\
+                            +"  2.analyse quote data in history\n"\
                             +"Your choice:\n")
     if choiceIndex == '1':
-        filename = raw_input("file name input: ")
-        cnt = raw_input("cnt to be translated: ")
-        Primitive.translate_db_into_csv(filename,int(cnt))
-    elif choiceIndex == '2':
         filename = raw_input("file name input: ")
         tmName = raw_input("period name input:")
         if Constant.QUOTATION_DB_PREFIX.count(tmName) == 0:
@@ -39,7 +34,7 @@ if __name__ == '__main__':
             CandleStick.manual_show_candlestick_withCSV(tmName,filename)
         else:
             print "Error file name input!"
-    elif choiceIndex == '3':
+    elif choiceIndex == '2':
         path = raw_input("Please input folder path WITH THE END OF '\\': ")
         if path=='':
             path = Configuration.get_working_directory()
