@@ -100,8 +100,8 @@ class Strategy():
                         Trace.output('info','  find outdated strategy:%s'%pattern+' Time:%s'%dealTmValue+' in Period %s'%tmName)
                         continue
                     #匹配K线组合模式成功后，添加到本周期DataFrame记录对象中。相关统计项暂记为空值。
-                    matchItem = [dealTmValue,float(dfLastLine['close'].values),tmName,pattern,int(dfLastLine[pattern].values),'',\
-                            0,'',10000,'',0,'',10000,'',0,'',10000,'',0,'',10000,'',0,'',10000,'',0,'',10000,'',0,'',10000,'',0,15*60]
+                    matchItem = [dealTmValue,float(dfLastLine['close'].values),tmName,pattern,int(dfLastLine[pattern].values),'1900-01-01 00:00']\
+                                +[0.0,'1900-01-01 00:00',10000.0,'1900-01-01 00:00']*7+[0,15*60]
                     #最后两项的含义：设置第一个周期是'15min'--序号为0，周期计数为15*60。
                     dfCollect = dfCollect.append(pd.Series(matchItem,index=Constant.SER_DF_STRUCTURE),ignore_index=True)
             except (Exception),e:
@@ -176,7 +176,6 @@ class Strategy():
                     XmaxEarnTMIndx = XmaxEarnIndx+1
                     XmaxLossIndx = XmaxEarnIndx+2
                     XmaxLossTMIndx = XmaxEarnIndx+3
-
                     #注：Pandas元组中开头有自带Index项，所以下标有别于DataFrame结构。
                     #比对并更新（若需要）极值
                     #itemRow为Pandas元组，开头自带Index项，所以下标要加一。也可以通过index=False去掉最开头的索引。
