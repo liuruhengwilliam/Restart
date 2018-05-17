@@ -27,7 +27,7 @@ from email.mime.multipart import MIMEMultipart
 from email.header import Header
 #from engine.DataScrape import *
 #from timer.TimerMotor import *
-#from quotation.QuotationDB import *
+
 import matplotlib.pyplot as plt
 import xml.etree.ElementTree as ET
 from resource import Primitive
@@ -506,19 +506,23 @@ def get_week_of_month(year, month, day):
      return end - begin + 1
 
 def dataframe_transfer_csv():
-    filename = 'F:\\code\\python\\RESTART\\core\\2018\\2018-16\\5min\\5min-quote.db'
-    tempDf = Primitive.translate_db_to_df(filename)
+    filename = 'F:\\code\\python\\RESTART\\core\\2018\\2018-19\\5min\\5min-quote.csv'
+    tempDf = pd.read_csv(filename)
     print tempDf
+    print tempDf['close'].as_matrix()
+    print tempDf['close'].as_matrix()[0],type(tempDf['close'].as_matrix()[0])
+    #for item in tempDf.index:
+    #    print item
     time1 = datetime.datetime.now()
     tempDf.to_csv(path_or_buf=Configuration.get_period_working_folder('5min')+'temp.csv',\
                   columns=Constant.QUOTATION_STRUCTURE,index=False)
     time2 = datetime.datetime.now()
-    print time2-time1
+    #print time2-time1
     df2 = pd.read_csv('F:\\code\\python\\RESTART\\core\\2018\\2018-16\\30M-1H-ser.csv')
     time3 = datetime.datetime.now()
     #print df2
-    print "cost time:"
-    print time3-time2
+    #print "cost time:"
+    #print time3-time2
 
 def upate_afterwards_KLine_indicator():
     """ 内部接口API：从策略盈亏率数据库中提取K线组合模式的指标值并更新相应实例。
