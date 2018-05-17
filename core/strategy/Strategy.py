@@ -16,7 +16,6 @@ import StrategyMisc
 from resource import Constant
 from resource import Configuration
 from resource import Trace
-from resource import Primitive
 
 class Strategy():
     """
@@ -43,7 +42,7 @@ class Strategy():
             if os.path.exists(filename):#非首次运行就存在数据库文件
                 valueDf = pd.read_csv(filename)
                 if valueDf is not None and len(valueDf) != 0:#若存在接续的数据记录
-                    Trace.output('info'," === %s Period to be continued from SerDB === "%keyTag)
+                    Trace.output('info'," === %s Period to be continued from SerCSV === "%keyTag)
                     for itemRow in valueDf.itertuples(index=False):
                         Trace.output('info','    '+(' ').join(map(lambda x:str(x), itemRow)))
 
@@ -87,6 +86,8 @@ class Strategy():
                         dealTmValue = '-'.join(valueList[0:3])+' '+':'.join(valueList[3:])
                     elif dealTmValue.startswith('[\'') and dealTmValue.find('T')!=-1:
                         dealTmValue = dealTmValue.strip('[\'\']').replace('T',' ').strip('.0')#理解strip含义
+                    elif dealTmValue.startswith('[\''):
+                        dealTmValue = dealTmValue.strip('[\'\']')
                     else:
                         Trace.output('fatal',"  invalid target time %s"%str(dfLastLine['time'].values))
                         continue
