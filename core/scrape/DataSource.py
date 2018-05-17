@@ -52,6 +52,13 @@ EASTMONEY_URL_FRAGMENT2 = '&js=([(x)])&token=7bc05d0d4c3c22ef9fca8c2a912d779c'
 EASTMONEY_URLUNKNOW_TIMESTAMP = "17209736178267005318_"
 #'http://nufm.dfcfw.com/EM_Finance2014NumericApplication/JS.aspx?type=CT&cmd=C._SG&sty=MPNSBAS&cb=jQuery17209079031754561993_1510125297769&js=([(x)])&token=7bc05d0d4c3c22ef9fca8c2a912d779c'
 
+#沪市002开头股票
+#赣锋锂业002460行情抓取URL
+'http://mdfm.eastmoney.com/EM_UBG_MinuteApi/Js/Get?dtype=25&style=tail&check=st&dtformat=HH:mm:ss&id=0024602&num=10'
+#深市600开头股票
+#中航电子600372行情抓取URL
+'http://mdfm.eastmoney.com/EM_UBG_MinuteApi/Js/Get?dtype=25&style=tail&check=st&dtformat=HH:mm:ss&id=6003721&num=10'
+
 #和讯网
 #白银报价URL
 HEXUN_XAG_URL = 'http://quote.forex.hexun.com/2010/Data/FRunTimeQuote.ashx?code=XAGUSD&&time=142330'
