@@ -9,7 +9,7 @@ from resource import Configuration
 
 def query_info():
     """ 外部接口API：获取某网站相关信息 """
-    #每个数据源采集的字典结构可能(基本都)会不同，但是统一返回两项值：当前价格(字符串结构)和当前时间(DateFrame结构)。
+    #每个数据源采集的字典结构可能(基本都)会不同，但是统一返回两项值：当前价格(浮点型)和当前时间(DateFrame结构)。
 
     for dataSrc in DataSource.URL_SRC_TUPLE:
         retList = []

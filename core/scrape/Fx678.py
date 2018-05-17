@@ -22,7 +22,7 @@ def deal_with_query():
         close_price = str(response_data['c']).strip('[u\'\']')
         time_stamp = str(response_data['t']).strip('[u\'\']')
         #时间戳转datatime结构
-        ret_list = [close_price,datetime.datetime.fromtimestamp(float(time_stamp))]
+        ret_list = [float(close_price),datetime.datetime.fromtimestamp(float(time_stamp))]
     except (Exception),e:
         exc_type,exc_value,exc_tb = sys.exc_info()
         traceback.print_exception(exc_type, exc_value, exc_tb)

@@ -34,7 +34,7 @@ def deal_with_query():
         response = urllib2.urlopen(req).read()
         #数据进行切片分析
         close_price = response.split('"')[1].split(',')[0]
-        ret_list = [close_price,datetime.datetime.fromtimestamp(int(time.time()))]
+        ret_list = [float(close_price),datetime.datetime.fromtimestamp(int(time.time()))]
     except (Exception),e:
         exc_type,exc_value,exc_tb = sys.exc_info()
         traceback.print_exception(exc_type, exc_value, exc_tb)
