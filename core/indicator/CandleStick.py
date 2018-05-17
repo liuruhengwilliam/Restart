@@ -95,29 +95,3 @@ def manual_show_candlestick(periodName,dataWithId):
     bbands = BollingerBands.compute_BBands(dataPicked['close'].as_matrix())
 
     show_candlestick(dataPicked,ma,bbands,periodName)
-
-def manual_show_candlestick_withCSV(periodName,path):
-    """ 外部接口API:通过CSV文件进行绘制。
-        参数说明类同于show_period_candlestick()方法。
-    """
-    data = []
-    with open(path) as csvfile:
-        reader = csv.DictReader(csvfile)
-        for row in reader:
-            t = row['time'].replace('/','-')#csv文件中时间存储方式需要加以处理
-            data.append([int(row['id']),t,float(row['open']),float(row['high']),float(row['low']),float(row['close'])])
-
-    title = ['id'] + list(Constant.QUOTATION_STRUCTURE)
-    dataframe = DataFrame(data,columns=title)
-
-    # 组装数据进行加工
-    dataPicked = DataProcess.process_quotes_4indicator(periodName,dataframe)
-    # 均线
-    ma = [0,]*len(Constant.MOVING_AVERAGE_LINE)
-    for index,tag in zip(range(len(Constant.MOVING_AVERAGE_LINE)),Constant.MOVING_AVERAGE_LINE):
-        ma[index] = MA.compute_sma(dataPicked['close'].as_matrix(),tag)
-
-    # 布林线
-    bbands = BollingerBands.compute_BBands(dataPicked['close'].as_matrix())
-
-    show_candlestick(dataPicked,ma,bbands,periodName)
