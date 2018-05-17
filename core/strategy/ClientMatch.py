@@ -14,8 +14,8 @@ from pandas import DataFrame
 from resource import Constant
 from resource import Configuration
 from resource import Trace
+from strategy.Strategy import Strategy
 import StrategyMisc
-import Strategy
 
 class ClientMatch():
     """ 各种方案匹配搜索类
@@ -23,6 +23,7 @@ class ClientMatch():
     """
     def __init__(self):
         """ 初始化相关指标各周期的实例 """
+        self.strategyIns = Strategy()
         self.KLineIndicator = dict(zip(Constant.QUOTATION_DB_PREFIX[1:-2],[0]*len(Constant.QUOTATION_DB_PREFIX[1:-2])))
         self.BBandIndicator = {}
         self.MAIndicator = {}
@@ -100,10 +101,12 @@ class ClientMatch():
         recTime = ''
         F15M_30M = F30M_1H = F15M_1H = F15M_30M_1H = DataFrame(columns=Constant.SER_DF_STRUCTURE)
         self.serDict.update({'15min-30min':F15M_30M})
-        self.serDict.update({'30min-1hour':F15M_30M})
-        self.serDict.update({'15min-1hour':F15M_30M})
-        self.serDict.update({'15min-30min-1hour':F15M_30M})
+        self.serDict.update({'30min-1hour':F30M_1H})
+        self.serDict.update({'15min-1hour':F15M_1H})
+        self.serDict.update({'15min-30min-1hour':F15M_30M_1H})
+
         #前提假定：小周期定时器给出策略条目的频率大于大周期定时器
+        #最小周期是15min的交叉匹配
         for itemRow in self.serDict['15min'].itertuples(index=False):
             policyTime = itemRow[Constant.SER_DF_STRUCTURE.index('time')]
             if policyTime == recTime:#同一个时间点给出的策略不重复处理
@@ -140,6 +143,7 @@ class ClientMatch():
                 F15M_30M_1H.to_csv(path+'15M-30M-1H-ser.csv',sep=',',header=True)
                 self.serDict.update({'15min-30min-1hour':F15M_30M_1H})
 
+        #最小周期是30min的交叉匹配
         recTime = ''
         for itemRow in self.serDict['30min'].itertuples(index=False):
             policyTime = itemRow[Constant.SER_DF_STRUCTURE.index('time')]
@@ -227,7 +231,7 @@ class ClientMatch():
         basePrice = dataDF["price"].as_matrix()
 
         # earnPrice/lossPrice: 字符串的numpy.ndarray结构，某周期内的极值价格
-        for tag in Constant.SER_DF_STRUCTURE[7:-2:2]:
+        for tag in Constant.SER_DF_STRUCTURE[Constant.SER_DF_STRUCTURE.index('M15maxEarn'):-2:2]:
             clmn.append(tag)
             if tag.find('Earn'):
                 earnPrice = dataDF[tag].as_matrix()
@@ -257,7 +261,7 @@ class ClientMatch():
         clmn = []
 
         # 转换极值时间列字符串为Datetime结构。[0:16]----刨去秒计时。
-        for tag in Constant.SER_DF_STRUCTURE[8:-2:2]:
+        for tag in Constant.SER_DF_STRUCTURE[Constant.SER_DF_STRUCTURE.index('M15maxEarnTime'):-2:2]:
             cacheList = []
             clmn.append(tag)
             for row in dataDF.itertuples(index=False):
@@ -293,8 +297,8 @@ class ClientMatch():
         x = ['0','H2','H4','H6','H8','H10','H12','H14','H16','H18','H20','H22']
         plt.xticks(range(0,x_scale,2),x)
         # Y轴为盈利比率。有正有负
-        rateEarnDF = rateDF.ix[:,Constant.SER_DF_STRUCTURE[7:-2:4]]
-        rateLossDF = rateDF.ix[:,Constant.SER_DF_STRUCTURE[9:-2:4]]
+        rateEarnDF = rateDF.ix[:,Constant.SER_DF_STRUCTURE[Constant.SER_DF_STRUCTURE.index('M15maxEarn'):-2:4]]
+        rateLossDF = rateDF.ix[:,Constant.SER_DF_STRUCTURE[Constant.SER_DF_STRUCTURE.index('M15maxLoss'):-2:4]]
         plt.title("%s"%path[-8:-1]+" %s"%tag+" Rate based on Time-Cost")
         #   Period     Earn marker styles          Loss marker styles      Color
         #  15Minute  >(Triangle right marker)    <(Triangle left marker)   blue
@@ -320,7 +324,7 @@ class ClientMatch():
         plt.savefig('%s%s_%s.png'%(path,datetime.datetime.now().strftime("%Y-%m-%d_%H_%M"),tag),dpi=200)
         #plt.show()
 
-    def analyse_ser_data_in_history(self,strategyIns,path):
+    def analyse_ser_data_in_history(self,path):
         """ 外部接口API：策略盈亏率数据库的统计分析数据展示。
             path: 文件路径
         """
@@ -330,13 +334,13 @@ class ClientMatch():
             if os.path.exists(filename):
                 tempDf = pd.read_csv(filename)
             else:
-                tempDf = strategyIns.query_strategy_record(period)
+                tempDf = DataFrame(columns=Constant.SER_DF_STRUCTURE)#建立空的DataFrame数据结构
             # 填充字典。结构为"周期:DataFrame"
             self.serDict.update({period:tempDf})
             # 更新区间格映射位图
             self.update_lattice_map(period,tempDf)
 
-    def analyse_quote_data_in_history(self,strategyIns,path):
+    def analyse_quote_data_in_history(self,path):
         """ 内部接口API：从策略盈亏率数据库中提取K线组合模式的指标值并更新相应实例。
                        实时更新--只需截取数据库中最后若干条目。
             说明：暂时只考虑15min/30min/1hour
@@ -359,31 +363,30 @@ class ClientMatch():
                 dataDealed = StrategyMisc.process_quotes_candlestick_pattern\
                     (Configuration.get_period_anyone_folder(path,period),subsetDF)
                 # 逐条进行匹配
-                strategyIns.check_strategy(period,dataDealed)
+                self.strategyIns.check_strategy(period,dataDealed)
 
         # 更新策略条目的极值
         quotefile5M = Configuration.get_period_anyone_folder(path,'5min')+'5min-quote.csv'
         for item in np.read_csv(quotefile5M).itertuples(index=False):
-            strategyIns.update_strategy([datetime.datetime.strptime(item[1],\
+            self.strategyIns.update_strategy([datetime.datetime.strptime(item[1],\
                                 '%Y-%m-%d %H:%M:%S'),float(item[3]),float(item[4])])
 
         for period in Constant.QUOTATION_DB_PREFIX[2:-2]:#前闭后开
             # 填充字典。结构为"周期:DataFrame"
-            self.serDict.update({period:strategyIns.query_strategy_record(period)})
+            self.serDict.update({period:self.strategyIns.query_strategy_record(period)})
             # 更新区间格映射位图
-            self.update_lattice_map(period,strategyIns.query_strategy_record(period))
+            self.update_lattice_map(period,self.strategyIns.query_strategy_record(period))
 
     def match_KLineIndicator(self,path):
         """ 外部接口API: K线指标组合模式
             strategy: 策略匹配实例
             path： 路径字符串
         """
-        strategyIns = Strategy()
         filename15M = Configuration.get_period_anyone_folder(path,'15min')+'15min-ser.csv'
         if not os.path.exists(filename15M):# 从行情数据库中提取并匹配策略组合模式，生成策略盈亏数据
-            self.analyse_quote_data_in_history(strategyIns,path)
+            self.analyse_quote_data_in_history(path)
         else:
-            self.analyse_ser_data_in_history(strategyIns,path)
+            self.analyse_ser_data_in_history(path)
 
         # M15 M30 H1周期的同向时间点条目汇总--以下操作基于这些交叉周期
         self.count_cross_M15M30H1_period(path)
