@@ -84,21 +84,20 @@ class Quotation():
         """
         #挑取对应周期字典项
         prcDict = self.recordPeriodDict[periodName]
-        priceInfo=[prcDict['time'].strftime("%Y-%m-%d %H:%M:%S"),\
-                   float(prcDict['open']),float(prcDict['high']),float(prcDict['low']),float(prcDict['close'])]
+        priceInfo=[prcDict['time'].strftime("%Y-%m-%d %H:%M:%S"),prcDict['open'],\
+                   prcDict['high'],prcDict['low'],prcDict['close']]
 
         #更新Quote缓存
         dfQuote = self.quoteCache[periodName]
-
+        column = ['id',]+list(Constant.QUOTATION_STRUCTURE)
         if dfQuote is None:
-            quotes = np.array([0,]+priceInfo).reshape(1,6)
+            self.quoteCache[periodName] = DataFrame(dict(zip(column,[0,]+priceInfo)),index=[0],columns=column)
         else:#新增条目附着到原DataFrame实例后。新增条目的id是DF结构数据最后条目'id'加一，而非DF结构数据的长度
-            dataBefore = np.array(dfQuote.ix[:])
-            appendItem = np.array([int(dfQuote.iloc[-1]['id'])+1,]+priceInfo)
-            quotes = np.vstack((dataBefore,appendItem)) #按照时间顺序收集合并数据
+            id = int(dfQuote.iloc[-1]['id'])+1
+            insertedDf = DataFrame(dict(zip(column,[id,]+priceInfo)),index=[id],columns=column)
+            #按照时间顺序收集合并数据
+            self.quoteCache[periodName] = self.quoteCache[periodName].append(insertedDf)
 
-        self.quoteCache[periodName] = DataFrame(quotes,columns=['id',]+list(Constant.QUOTATION_STRUCTURE))
-        print self.quoteCache[periodName]
         #更新标志
         self.update_period_flag(periodName,priceInfo)
 
