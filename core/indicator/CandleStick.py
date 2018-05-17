@@ -107,7 +107,7 @@ def manual_show_candlestick_withCSV(periodName,path):
             t = row['time'].replace('/','-')#csv文件中时间存储方式需要加以处理
             data.append([int(row['id']),t,float(row['open']),float(row['high']),float(row['low']),float(row['close'])])
 
-    title = ['id'] + map(lambda x:x , Constant.QUOTATION_STRUCTURE)
+    title = ['id'] + list(Constant.QUOTATION_STRUCTURE)
     dataframe = DataFrame(data,columns=title)
 
     # 组装数据进行加工

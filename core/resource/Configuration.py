@@ -189,11 +189,11 @@ def download_realtime_file(suffix):
         suffix:文件名伪后缀-- ser or quote
     """
     for tmName in Constant.QUOTATION_DB_PREFIX[1:]:
-        dnldUrl = get_server_download_url(tmName)+tmName+'-'+suffix+'.db'
-        filePath = get_period_working_folder(tmName)+tmName+'-'+suffix+'.db'
+        dnldUrl = get_server_download_url(tmName)+tmName+'-'+suffix+'.csv'
+        filePath = get_period_working_folder(tmName)+tmName+'-'+suffix+'.csv'
         try:
             urllib.urlretrieve(dnldUrl,filename=filePath)
-            Trace.output('info',"download db file from %s"%(dnldUrl))
+            Trace.output('info',"download csv file from %s"%(dnldUrl))
         except Exception,e:
             continue
 

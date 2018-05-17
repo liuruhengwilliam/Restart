@@ -3,7 +3,7 @@
 import platform
 import sys
 import os
-from resource import Primitive
+import pandas as pd
 from resource import Constant
 from resource import Configuration
 from quotation import QuotationKit
@@ -13,8 +13,8 @@ from strategy.Strategy import Strategy
 
 """
     辅助类：
-    1.db文件或db条目转换成csv文件的方法；
-    2.画图方法；
+    1.画图方法；
+    2.历史数据分析；
 """
 if __name__ == '__main__':
     choiceIndex = raw_input("Please choose:\n"+"  1.drawing picture of indicator\n"\
@@ -27,8 +27,8 @@ if __name__ == '__main__':
             print "Error period name!"
             sys.exit()
         indx = Constant.QUOTATION_DB_PREFIX.index(tmName)
-        if filename.find('.db') != -1:
-            dataWithId = Primitive.translate_db_to_df(filename)
+        if filename.find('.csv') != -1:
+            dataWithId = pd.read_csv(filename)
             CandleStick.manual_show_candlestick(tmName,dataWithId)
         elif filename.find('.csv') != -1:
             CandleStick.manual_show_candlestick_withCSV(tmName,filename)

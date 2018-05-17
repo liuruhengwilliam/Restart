@@ -2,11 +2,9 @@
 
 import os
 from resource import Constant
-import threading
 from Coordinate import *
 from timer import TimerMotor
 from resource import Constant
-import platform
 
 Configuration.create_working_directory() #创建当周工作目录
 Configuration.create_period_working_folder() #创建各周期属性文件夹

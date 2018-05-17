@@ -11,7 +11,6 @@ import numpy as np
 np.set_printoptions(suppress=True)
 import pandas as pd
 from pandas import DataFrame
-from resource import Primitive
 from resource import Constant
 from resource import Configuration
 from resource import Trace
@@ -343,11 +342,11 @@ class ClientMatch():
             说明：暂时只考虑15min/30min/1hour
         """
         for period in Constant.QUOTATION_DB_PREFIX[2:-2]:#前闭后开
-            filename = Configuration.get_period_anyone_folder(path,period)+period+'-quote.db'
+            filename = Configuration.get_period_anyone_folder(path,period)+period+'-quote.csv'
             if not os.path.exists(filename):
-                Trace.output('fatal','LEAK FOR %s quote.db FILE'%period)
+                Trace.output('fatal','LEAK FOR %s quote.csv FILE'%period)
                 return
-            tmpDf = Primitive.translate_db_to_df(filename)
+            tmpDf = np.read_csv(filename)
             self.quoteDict.update({period:tmpDf})
 
             # 模式匹配
@@ -363,8 +362,8 @@ class ClientMatch():
                 strategyIns.check_strategy(period,dataDealed)
 
         # 更新策略条目的极值
-        quotefile5M = Configuration.get_period_anyone_folder(path,'5min')+'5min-quote.db'
-        for item in Primitive.translate_db_to_df(quotefile5M).itertuples(index=False):
+        quotefile5M = Configuration.get_period_anyone_folder(path,'5min')+'5min-quote.csv'
+        for item in np.read_csv(quotefile5M).itertuples(index=False):
             strategyIns.update_strategy([datetime.datetime.strptime(item[1],\
                                 '%Y-%m-%d %H:%M:%S'),float(item[3]),float(item[4])])
 

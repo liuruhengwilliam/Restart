@@ -6,7 +6,6 @@ import pandas as pd
 from pandas import DataFrame
 from resource import Configuration
 from resource import Constant
-from resource import Primitive
 from resource import Trace
 
 def supplement_quotes(path,dataWithID,supplementCnt):
@@ -20,11 +19,11 @@ def supplement_quotes(path,dataWithID,supplementCnt):
     weekGap = 1 # 从前一周开始搜索
     period = Configuration.get_field_from_string(path)[-2]
     while supplementCnt > 0:
-        preDBfile = Configuration.get_back_week_period_directory(path,weekGap)+period+'-quote.db'
+        preDBfile = Configuration.get_back_week_period_directory(path,weekGap)+period+'-quote.csv'
         if not os.path.exists(preDBfile): #若回溯文件完毕，则退出循环。
             break
 
-        dataSupplementWithID = Primitive.translate_db_to_df(preDBfile)
+        dataSupplementWithID = pd.read_csv(preDBfile)
         if dataSupplementWithID is None or len(dataSupplementWithID) == 0:
             #对于无记录文件情形，dataSupplementCnt为空Series。int(dataSupplementCnt)会报错。
             supplCnt = 0
@@ -45,7 +44,8 @@ def supplement_quotes(path,dataWithID,supplementCnt):
             quotes = np.vstack((dataSupplement,quotes)) #按照时间顺序收集合并数据
 
     # 抬头信息
-    title = ['id'] + map(lambda x:x , Constant.QUOTATION_STRUCTURE)
+    title = ['id'] + list(Constant.QUOTATION_STRUCTURE)
     dataframe = DataFrame(quotes,columns=title)
 
     return dataframe
+

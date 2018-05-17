@@ -2,7 +2,6 @@
 
 import datetime
 
-from resource import Primitive
 from resource import Configuration
 from resource import Constant
 from resource import Trace
@@ -15,7 +14,7 @@ import sys
 
 def MACD():
     """MACD指标绘制初探"""
-    dataWithId = Primitive.translate_db_to_df("D:\\misc\\2018-05\\15min\\15min-quote.db")
+    dataWithId = np.read_cdv("D:\\misc\\2018-05\\15min\\15min-quote.csv")
     close = np.array(dataWithId['close'])
     #三个返回值的意义研究
     macd,macdsignal,macdhist = talib.MACD(close,fastperiod=12,slowperiod=26,signalperiod=9)

@@ -2,15 +2,13 @@
 
 import os
 import datetime
-import urllib
 from resource import Trace
 from resource import Configuration
 from resource import Constant
-from resource import Primitive
 from scrape import DataScrape
 from indicator.Indicator import Indicator
 from quotation import QuotationKit
-from quotation.QuotationDB import *
+from quotation.Quotation import *
 from quotation.QuotationRecord import *
 from strategy.Strategy import Strategy
 from strategy import StrategyMisc
@@ -34,7 +32,7 @@ class Coordinate():
         # Quotation record Handle
         self.recordHdl = QuotationRecord(Constant.UPDATE_PERIOD_FLAG)
         # Quotation DB Handle
-        self.dbQuotationHdl = QuotationDB(Constant.UPDATE_PERIOD_FLAG,self.recordHdl.get_record_dict())
+        self.quoteHdl = Quotation(Constant.UPDATE_PERIOD_FLAG,self.recordHdl.get_record_dict())
 
         # 指标类初始化
         self.indicator = Indicator()
@@ -72,8 +70,6 @@ class Coordinate():
                 if item.find(fileTag) != -1:
                     os.remove('%s%s'%(Configuration.get_period_working_folder(tmName),item))
             #生成新指标图
-            dataWithId = Primitive.translate_db_to_df('%s%s-quote.db'\
-                            %(Configuration.get_period_working_folder(tmName),tmName))
             CandleStick.manual_show_candlestick(tmName,dataWithId)
 
         #筛选条目，最大程度匹配策略
@@ -95,7 +91,7 @@ class Coordinate():
             self.recordHdl.reset_dict_record(periodName) #对应周期的行情记录缓存及标志复位
             return
 
-        self.dbQuotationHdl.update_quote(periodName) #更新行情数据
+        self.quoteHdl.update_quote(periodName) #更新行情数据
 
         #策略盈亏率数据库操作。先进行统计更新策略盈亏率数据，然后再分析及插入新条目。
         #5min周期定时器的主要任务就是更新盈亏率数据库。但5min行情数据必须周期刷新，所以update_quote(period)要前置。
@@ -115,14 +111,14 @@ class Coordinate():
         Trace.output('info', "period %s update quote cost: %s"%(periodName,str(markQuote-markStart)))
 
         #指标计算和记录
-        self.indicator.process_indicator(periodName,self.dbQuotationHdl.query_quote(periodName))
+        self.indicator.process_indicator(periodName,self.quoteHdl.query_quote(periodName))
         markIndicator = datetime.datetime.now()
         Trace.output('info', "period %s process indicator cost: %s"%(periodName,str(markIndicator-markQuote)))
 
         #策略算法计算
         #数据加工补全
         dataDealed = StrategyMisc.process_quotes_candlestick_pattern\
-            (Configuration.get_period_working_folder(periodName),self.dbQuotationHdl.query_quote(periodName))
+            (Configuration.get_period_working_folder(periodName),self.quoteHdl.query_quote(periodName))
         self.strategy.check_strategy(periodName,dataDealed)
         markStrategy = datetime.datetime.now()
         Trace.output('info', "period %s check strategy cost: %s\n"%(periodName,str(markStrategy-markIndicator)))
@@ -131,8 +127,10 @@ class Coordinate():
         """内部接口API: 盈亏统计工作。由汇总各周期盈亏数据库生成表格文件。"""
         for tmName in Constant.QUOTATION_DB_PREFIX[1:]:
             path = Configuration.get_period_working_folder(tmName)
-            self.strategy.query_strategy_record(tmName).to_csv(path_or_buf=path+tmName+'-ser.csv',\
+            if self.strategy.query_strategy_record(tmName) is not None:
+                self.strategy.query_strategy_record(tmName).to_csv(path_or_buf=path+tmName+'-ser.csv',\
                                     columns=Constant.SER_DF_STRUCTURE, index=False)
-            self.dbQuotationHdl.query_quote(tmName).to_csv(path_or_buf=path+tmName+'-quote.csv',\
-                                    columns=Constant.QUOTATION_STRUCTURE, index=False)
+            if self.quoteHdl.query_quote(tmName) is not None:
+                self.quoteHdl.query_quote(tmName).to_csv(path_or_buf=path+tmName+'-quote.csv',\
+                                    columns=['id',]+list(Constant.QUOTATION_STRUCTURE), index=False)
 
