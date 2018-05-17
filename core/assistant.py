@@ -30,8 +30,6 @@ if __name__ == '__main__':
         if filename.find('.csv') != -1:
             dataWithId = pd.read_csv(filename)
             CandleStick.manual_show_candlestick(tmName,dataWithId)
-        elif filename.find('.csv') != -1:
-            CandleStick.manual_show_candlestick_withCSV(tmName,filename)
         else:
             print "Error file name input!"
     elif choiceIndex == '2':
