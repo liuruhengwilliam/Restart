@@ -32,6 +32,9 @@ class Indicator():
         """
         dataPicked = DataProcess.process_quotes_4indicator(periodName,dataWithId)
 
+        #数据样本太小就不制图
+        if len(dataPicked) < Constant.CANDLESTICK_PATTERN_MATCH_CNT[Constant.QUOTATION_DB_PREFIX.index(periodName)]:
+            return
         #移动平均线
         for index,tag in zip(range(len(Constant.MOVING_AVERAGE_LINE)),Constant.MOVING_AVERAGE_LINE):
             self.indiMADict[periodName][index] = MA.compute_sma(dataPicked['close'].as_matrix(),tag)
