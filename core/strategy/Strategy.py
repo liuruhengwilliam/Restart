@@ -67,9 +67,8 @@ class Strategy():
                 continue
             result = None
             try:
-                result = getattr(talib, pattern)(np.float64(dataDealed['open'].values),\
-                    np.float64(dataDealed['high'].values),np.float64(dataDealed['low'].values),\
-                    np.float64(dataDealed['close'].values))
+                result = getattr(talib, pattern)(dataDealed['open'].values,\
+                    dataDealed['high'].values,dataDealed['low'].values,dataDealed['close'].values)
                 # result是numpy.ndarray数据结构
                 if len(result) != 0 and result.any() == True:
                     dataCache = copy.copy(dataDealed)#浅复制即可。若是赋值会污染‘dataDealed’；若是深拷贝会影响运行效率。

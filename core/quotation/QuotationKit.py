@@ -15,7 +15,6 @@ def supplement_quotes(path,dataWithID,supplementCnt):
         supplementCnt: 需要增补的数目
         返回值: 增补后的dateframe结构行情数据
     """
-    quotes = np.array(dataWithID.ix[:])
     weekGap = 1 # 从前一周开始搜索
     period = Configuration.get_field_from_string(path)[-2]
     while supplementCnt > 0:
@@ -32,20 +31,15 @@ def supplement_quotes(path,dataWithID,supplementCnt):
             supplCnt = int(dataSupplementCnt)
 
         if supplCnt >= supplementCnt: #已经能够补全，取后面的(supplementCnt)个数据
-            dataSupplement = np.array(dataSupplementWithID.ix[supplCnt-supplementCnt:])
+            dataSupplement = dataSupplementWithID.iloc[supplCnt-supplementCnt:]
         elif dataSupplementWithID is None:
             dataSupplement = None
         else: #还未补全数据继续循环
-            dataSupplement = np.array(dataSupplementWithID.ix[:])
+            dataSupplement = dataSupplementWithID
 
         weekGap+=1 #时间回溯
         supplementCnt-=supplCnt #待补全的数据调整。若为负，则跳出循环。
         if dataSupplement is not None:
-            quotes = np.vstack((dataSupplement,quotes)) #按照时间顺序收集合并数据
+            dataWithID = dataSupplement.append(dataWithID,ignore_index=True) #按照时间顺序收集合并数据
 
-    # 抬头信息
-    title = ['id'] + list(Constant.QUOTATION_STRUCTURE)
-    dataframe = DataFrame(quotes,columns=title)
-
-    return dataframe
-
+    return dataWithID
