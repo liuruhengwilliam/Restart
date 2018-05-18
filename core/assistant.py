@@ -19,6 +19,7 @@ from strategy.Strategy import Strategy
 if __name__ == '__main__':
     choiceIndex = raw_input("Please choose:\n"+"  1.drawing picture of indicator\n"\
                             +"  2.analyse quote data in history\n"\
+                            +"  3.translate quote database to csv file\n"\
                             +"Your choice:\n")
     if choiceIndex == '1':
         filename = raw_input("file name input: ")
@@ -38,5 +39,12 @@ if __name__ == '__main__':
             path = Configuration.get_working_directory()
         clientMatchHdl = ClientMatch()
         clientMatchHdl.match_KLineIndicator(path)
+    elif choiceIndex == '3':
+        filePath = raw_input("Please input full path of database file: ")
+        ret = QuotationKit.translate_db_into_csv(filePath)
+        if ret == False:
+            print "Failed to translate file:%s"%filePath
+        else:
+            print "Completed Successfully!"
     else:
         print "Error choice!"

@@ -1,6 +1,9 @@
 #coding=utf-8
 
 import os
+import csv
+import sqlite3
+import datetime
 import numpy as np
 import pandas as pd
 from pandas import DataFrame
@@ -43,3 +46,36 @@ def supplement_quotes(path,dataWithID,supplementCnt):
             dataWithID = dataSupplement.append(dataWithID,ignore_index=True) #按照时间顺序收集合并数据
 
     return dataWithID
+
+def translate_db_into_csv(dbFile):
+    """ 外部接口API:将行情数据的db文件转换成同名同路径的csv文件
+        dbFile: db文件名（含文件路径）
+        lineCnt: 截取db条目数目。注：‘-1’表示全部转换。
+    """
+    filename = '%s%s'%(dbFile.split('.')[0],'.csv')
+
+    if os.path.exists(dbFile) == False or dbFile[-8:] != 'quote.db' or os.path.exists(filename):
+        return False
+
+    csvFile = file(filename, 'wb')
+    csvWriter = csv.writer(csvFile, dialect='excel')
+
+    # 写入抬头信息
+    title = ['id'] + list(Constant.QUOTATION_STRUCTURE)
+    csvWriter.writerow(title)
+
+    # db文件操作
+    db = sqlite3.connect(dbFile)
+    dbCursor = db.cursor()
+    try:
+        results = dbCursor.execute('select * from quotation')# 正序方式查询
+        ret = results.fetchall()
+        # db查询条目插入到csv文件中。
+        for item in ret:
+            csvWriter.writerow(item)
+    except (Exception),e:
+        Trace.output("fatal", " translate Exception: " + e.message)
+    csvFile.close()
+    dbCursor.close()
+    db.close()
+    return True
