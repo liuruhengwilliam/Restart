@@ -37,8 +37,8 @@ if __name__ == '__main__':
         path = raw_input("Please input folder path WITH THE END OF '\\': ")
         if path=='':
             path = Configuration.get_working_directory()
-        clientMatchHdl = ClientMatch()
-        clientMatchHdl.match_KLineIndicator(path)
+        clientMatchHdl = ClientMatch(path)
+        clientMatchHdl.match_KLineIndicator()
     elif choiceIndex == '3':
         filePath = raw_input("Please input full path of database file: ")
         ret = QuotationKit.translate_db_into_csv(filePath)

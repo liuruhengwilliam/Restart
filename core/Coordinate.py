@@ -19,16 +19,7 @@ class Coordinate():
     """
         协作类:衔接“数据抓取”、“行情数据库”、“策略算法”模块，协同工作。
     """
-    def __init__(self,role):
-        #self.week = (datetime.datetime.now()).strftime('%U')#本周周数记录
-
-        # 策略类初始化
-        self.strategy = Strategy()
-
-        if role == 'Client':
-            # 策略类初始化并作为参数传入
-            self.clientMatch = ClientMatch()
-            return
+    def __init__(self):
         # Quotation record Handle
         self.recordHdl = QuotationRecord(Constant.UPDATE_PERIOD_FLAG)
         # Quotation DB Handle
@@ -36,6 +27,8 @@ class Coordinate():
 
         # 指标类初始化
         self.indicator = Indicator()
+        # 策略类初始化
+        self.strategy = Strategy()
 
         Trace.output('info', " ==== ==== %s Complete Initiation and Run Routine ==== ==== \n"%role)
 
@@ -50,33 +43,6 @@ class Coordinate():
         infoList = DataScrape.query_info()
         if len(infoList) != 0:
             self.recordHdl.update_dict_record(infoList)
-
-    def work_client_operation(self):
-        """ 外部接口API: 客户端线程回调函数 """
-        if Constant.is_closing_market():
-            #self.statistics_settlement()#统计汇总工作由客户端完成
-            return
-
-        Trace.output('info', "client work on "+str(datetime.datetime.now()))
-        #下载各周期的db文件
-        #for item in ("quote","ser"):
-        #    Configuration.download_realtime_file(item)
-
-        for tmName in Constant.QUOTATION_DB_PREFIX[2:-3]:
-            #删除旧指标图
-            beforeHour = datetime.datetime.today() - datetime.timedelta(hours=1)
-            fileTag = beforeHour.strftime('%b%d_%H')
-            for item in os.listdir(Configuration.get_period_working_folder(tmName)):
-                if item.find(fileTag) != -1:
-                    os.remove('%s%s'%(Configuration.get_period_working_folder(tmName),item))
-            #生成新指标图
-            CandleStick.manual_show_candlestick(tmName,dataWithId)
-
-        #筛选条目，最大程度匹配策略
-        #self.clientMatch.client_motor()
-
-        #屏幕弹框(发送消息及email--应包含策略条目详情)
-
 
     def work_server_operation(self):
         """ 外部接口API: 服务器端某周期的处理回调函数。
