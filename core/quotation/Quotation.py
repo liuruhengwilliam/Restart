@@ -14,9 +14,9 @@ from pandas import DataFrame
 
 class Quotation():
     """ 行情数据类 """
-    def __init__(self,flagList,recordDict):
-        self.updatePeriodFlag = flagList
-        self.recordPeriodDict = recordDict
+    def __init__(self,quoteRecordIns):
+        self.updatePeriodFlag = quoteRecordIns.get_period_flag()
+        self.recordPeriodDict = quoteRecordIns.get_record_dict()
         self.quoteCache = {}
         #程序启动时补全历史数据，为后续指标和策略计算做好准备
         for period in Constant.QUOTATION_DB_PREFIX[1:]:
@@ -45,8 +45,8 @@ class Quotation():
             dataWithID: dataframe结构的数据
             返回值: dateframe结构数据(id, time, open, high, low, close)
         """
-        indx = Constant.QUOTATION_DB_PREFIX.index(period)
         cnt = len(dataWithID)
+        indx = Constant.QUOTATION_DB_PREFIX.index(period)
         gap = cnt-Constant.CANDLESTICK_PERIOD_CNT[indx]
         if gap >= 0:
             # 取从第（dataCnt-X个）到最后一个（第dataCnt）的数据（共X个）

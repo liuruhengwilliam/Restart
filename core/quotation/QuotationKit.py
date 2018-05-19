@@ -54,7 +54,7 @@ def translate_db_into_csv(dbFile):
     """
     filename = '%s%s'%(dbFile.split('.')[0],'.csv')
 
-    if os.path.exists(dbFile) == False or dbFile[-8:] != 'quote.db' or os.path.exists(filename):
+    if not os.path.exists(dbFile) or dbFile[-8:] != 'quote.db' or os.path.exists(filename):
         return False
 
     csvFile = file(filename, 'wb')

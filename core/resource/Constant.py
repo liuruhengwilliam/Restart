@@ -20,7 +20,7 @@ def get_date_code():
     month,day = dt.strftime('%m'),dt.strftime('%d')
     return MONTH_CODE[int(month)-1]+DAY_CODE[int(day)-1]
 
-VERSION_CODE = 'V1.5.0Q'
+VERSION_CODE = 'V1.5.1Q'
 def get_version_info():
     """ 内/外部接口API: """
     return VERSION_CODE + get_date_code() + "\n" + \
@@ -137,8 +137,6 @@ SER_MAX_PERIOD = (len(QUOTATION_DB_PERIOD)-2)#去掉HB定时器周期和SER刷�
 #链式计数:5min/15min/30min/1hour/2hour/4hour/6hour/12hour/1day/1week
 CHAIN_PERIOD = (5*60,15*60-5*60,30*60-15*60,1*3600-30*60,2*3600-1*3600,4*3600-2*3600,6*3600-4*3600,\
                 12*3600-6*3600,24*3600-12*3600,24*5*3600-24*3600)
-
-UPDATE_PERIOD_FLAG = [True]*len(QUOTATION_DB_PREFIX)
 
 TIME_SEGMENT_DICT ={"Gold_saint":["14:00:00","18:59:59"],\
                     "Silver_saint":["19:00:00","23:59:59"],\

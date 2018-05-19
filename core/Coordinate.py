@@ -21,9 +21,9 @@ class Coordinate():
     """
     def __init__(self):
         # Quotation record Handle
-        self.recordHdl = QuotationRecord(Constant.UPDATE_PERIOD_FLAG)
+        self.recordHdl = QuotationRecord()
         # Quotation DB Handle
-        self.quoteHdl = Quotation(Constant.UPDATE_PERIOD_FLAG,self.recordHdl.get_record_dict())
+        self.quoteHdl = Quotation(self.recordHdl)
 
         # 指标类初始化
         self.indicator = Indicator()

@@ -5,8 +5,9 @@ from resource import Constant
 
 class QuotationRecord():
     """ 行情记录类 """
-    def __init__(self, flagList):
-        self.updatePeriodFlag = flagList
+    def __init__(self):
+        # 各周期更新标志
+        self.updatePeriodFlag = [True]*len(Constant.QUOTATION_DB_PREFIX)
         # QDB中各周期记录字典
         self.recordPeriodDict = {}
         atomicDictItem = dict(zip(Constant.QUOTATION_STRUCTURE,[0,0,0,0,0]))
@@ -18,6 +19,10 @@ class QuotationRecord():
     def get_record_dict(self):
         """ 外部接口API: 获取缓冲字典对象 """
         return self.recordPeriodDict
+
+    def get_period_flag(self):
+        """ 外部接口API: 获取更新标志列表对象 """
+        return self.updatePeriodFlag
 
     def update_dict_record(self,infoList):
         """ 外部接口API: 心跳定时器回调函数。更新缓冲记录。
