@@ -1,5 +1,5 @@
 #coding=utf-8
-
+import os
 from timer import TimerMotor
 from resource import Constant
 from resource import Trace
@@ -13,6 +13,8 @@ def client_main():
     #参考文档：http://blog.csdn.net/daoshuti/article/details/72831256
     if Constant.is_closing_market():
         return
+    if Constant.is_weekend():
+        os._exit(0) #退出Python程序
 
     path = Configuration.get_property("dependDataPath")
     if path == None:
