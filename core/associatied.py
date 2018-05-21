@@ -22,6 +22,7 @@ import subprocess
 import Tkinter
 import tkMessageBox
 import smtplib
+import xml.etree.ElementTree as ET
 from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
 from email.header import Header
@@ -30,7 +31,6 @@ from email.header import Header
 
 import matplotlib.pyplot as plt
 import xml.etree.ElementTree as ET
-from resource import Primitive
 from resource import Constant
 from resource import Configuration
 #from strategy import Strategy
@@ -514,7 +514,7 @@ def dataframe_transfer_csv():
     #for item in tempDf.index:
     #    print item
     time1 = datetime.datetime.now()
-    tempDf.to_csv(path_or_buf=Configuration.get_period_working_folder('5min')+'temp.csv',\
+    tempDf.to_csv(path_or_buf=Configuration.get_period_working_folder('5min')+'5min-quote.csv',\
                   columns=Constant.QUOTATION_STRUCTURE,index=False)
     time2 = datetime.datetime.now()
     #print time2-time1
@@ -523,6 +523,24 @@ def dataframe_transfer_csv():
     #print df2
     #print "cost time:"
     #print time3-time2
+
+def configuration_stock():
+    fileName = Configuration.get_working_directory()+'Properties.xml'
+
+    if not os.path.exists(fileName):
+        return None
+
+    try:
+        tree = ET.parse(fileName)
+        root = tree.getroot()
+    except Exception,e:
+        print e.message
+        return
+
+    for item in root.findall("stockID"):
+        ret = item.find('value').text
+        #print ret,type(ret)
+    print ret.replace('\n','').replace('\t','').split(';')
 
 def upate_afterwards_KLine_indicator():
     """ 内部接口API：从策略盈亏率数据库中提取K线组合模式的指标值并更新相应实例。
@@ -584,7 +602,8 @@ if __name__ == '__main__':
     #talib_macd()
     #talib_sma_test()
     #query_info()
-    dataframe_transfer_csv()
+    #dataframe_transfer_csv()
+    configuration_stock()
     #get_property()
     #db_test()
     #home_dir()
