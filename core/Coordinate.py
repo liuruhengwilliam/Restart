@@ -30,7 +30,7 @@ class Coordinate():
         # 策略类初始化
         self.strategy = Strategy()
 
-        Trace.output('info', " ==== ==== %s Complete Initiation and Run Routine ==== ==== \n"%role)
+        Trace.output('info', " ==== ==== Server Complete Initiation and Run Routine ==== ==== \n")
 
     # 以下是定时器回调函数:
     def work_heartbeat(self):
@@ -99,4 +99,3 @@ class Coordinate():
             if self.quoteHdl.query_quote(tmName) is not None:
                 self.quoteHdl.query_quote(tmName).to_csv(path_or_buf=path+tmName+'-quote.csv',\
                                     columns=['id',]+list(Constant.QUOTATION_STRUCTURE), index=False)
-
