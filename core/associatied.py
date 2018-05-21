@@ -28,7 +28,7 @@ from email.mime.multipart import MIMEMultipart
 from email.header import Header
 #from engine.DataScrape import *
 #from timer.TimerMotor import *
-
+from scrape import EastMoney
 import matplotlib.pyplot as plt
 import xml.etree.ElementTree as ET
 from resource import Constant
@@ -594,6 +594,25 @@ def numpy_shape_test():
     #dataDF = np.array(structDF)
     #print dataDF,type(dataDF)
 
+def stock_from_eastMoney():
+    ret = EastMoney.deal_with_stock_query('http://mdfm.eastmoney.com/EM_UBG_MinuteApi/Js/Get?dtype=25&style=tail&check=st&dtformat=HH:mm:ss&num=10&id=0020082')
+    print type(ret),ret
+    retsearch = re.search(r'"data":\[(.*)\]',ret)
+    #retmatch = re.match(r'www\.(.*)\..{3}','www.python.com')
+    if retsearch is not None:
+        pricelist = retsearch.group(1).split(',')
+        print pricelist
+        for item in pricelist:
+            time = re.search(r'"t":"(.*)"',item)
+            if time is not None:
+                print time.group(1)
+    #print retmatch.group(1)
+    retsplit = re.split(r'\[\]',ret)
+    #print retsplit
+    #print retsplit.count(1)
+    #retcompile = re.compile(r'(\[)*',ret)
+    #print retcompile
+
 if __name__ == '__main__':
     #csv_test()
     #db_test()
@@ -603,7 +622,8 @@ if __name__ == '__main__':
     #talib_sma_test()
     #query_info()
     #dataframe_transfer_csv()
-    configuration_stock()
+    #configuration_stock()
+    stock_from_eastMoney()
     #get_property()
     #db_test()
     #home_dir()
