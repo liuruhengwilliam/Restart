@@ -31,7 +31,8 @@ def query_info():
 def query_info_stock(stockID):
     """ 外部接口API: 获取相关信息
         stockID: 股票代码的字符串
-        返回值：Constant.QUOTATION_STRUCTURE列表结构(time,open,high,low,close)
+        返回值：Constant.QUOTATION_STRUCTURE列表结构
+              (time--string,open--float,high--float,low--float,close--float)
     """
     ret = None
     retList = []
@@ -64,4 +65,4 @@ def query_info_stock(stockID):
 
     if len(timeList) == 0 or len(priceList) == 0:
         return None
-    return [timeList[0],priceList[0],max(priceList),min(priceList),priceList[-1]]
+    return [timeList[0],priceList[-1],max(priceList),min(priceList),priceList[0]]
