@@ -22,8 +22,10 @@ class LoopTimer(threading.Thread):
         """
         self.func = func
         self.period = period
-        self.tmName = Constant.QUOTATION_DB_PREFIX[Constant.QUOTATION_DB_PERIOD.index(period)]
-
+        if Constant.QUOTATION_DB_PERIOD.count(period) > 0:
+            self.tmName = Constant.QUOTATION_DB_PREFIX[Constant.QUOTATION_DB_PERIOD.index(period)]
+        else:
+            self.tmName = str(period)
         super(LoopTimer,self).__init__(name=self.tmName)
 
     def run(self):
