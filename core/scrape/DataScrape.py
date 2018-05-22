@@ -35,7 +35,6 @@ def query_info_stock(stockID):
               (time--string,open--float,high--float,low--float,close--float)
     """
     ret = None
-    retList = []
     if stockID.startswith('600'):
         ret = EastMoney.deal_with_stock_query(DataSource.EASTMONEY_URL_FRAGMENT+'&id=%s'%stockID+'1')
     elif stockID.startswith('002'):
@@ -65,4 +64,6 @@ def query_info_stock(stockID):
 
     if len(timeList) == 0 or len(priceList) == 0:
         return None
-    return [timeList[0],priceList[-1],max(priceList),min(priceList),priceList[0]]
+    retList = [timeList[0],priceList[-1],max(priceList),min(priceList),priceList[0]]
+    Trace.output('debug',stockID+':'+' '.join(map(lambda x:str(x), retList)))
+    return retList
