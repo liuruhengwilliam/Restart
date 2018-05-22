@@ -45,19 +45,11 @@ FX678_REQUEST_HEADER = {
 
 #东方财富网
 #EASTMONEY_XAG_URL = 'http://quote.eastmoney.com/globalfuture/SI00Y.html'
-#动态抓取报价
-EASTMONEY_URL_FRAGMENT1 = 'http://nufm.dfcfw.com/EM_Finance2014NumericApplication/JS.aspx?type=CT&cmd=C._SG&sty=MPNSBAS&st=c&sr=-1&p=1&ps=5&cb=jQuery'
-EASTMONEY_URL_FRAGMENT2 = '&js=([(x)])&token=7bc05d0d4c3c22ef9fca8c2a912d779c'
-# 未知因素！
-EASTMONEY_URLUNKNOW_TIMESTAMP = "17209736178267005318_"
-#'http://nufm.dfcfw.com/EM_Finance2014NumericApplication/JS.aspx?type=CT&cmd=C._SG&sty=MPNSBAS&cb=jQuery17209079031754561993_1510125297769&js=([(x)])&token=7bc05d0d4c3c22ef9fca8c2a912d779c'
 
-#沪市002开头股票
-#赣锋锂业002460行情抓取URL
-'http://mdfm.eastmoney.com/EM_UBG_MinuteApi/Js/Get?dtype=25&style=tail&check=st&dtformat=HH:mm:ss&id=0024602&num=10'
-#深市600开头股票
-#中航电子600372行情抓取URL
-'http://mdfm.eastmoney.com/EM_UBG_MinuteApi/Js/Get?dtype=25&style=tail&check=st&dtformat=HH:mm:ss&id=6003721&num=10'
+EASTMONEY_URL_FRAGMENT='http://mdfm.eastmoney.com/EM_UBG_MinuteApi/Js/Get?dtype=25&style=tail&check=st&dtformat=HH:mm:ss&num=10'
+#沪市002开头股票(比如：赣锋锂业002460)在其后添加'&id=0024602'
+#深市600开头股票(比如：中航电子600372)在其后添加'&id=6003721'
+#'http://mdfm.eastmoney.com/EM_UBG_MinuteApi/Js/Get?dtype=25&style=tail&check=st&dtformat=HH:mm:ss&id=6003721&num=10'
 
 #和讯网
 #白银报价URL
