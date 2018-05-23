@@ -11,15 +11,31 @@ from resource import Trace
 import numpy as np
 import pandas as pd
 from pandas import DataFrame
+from copy import deepcopy
 
 class Quotation():
     """ 行情数据类 """
     def __init__(self,quoteRecordIns):
         self.updatePeriodFlag = quoteRecordIns.get_period_flag()
         self.recordPeriodDict = quoteRecordIns.get_record_dict()
+        self.quoteTypeList = quoteRecordIns.get_stock_list()
         self.quoteCache = {}
+
+        # 对于股票类型的周期行情数据缓存结构
+        if self.quoteTypeList is not None:
+            # 构建DF结构
+            clmns = ['period']+list(Constant.QUOTATION_STRUCTURE)
+            stockDF = DataFrame(columns=clmns)
+            # 填充各统计周期行
+            for period in Constant.QUOTATION_DB_PREFIX:
+                stockDF = stockDF.append(dict(zip(clmns,[period,' ',0.0,0.0,0.0,0.0])),ignore_index=True)
+            # 汇总各股票代码的字典项
+            for stockID in self.quoteTypeList:
+                self.quoteCache.update({stockID:deepcopy(stockDF)})
+            return
+
         #程序启动时补全历史数据，为后续指标和策略计算做好准备
-        for period in Constant.QUOTATION_DB_PREFIX[1:]:
+        for period in Constant.QUOTATION_DB_PREFIX:
             #查询当周是否有需要接续的数据记录
             quotefilename = Configuration.get_period_working_folder(period)+period+'-quote.csv'
             if not os.path.exists(quotefilename):#当周程序首次运行时不存在对应文件
@@ -58,10 +74,48 @@ class Quotation():
         return dataSupplementWithID
 
     def query_quote(self,periodName):
-        """ 外部接口API: 获取某周期的quote缓存
+        """ 外部接口API: 获取某周期的quote缓存。单一品种(期货/大宗商品)使用接口。
             返回值：DataFrame结构数据
         """
         return self.quoteCache[periodName]
+
+    def update_stock_quote(self,stockID):
+        """ 外部接口API: 周期行情数据缓存更新处理函数 """
+        stockDF = self.quoteCache[stockID]
+        stockUpdateFlag = self.updatePeriodFlag[stockID]
+        record = self.recordPeriodDict[stockID]
+
+        # 计数原子
+        updatePeriod = Constant.STOCK_UPDATE_PERIOD
+        # 计数原子的序号。
+        updatePeriodIndx = Constant.QUOTATION_DB_PERIOD.index(updatePeriod)
+        # 计数装置都减去计数原子
+        stockUpdateFlag = map(lambda x:x-updatePeriod,stockUpdateFlag)
+        self.updatePeriodFlag[stockID] = stockUpdateFlag
+        for index,cntValue in enumerate(stockUpdateFlag):
+            # 小于计数原子的周期不处理。
+            if index < updatePeriodIndx:
+                continue
+            stockDF.ix[index,'time'] = record['time']
+            stockDF.ix[index,'close'] = record['close']
+            # 周期内初次更新
+            if cntValue + updatePeriod == Constant.QUOTATION_DB_PERIOD[index]:
+                    stockDF.ix[index,'open'] = record['open']
+                    stockDF.ix[index,'high'] = record['high']
+                    stockDF.ix[index,'low'] = record['low']
+            else:
+                if stockDF.ix[index,'high'] < record['high']:
+                    stockDF.ix[index,'high'] = record['high']
+                if stockDF.ix[index,'low'] > record['low']:
+                    stockDF.ix[index,'low'] = record['low']
+
+            if cntValue <= 0:# 一个周期完结，重置计数及存档条目
+                # 周期到期，重置计数装置的值
+                stockUpdateFlag[index] = Constant.QUOTATION_DB_PERIOD[index]
+                # 将待存档的条目附着在本DataFrame结构后面。
+                # 每次更新DF结构的前若干行len(Constant.QUOTATION_DB_PERIOD)之一
+                self.quoteCache[stockID] = stockDF.append(stockDF.ix[index],ignore_index=True)
+        yield self.quoteCache[stockID]
 
     def update_period_flag(self, period, priceList):
         """ 内部接口API: 行情更新标志。

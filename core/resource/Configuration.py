@@ -164,6 +164,15 @@ def get_property(strProperty):
 
     return ret
 
+def get_stock_list():
+    """ 外部函数API：股票行情的初始化函数 """
+    # 获取配置文件中的股票代码
+    stock = get_property("stockID")
+    if stock is not None:
+        return stock.replace('\n','').replace('\t','').split(';')
+    else:
+        return None
+
 DEFAULT_SERVER_URL = "http://192.168.10.81/"
 DEFAULT_PHASE_VERSION = "Fx678-V110BB"
 def get_server_download_url(period):

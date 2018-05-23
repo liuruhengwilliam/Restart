@@ -33,6 +33,36 @@ class Coordinate():
         Trace.output('info', " ==== ==== Server Complete Initiation and Run Routine ==== ==== \n")
 
     # 以下是定时器回调函数:
+    def work_hb4stock(self):
+        """ 外部函数API：抓取某股票代码的实时行情数据处理函数 """
+        if Constant.is_closing_market():
+            return
+
+        for stockID in self.recordHdl.get_stock_list():
+            # 数据萃取
+            quoteList = DataScrape.query_info_stock(stockID)
+            if quoteList is None or len(quoteList) != len(Constant.QUOTATION_STRUCTURE):
+                Trace.output('warn',"Faile to query stock:%s"%stockID)
+                continue
+            # 更新record
+            self.recordHdl.update_stock_record([stockID]+quoteList)
+
+    def work_stock_operation(self):
+        """ 外部函数API：股票代码的周期行情数据缓存处理函数
+            挂载在15min定时器。根据倍数关系，驱动更新其他大周期行情数据缓存。
+        """
+        markStart = datetime.datetime.now()
+        year,week = markStart.strftime('%Y'),markStart.strftime('%U')
+        for stockID in self.recordHdl.get_stock_list():
+            # 更新各周期行情数据缓存
+            quoteGenerator = self.quoteHdl.update_stock_quote(stockID)
+            quoteDF = quoteGenerator.next()
+            quoteDF.to_csv(path_or_buf = Configuration.get_working_directory()+stockID+\
+                    '-%s-%s-quote.csv'%(year,week),columns=['period',]+list(Constant.QUOTATION_STRUCTURE))
+        markQuote = datetime.datetime.now()
+        Trace.output('info', "It cost: %s to update stock(%s) quotes."%\
+                     (str(markQuote-markStart),' '.join(self.recordHdl.get_stock_list())))
+
     def work_heartbeat(self):
         """ 快速定时器(心跳定时器)回调函数 : 数据抓取模块和行情数据库线程(缓冲字典)之间协同工作函数 """
         # 全球市场结算期间不更新缓冲记录
@@ -91,7 +121,7 @@ class Coordinate():
 
     def statistics_settlement(self):
         """内部接口API: 盈亏统计工作。由汇总各周期盈亏数据库生成表格文件。"""
-        for tmName in Constant.QUOTATION_DB_PREFIX[1:]:
+        for tmName in Constant.QUOTATION_DB_PREFIX[Constant.QUOTATION_DB_PERIOD.index(Constant.FUTURE_UPDATE_PERIOD):]:
             path = Configuration.get_period_working_folder(tmName)
             if self.strategy.query_strategy_record(tmName) is not None:
                 self.strategy.query_strategy_record(tmName).to_csv(path_or_buf=path+tmName+'-ser.csv',\
