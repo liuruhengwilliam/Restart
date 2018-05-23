@@ -5,7 +5,7 @@ import datetime
 import requests
 import urllib2
 import traceback
-
+from resource import Configuration
 
 def deal_with_stock_query(stock_url):
     """ 东方财富网数据抓取处理函数 """
@@ -34,5 +34,6 @@ def deal_with_stock_query(stock_url):
     except (Exception),e:
         exc_type,exc_value,exc_tb = sys.exc_info()
         traceback.print_exception(exc_type, exc_value, exc_tb)
+        traceback.print_exc(file=open(Configuration.get_working_directory()+'trace.txt','a'))
     finally:
         return response
