@@ -29,7 +29,8 @@ class Strategy():
 
         #共享资源--数据库文件互斥锁
         self.dictMutexLock={}
-        for keyTag in Constant.QUOTATION_DB_PREFIX[1:]:#检测15min~12hour的周期
+        #检测5min~12hour的周期
+        for keyTag in Constant.QUOTATION_DB_PREFIX[Constant.QUOTATION_DB_PERIOD.index(Constant.FUTURE_UPDATE_PERIOD):]:
             mutex = threading.Lock()
             self.dictMutexLock.update({keyTag: mutex})
 
@@ -37,7 +38,7 @@ class Strategy():
         self.dictPolRec = {}
         #该字典的键为周期名称字符串，值为DataFrame条目（见下）。
         valueDf = DataFrame(columns=Constant.SER_DF_STRUCTURE)#建立空的DataFrame数据结构
-        for keyTag in Constant.QUOTATION_DB_PREFIX[1:]:
+        for keyTag in Constant.QUOTATION_DB_PREFIX[Constant.QUOTATION_DB_PERIOD.index(Constant.FUTURE_UPDATE_PERIOD):]:
             filename = Configuration.get_period_working_folder(keyTag)+keyTag+'-ser.csv'
             if os.path.exists(filename):#非首次运行就存在数据库文件
                 valueDf = pd.read_csv(filename)
