@@ -29,6 +29,7 @@ from email.header import Header
 #from engine.DataScrape import *
 #from timer.TimerMotor import *
 from scrape import EastMoney
+from scrape import DataScrape
 import matplotlib.pyplot as plt
 import xml.etree.ElementTree as ET
 from resource import Constant
@@ -515,7 +516,7 @@ def dataframe_transfer_csv():
     #    print item
     time1 = datetime.datetime.now()
     tempDf.to_csv(path_or_buf=Configuration.get_period_working_folder('5min')+'5min-quote.csv',\
-                  columns=Constant.QUOTATION_STRUCTURE,index=False)
+                  columns=Constant.QUOTATION_STRUCTURE)
     time2 = datetime.datetime.now()
     #print time2-time1
     df2 = pd.read_csv('F:\\code\\python\\RESTART\\core\\2018\\2018-16\\30M-1H-ser.csv')
@@ -608,12 +609,22 @@ def stock_from_eastMoney():
                 print time.group(1)
     #print retmatch.group(1)
     retsplit = re.split(r'\[\]',ret)
-    #print retsplit
-    #print retsplit.count(1)
-    #retcompile = re.compile(r'(\[)*',ret)
-    #print retcompile
+    print DataScrape.query_info_stock("002008")
+
+def yield_called(parameter):
+    lst = []
+    for i in [0,1,2,3,4]:
+        lst.append(i*parameter)
+    yield lst
+
+def yield_caller():
+    for i in [1,2]:
+        generator = yield_called(i)
+        value = generator.next()
+        print value
 
 if __name__ == '__main__':
+    yield_caller()
     #csv_test()
     #db_test()
     #file_test()
@@ -623,7 +634,7 @@ if __name__ == '__main__':
     #query_info()
     #dataframe_transfer_csv()
     #configuration_stock()
-    stock_from_eastMoney()
+    #stock_from_eastMoney()
     #get_property()
     #db_test()
     #home_dir()
