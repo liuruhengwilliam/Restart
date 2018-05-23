@@ -81,8 +81,6 @@ class Quotation():
 
     def update_stock_quote(self,stockID):
         """ 外部接口API: 周期行情数据缓存更新处理函数 """
-        stockDF = self.quoteCache[stockID]
-        stockUpdateFlag = self.updatePeriodFlag[stockID]
         record = self.recordPeriodDict[stockID]
 
         # 计数原子
@@ -90,9 +88,9 @@ class Quotation():
         # 计数原子的序号。
         updatePeriodIndx = Constant.QUOTATION_DB_PERIOD.index(updatePeriod)
         # 计数装置都减去计数原子
-        stockUpdateFlag = map(lambda x:x-updatePeriod,stockUpdateFlag)
-        self.updatePeriodFlag[stockID] = stockUpdateFlag
-        for index,cntValue in enumerate(stockUpdateFlag):
+        self.updatePeriodFlag[stockID] = map(lambda x:x-updatePeriod,self.updatePeriodFlag[stockID])
+        for index,cntValue in enumerate(self.updatePeriodFlag[stockID]):
+            stockDF = self.quoteCache[stockID]
             # 小于计数原子的周期不处理。
             if index < updatePeriodIndx:
                 continue
@@ -111,10 +109,13 @@ class Quotation():
 
             if cntValue <= 0:# 一个周期完结，重置计数及存档条目
                 # 周期到期，重置计数装置的值
-                stockUpdateFlag[index] = Constant.QUOTATION_DB_PERIOD[index]
+                self.updatePeriodFlag[stockID][index] = Constant.QUOTATION_DB_PERIOD[index]
                 # 将待存档的条目附着在本DataFrame结构后面。
                 # 每次更新DF结构的前若干行len(Constant.QUOTATION_DB_PERIOD)之一
                 self.quoteCache[stockID] = stockDF.append(stockDF.ix[index],ignore_index=True)
+                # 记录附加项(DF结构的最后一行)到日志文件中
+                Trace.output('info',stockID+':'+' '.join(list(self.quoteCache[stockID].iloc[-1].astype(str))))
+        #print self.quoteCache[stockID]# 调试点
         yield self.quoteCache[stockID]
 
     def update_period_flag(self, period, priceList):
