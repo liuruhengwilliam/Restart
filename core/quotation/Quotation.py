@@ -114,7 +114,8 @@ class Quotation():
                 # 每次更新DF结构的前若干行len(Constant.QUOTATION_DB_PERIOD)之一
                 self.quoteCache[stockID] = stockDF.append(stockDF.ix[index],ignore_index=True)
                 # 记录附加项(DF结构的最后一行)到日志文件中
-                Trace.output('info',stockID+':'+' '.join(list(self.quoteCache[stockID].iloc[-1].astype(str))))
+                Trace.output('info',stockID+':Time out for Period '+\
+                             ' '.join(list(self.quoteCache[stockID].iloc[-1].astype(str))))
         #print self.quoteCache[stockID]# 调试点
         yield self.quoteCache[stockID]
 
