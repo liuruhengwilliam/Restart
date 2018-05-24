@@ -35,7 +35,7 @@ class Coordinate():
     # 以下是定时器回调函数:
     def work_hb4stock(self):
         """ 外部函数API：抓取某股票代码的实时行情数据处理函数 """
-        if Constant.is_closing_market():
+        if Constant.is_stock_closed():
             return
         markStart = datetime.datetime.now()
         for stockID in self.recordHdl.get_stock_list():
@@ -54,6 +54,9 @@ class Coordinate():
         """ 外部函数API：股票代码的周期行情数据缓存处理函数
             挂载在15min定时器。根据倍数关系，驱动更新其他大周期行情数据缓存。
         """
+        if Constant.is_stock_closed():
+            return
+
         markStart = datetime.datetime.now()
         year,week = markStart.strftime('%Y'),markStart.strftime('%U')
         for stockID in self.recordHdl.get_stock_list():

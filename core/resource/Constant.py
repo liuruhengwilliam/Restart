@@ -20,7 +20,7 @@ def get_date_code():
     month,day = dt.strftime('%m'),dt.strftime('%d')
     return MONTH_CODE[int(month)-1]+DAY_CODE[int(day)-1]
 
-VERSION_CODE = 'V1.6.0Q'
+VERSION_CODE = 'V1.6.1Q'
 def get_version_info():
     """ 内/外部接口API: """
     return VERSION_CODE + get_date_code() + "\n" + \
@@ -171,7 +171,7 @@ def is_closing_market():
     # 每工作日凌晨5点到6点为结算时间
     now = datetime.datetime.now()
     year,month,day,hour = int(now.strftime("%Y")),int(now.strftime("%m")),int(now.strftime("%d")),int(now.strftime("%H"))
-    week,weekday = int(now.strftime("%U")),int(now.isoweekday())
+    weekday = int(now.isoweekday())
     if month >= 3 and month <= 10:#夏令时每日结算时间
         if (month == 3 and day < get_last_sunday_of_month(year,month)) or \
             (month == 10 and day > get_last_sunday_of_month(year,month)):#冬令时段的边缘日期
@@ -211,3 +211,31 @@ ABSTRACT_TITLE = {'KLine':'\nKLine Give suggestion with direction:',\
                   'MA':'\nMA Give trends:',\
                   'MACD':'\nMACD Give suggestion with:',\
                   'BBand':'\nBBand is at position with:'}
+
+#==============================================================================================
+def is_stock_closed():
+    """ 外部接口API:判断当前时间是否为休市时间
+        返回值：True---休/闭市时间；False---交易时间
+    """
+    now = datetime.datetime.now()
+    year,month,day = now.strftime("%Y"),now.strftime("%m"),now.strftime("%d")
+    weekday = int(now.isoweekday())
+    if weekday > 5:
+        return True
+
+    realnumNow = time.mktime(now.timetuple())
+    EXCHANGE_AM_START = datetime.datetime.strptime(year+'-'+month+'-'+day+' 09:30:00',"%Y-%m-%d %H:%M:%S")
+    realnumAMStart = time.mktime(EXCHANGE_AM_START.timetuple())
+    EXCHANGE_AM_END = datetime.datetime.strptime(year+'-'+month+'-'+day+' 11:30:00',"%Y-%m-%d %H:%M:%S")
+    realnumAMEnd = time.mktime(EXCHANGE_AM_END.timetuple())
+    EXCHANGE_PM_START = datetime.datetime.strptime(year+'-'+month+'-'+day+' 13:00:00',"%Y-%m-%d %H:%M:%S")
+    realnumPMStart = time.mktime(EXCHANGE_PM_START.timetuple())
+    EXCHANGE_PM_END = datetime.datetime.strptime(year+'-'+month+'-'+day+' 15:00:00',"%Y-%m-%d %H:%M:%S")
+    realnumPMEnd = time.mktime(EXCHANGE_PM_END.timetuple())
+
+    if realnumAMStart <= realnumNow and realnumNow <= realnumAMEnd:#上午交易时段
+        return False
+    elif realnumPMStart <= realnumNow and realnumNow <= realnumPMEnd:#下午交易时段
+        return False
+    else:
+        return True
