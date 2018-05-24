@@ -20,7 +20,7 @@ def stock_main():
 
     # 数据抓取模块和数据库模块挂载到周期定时器
     HBfuncHook = (coordinate.work_hb4stock,) # 心跳定时器处理回调函数
-    # 操作处理回调函数。出于减少定时器操作复杂度的考虑，只保留一个15min级别的定时器。其他周期在15min基础上收集整理信息。
+    # 操作处理回调函数。出于减少定时器操作复杂度的考虑，只保留一个5min级别的定时器。其他周期就在5min基础上收集整理信息。
     PeriodfuncHook = (coordinate.work_stock_operation,)
     funcList = (HBfuncHook + PeriodfuncHook) # 回调函数列表
 
