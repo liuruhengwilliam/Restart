@@ -37,7 +37,7 @@ class Coordinate():
         """ 外部函数API：抓取某股票代码的实时行情数据处理函数 """
         if Constant.is_closing_market():
             return
-
+        markStart = datetime.datetime.now()
         for stockID in self.recordHdl.get_stock_list():
             # 数据萃取
             quoteList = DataScrape.query_info_stock(stockID)
@@ -46,6 +46,9 @@ class Coordinate():
                 continue
             # 更新record
             self.recordHdl.update_stock_record([stockID]+quoteList)
+        markQuery = datetime.datetime.now()
+        Trace.output('info', "It cost: %s to query stock(%s) from EastMoney."%\
+                     (str(markQuery-markStart),' '.join(self.recordHdl.get_stock_list())))
 
     def work_stock_operation(self):
         """ 外部函数API：股票代码的周期行情数据缓存处理函数
