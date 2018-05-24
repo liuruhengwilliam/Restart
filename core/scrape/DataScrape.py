@@ -35,9 +35,9 @@ def query_info_stock(stockID):
               (time--string,open--float,high--float,low--float,close--float)
     """
     ret = None
-    if stockID.startswith('600'):
+    if stockID.startswith('600') or stockID.startswith('601') or stockID.startswith('603'):
         ret = EastMoney.deal_with_stock_query(DataSource.EASTMONEY_URL_FRAGMENT+'&id=%s'%stockID+'1')
-    elif stockID.startswith('002'):
+    elif stockID.startswith('000') or stockID.startswith('002') or stockID.startswith('300'):
         ret = EastMoney.deal_with_stock_query(DataSource.EASTMONEY_URL_FRAGMENT+'&id=%s'%stockID+'2')
     if ret is None:
         return None
@@ -45,7 +45,7 @@ def query_info_stock(stockID):
     # 正则表达式挑选 "data":开头，且在中括号内的信息
     retsearch = re.search(r'"data":\[(.*)\]',ret)
     if retsearch is None or retsearch.group(1) is None:
-        Trace.output('fatal',"Failed to filter stock Data from %s!"%ret)
+        Trace.output('fatal',"Failed to filter stock(%s) Data from %s!"%(stockID,ret))
         return None
 
     timeList = []
