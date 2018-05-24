@@ -16,6 +16,7 @@ from copy import deepcopy
 class Quotation():
     """ 行情数据类 """
     def __init__(self,quoteRecordIns):
+        self.baseTmCnt = 0#基本(驱动)定时器计数
         self.updatePeriodFlag = quoteRecordIns.get_period_flag()
         self.recordPeriodDict = quoteRecordIns.get_record_dict()
         self.quoteTypeList = quoteRecordIns.get_stock_list()
@@ -55,6 +56,16 @@ class Quotation():
             #生成quote缓存DataFrame结构数据实例
             self.quoteCache.update({period: dataSupplementWithID})
 
+    def remainder_higher_order(self,HOPeriod):
+        """ 内/外部接口API：高阶定时器相对于基准更新定时器的余数。
+                    如果余数是0，那么该定时器就到期。如果余数最大，那么是首次更新。
+            返回值：余数值
+            HOPeriod: 高阶定时器的周期字符串
+        """
+        dividend = Constant.QUOTATION_DB_PERIOD[Constant.QUOTATION_DB_PREFIX.index(HOPeriod)]
+        divisor = dividend/Constant.UPDATE_BASE_PERIOD
+        return self.baseTmCnt%divisor
+
     def process_quotes_supplement(self,period,dataWithID):
         """ 内部接口API：补全quotes数据
             periodName:周期名称的字符串
@@ -80,24 +91,22 @@ class Quotation():
         return self.quoteCache[periodName]
 
     def update_stock_quote(self,stockID):
-        """ 外部接口API: 周期行情数据缓存更新处理函数 """
+        """ 外部接口API: 周期行情数据缓存更新处理函数。基准更新定时器的回调函数。 """
+        self.baseTmCnt += 1#基准定时器计数自增。
         record = self.recordPeriodDict[stockID]
 
-        # 计数原子
-        updatePeriod = Constant.STOCK_UPDATE_PERIOD
-        # 计数原子的序号。
-        updatePeriodIndx = Constant.QUOTATION_DB_PERIOD.index(updatePeriod)
-        # 计数装置都减去计数原子
-        self.updatePeriodFlag[stockID] = map(lambda x:x-updatePeriod,self.updatePeriodFlag[stockID])
-        for index,cntValue in enumerate(self.updatePeriodFlag[stockID]):
-            stockDF = self.quoteCache[stockID]
+        # 更新基准定时器及高阶定时器的记录缓存
+        for index,period in enumerate(Constant.QUOTATION_DB_PREFIX):
+            stockDF = self.quoteCache[stockID]#在循环体内更新
             # 小于计数原子的周期不处理。
-            if index < updatePeriodIndx:
+            if index < Constant.QUOTATION_DB_PERIOD.index(Constant.UPDATE_BASE_PERIOD):
                 continue
+            # 每次更新DF结构的前若干行len(Constant.QUOTATION_DB_PERIOD)之一
             stockDF.ix[index,'time'] = record['time']
             stockDF.ix[index,'close'] = record['close']
-            # 周期内初次更新
-            if cntValue + updatePeriod == Constant.QUOTATION_DB_PERIOD[index]:
+            remainder = self.remainder_higher_order(period)
+            # 高阶定时器周期内的首次更新
+            if remainder+1 == Constant.QUOTATION_DB_PERIOD[index]/Constant.UPDATE_BASE_PERIOD:
                     stockDF.ix[index,'open'] = record['open']
                     stockDF.ix[index,'high'] = record['high']
                     stockDF.ix[index,'low'] = record['low']
@@ -106,12 +115,9 @@ class Quotation():
                     stockDF.ix[index,'high'] = record['high']
                 if stockDF.ix[index,'low'] > record['low']:
                     stockDF.ix[index,'low'] = record['low']
-
-            if cntValue <= 0:# 一个周期完结，重置计数及存档条目
-                # 周期到期，重置计数装置的值
-                self.updatePeriodFlag[stockID][index] = Constant.QUOTATION_DB_PERIOD[index]
+            # 高阶定时器的一个周期完结，存档条目
+            if remainder == 0:
                 # 将待存档的条目附着在本DataFrame结构后面。
-                # 每次更新DF结构的前若干行len(Constant.QUOTATION_DB_PERIOD)之一
                 self.quoteCache[stockID] = stockDF.append(stockDF.ix[index],ignore_index=True)
                 # 记录附加项(DF结构的最后一行)到日志文件中
                 Trace.output('info',stockID+':Time out for Period '+\
