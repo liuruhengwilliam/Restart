@@ -169,7 +169,7 @@ def get_stock_list():
     # 获取配置文件中的股票代码
     stock = get_property("stockID")
     if stock is not None:
-        return stock.replace('\n','').replace('\t','').split(';')
+        return stock.replace('\n','').replace('\t','').replace(' ','').split(';')
     else:
         return None
 
