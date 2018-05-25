@@ -17,6 +17,7 @@ class Quotation():
     """ 行情数据类 """
     def __init__(self,quoteRecordIns):
         self.baseTmCnt = 0#基本(驱动)定时器计数
+        self.quoteRecord = quoteRecordIns
         self.updatePeriodFlag = quoteRecordIns.get_period_flag()
         self.recordPeriodDict = quoteRecordIns.get_record_dict()
         self.quoteTypeList = quoteRecordIns.get_stock_list()
@@ -56,6 +57,10 @@ class Quotation():
             #生成quote缓存DataFrame结构数据实例
             self.quoteCache.update({period: dataSupplementWithID})
 
+    def increase_timeout_count(self):
+        """ 外部接口API：基准更新定时器的到期计数值。基准更新定时器的回调函数调用。 """
+        self.baseTmCnt+=1
+
     def remainder_higher_order(self,HOPeriod):
         """ 内/外部接口API：高阶定时器相对于基准更新定时器的余数。
                     如果余数是0，那么该定时器就到期。如果余数最大，那么是首次更新。
@@ -92,7 +97,6 @@ class Quotation():
 
     def update_stock_quote(self,stockID):
         """ 外部接口API: 周期行情数据缓存更新处理函数。基准更新定时器的回调函数。 """
-        self.baseTmCnt += 1#基准定时器计数自增。
         record = self.recordPeriodDict[stockID]
 
         # 更新基准定时器及高阶定时器的记录缓存
@@ -101,28 +105,32 @@ class Quotation():
             # 小于计数原子的周期不处理。
             if index < Constant.QUOTATION_DB_PERIOD.index(Constant.UPDATE_BASE_PERIOD):
                 continue
+
             # 每次更新DF结构的前若干行len(Constant.QUOTATION_DB_PERIOD)之一
+            remainder = self.remainder_higher_order(period)
+            # 高阶定时器的一个周期完结，先存档条目
+            if remainder == 0 and self.baseTmCnt != 0:
+                # 将待存档的条目附着在本DataFrame结构后面。
+                stockDF = stockDF.append(stockDF.ix[index],ignore_index=True)
+                # 记录附加项(DF结构的最后一行)到日志文件中
+                Trace.output('info',stockID+':Time out '+' '.join(list(stockDF.iloc[-1].astype(str))))
+
+            # 再更新条目
             stockDF.ix[index,'time'] = record['time']
             stockDF.ix[index,'close'] = record['close']
-            remainder = self.remainder_higher_order(period)
             # 高阶定时器周期内的首次更新
-            if remainder+1 == Constant.QUOTATION_DB_PERIOD[index]/Constant.UPDATE_BASE_PERIOD:
+            if remainder == 0:
                     stockDF.ix[index,'open'] = record['open']
                     stockDF.ix[index,'high'] = record['high']
                     stockDF.ix[index,'low'] = record['low']
             else:
                 if stockDF.ix[index,'high'] < record['high']:
                     stockDF.ix[index,'high'] = record['high']
-                if stockDF.ix[index,'low'] > record['low']:
+                if stockDF.ix[index,'low'] > record['low'] or stockDF.ix[index,'low'] == 0.0:
                     stockDF.ix[index,'low'] = record['low']
-            # 高阶定时器的一个周期完结，存档条目
-            if remainder == 0:
-                # 将待存档的条目附着在本DataFrame结构后面。
-                self.quoteCache[stockID] = stockDF.append(stockDF.ix[index],ignore_index=True)
-                # 记录附加项(DF结构的最后一行)到日志文件中
-                Trace.output('info',stockID+':Time out for Period '+\
-                             ' '.join(list(self.quoteCache[stockID].iloc[-1].astype(str))))
-        #print self.quoteCache[stockID]# 调试点
+            self.quoteCache[stockID] = stockDF#数据回写
+        #print self.quoteCache[stockID]#调试点
+        self.quoteRecord.reset_stock_record(stockID)
         yield self.quoteCache[stockID]
 
     def update_period_flag(self, period, priceList):

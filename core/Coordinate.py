@@ -56,7 +56,6 @@ class Coordinate():
         """
         if Constant.is_stock_closed():
             return
-
         markStart = datetime.datetime.now()
         year,week = markStart.strftime('%Y'),markStart.strftime('%U')
         for stockID in self.recordHdl.get_stock_list():
@@ -65,9 +64,13 @@ class Coordinate():
             quoteDF = quoteGenerator.next()
             quoteDF.to_csv(path_or_buf = Configuration.get_working_directory()+stockID+\
                     '-%s-%s-quote.csv'%(year,week),columns=['period',]+list(Constant.QUOTATION_STRUCTURE))
-        markQuote = datetime.datetime.now()
-        Trace.output('info', "It cost: %s to update stock(%s) quotes."%\
-                     (str(markQuote-markStart),' '.join(self.recordHdl.get_stock_list())))
+
+        # 基准定时器计数自增
+        self.quoteHdl.increase_timeout_count()
+
+        markEnd = datetime.datetime.now()
+        Trace.output('info', "It cost %s to operate stock(%s)."%\
+                     (str(markEnd-markStart),' '.join(self.recordHdl.get_stock_list())))
 
     def work_heartbeat(self):
         """ 快速定时器(心跳定时器)回调函数 : 数据抓取模块和行情数据库线程(缓冲字典)之间协同工作函数 """
@@ -127,7 +130,7 @@ class Coordinate():
 
     def statistics_settlement(self):
         """内部接口API: 盈亏统计工作。由汇总各周期盈亏数据库生成表格文件。"""
-        for tmName in Constant.QUOTATION_DB_PREFIX[Constant.QUOTATION_DB_PERIOD.index(Constant.FUTURE_UPDATE_PERIOD):]:
+        for tmName in Constant.QUOTATION_DB_PREFIX[Constant.QUOTATION_DB_PERIOD.index(Constant.UPDATE_BASE_PERIOD):]:
             path = Configuration.get_period_working_folder(tmName)
             if self.strategy.query_strategy_record(tmName) is not None:
                 self.strategy.query_strategy_record(tmName).to_csv(path_or_buf=path+tmName+'-ser.csv',\

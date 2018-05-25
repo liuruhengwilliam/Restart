@@ -46,10 +46,20 @@ class QuotationRecord():
         """
         stockID,time,open,high,low,close = infoList
         self.recordPeriodDict[stockID]['time'] = time
-        self.recordPeriodDict[stockID]['open'] = open
-        self.recordPeriodDict[stockID]['high'] = high
-        self.recordPeriodDict[stockID]['low'] = low
         self.recordPeriodDict[stockID]['close'] = close
+        if self.recordPeriodDict[stockID]['open'] == 0:
+            self.recordPeriodDict[stockID]['open'] = open
+        if self.recordPeriodDict[stockID]['high']<high:
+            self.recordPeriodDict[stockID]['high'] = high
+        if self.recordPeriodDict[stockID]['low']==0 or self.recordPeriodDict[stockID]['low']>low:
+            self.recordPeriodDict[stockID]['low'] = low
+
+    def reset_stock_record(self,stockID):
+        self.recordPeriodDict[stockID]['time']=' '
+        self.recordPeriodDict[stockID]['open'] = 0.0
+        self.recordPeriodDict[stockID]['high'] = 0.0
+        self.recordPeriodDict[stockID]['low'] = 0.0
+        self.recordPeriodDict[stockID]['close'] = 0.0
 
     def update_dict_record(self,infoList):
         """ 外部接口API: 心跳定时器回调函数。更新缓冲记录。
