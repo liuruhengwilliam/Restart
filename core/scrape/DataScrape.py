@@ -2,6 +2,7 @@
 
 import re
 import sys
+import datetime
 import DataSource
 import Fx678
 import EastMoney
@@ -61,9 +62,12 @@ def query_info_stock(stockID):
             timeList.append(time.group(1))
         if price is not None and price.group(1) is not None:
             priceList.append(float(price.group(1)))
+    # 添加年月日信息
+    dt = datetime.datetime.now()
+    date = '%s-%s-%s '%(dt.strftime('%Y'),dt.strftime('%m'),dt.strftime('%d'))
 
     if len(timeList) == 0 or len(priceList) == 0:
         return None
-    retList = [str(timeList[0]),float(priceList[-1]),float(max(priceList)),float(min(priceList)),float(priceList[0])]
+    retList = [date+str(timeList[0]),float(priceList[-1]),float(max(priceList)),float(min(priceList)),float(priceList[0])]
     Trace.output('debug',stockID+':'+' '.join(map(lambda x:str(x), retList)))
     return retList
