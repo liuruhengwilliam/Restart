@@ -24,7 +24,7 @@ def stock_main():
     PeriodfuncHook = (coordinate.work_stock_operation,)
     funcList = (HBfuncHook + PeriodfuncHook) # 回调函数列表
 
-    TimerMotor.start_loop_timer(funcList,[int(period),Constant.STOCK_UPDATE_PERIOD])
+    TimerMotor.start_loop_timer(funcList,[int(period),Constant.UPDATE_BASE_PERIOD])
 
 if __name__ == '__main__':
     stock_main()

@@ -122,10 +122,10 @@ QUOTATION_STRUCTURE = ('time','open','high','low','close')
 QUOTATION_DB_PREFIX = ('6sec','5min','15min','30min','1hour','2hour','4hour','6hour','12hour','1day','1week')
 QUOTATION_DB_PERIOD = (6,5*60,15*60,30*60,1*3600,2*3600,4*3600,6*3600,12*3600,24*3600,5*24*3600)
 # 日线和周线定时器周期时间调整（日线需减去每日的结算时间，周线需减去周六闭市时间差） 2017-11-02
-# 股票的周期行情数据更新基准定时器是5min，亦是股票的盈亏策略数据更新定时器。
-STOCK_UPDATE_PERIOD = 5*60
-# 期货/大宗商品的周期行情数据更新基准定时器是5min。
-FUTURE_UPDATE_PERIOD = 5*60
+
+# 期货/大宗商品/股票的周期行情数据更新基准定时器是5min，亦是其盈亏策略数据更新定时器。
+UPDATE_BASE_PERIOD = 5*60
+
 # 策略盈亏率数据库文件对应的DataFrame结构。‘id’，‘tmChainIndx’和‘restCnt’是区别于SER数据库特有的字段。
 SER_DF_STRUCTURE = ('time','price','tmName','patternName','patternVal','DeadTime',\
     'M15maxEarn', 'M15maxEarnTime', 'M15maxLoss', 'M15maxLossTime',\
