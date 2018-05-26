@@ -8,7 +8,9 @@ import traceback
 import DataSource
 
 def deal_with_query():
-    """ 新浪财经数据抓取处理函数 """
+    """ 新浪财经数据抓取处理函数。
+        返回值: 列表结构---实时价格（浮点型），当前时间字符串
+    """
     ret_list = [] # 待返回的数据列表
     #now_timestamp = time.strftime("%Y-%m-%d %H:%M:%S",time.localtime())
     #下面复杂报文头暂时未使用
@@ -34,7 +36,7 @@ def deal_with_query():
         response = urllib2.urlopen(req).read()
         #数据进行切片分析
         close_price = response.split('"')[1].split(',')[0]
-        ret_list = [float(close_price),datetime.datetime.fromtimestamp(int(time.time()))]
+        ret_list = [float(close_price),datetime.datetime.now().strftime('%Y-%m%-d %H:%M:%S')]
     except (Exception),e:
         exc_type,exc_value,exc_tb = sys.exc_info()
         traceback.print_exception(exc_type, exc_value, exc_tb)
