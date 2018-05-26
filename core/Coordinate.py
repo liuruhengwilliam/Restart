@@ -38,7 +38,7 @@ class Coordinate():
         if Constant.is_stock_closed():
             return
         markStart = datetime.datetime.now()
-        for stockID in self.recordHdl.get_stock_list():
+        for stockID in self.recordHdl.get_target_list():
             # 数据萃取
             quoteList = DataScrape.query_info_stock(stockID)
             if quoteList is None or len(quoteList) != len(Constant.QUOTATION_STRUCTURE):
@@ -48,7 +48,7 @@ class Coordinate():
             self.recordHdl.update_stock_record([stockID]+quoteList)
         markQuery = datetime.datetime.now()
         Trace.output('info', "It cost: %s to query stock(%s) from EastMoney."%\
-                     (str(markQuery-markStart),' '.join(self.recordHdl.get_stock_list())))
+                     (str(markQuery-markStart),' '.join(self.recordHdl.get_target_list())))
 
     def work_stock_operation(self):
         """ 外部函数API：股票代码的周期行情数据缓存处理函数
@@ -58,19 +58,19 @@ class Coordinate():
             return
         markStart = datetime.datetime.now()
         year,week = markStart.strftime('%Y'),markStart.strftime('%U')
-        for stockID in self.recordHdl.get_stock_list():
+        for stockID in self.recordHdl.get_target_list():
             # 更新各周期行情数据缓存
             quoteGenerator = self.quoteHdl.update_stock_quote(stockID)
             quoteDF = quoteGenerator.next()
-            quoteDF.to_csv(path_or_buf = Configuration.get_working_directory()+stockID+\
-                    '-%s-%s-quote.csv'%(year,week),columns=['period',]+list(Constant.QUOTATION_STRUCTURE))
+            quoteDF.to_csv(Configuration.get_working_directory()+stockID+'-%s-%s-quote.csv'%(year,week),\
+                            columns=['period',]+list(Constant.QUOTATION_STRUCTURE))
 
         # 基准定时器计数自增
         self.quoteHdl.increase_timeout_count()
 
         markEnd = datetime.datetime.now()
         Trace.output('info', "It cost %s to operate stock(%s)."%\
-                     (str(markEnd-markStart),' '.join(self.recordHdl.get_stock_list())))
+                     (str(markEnd-markStart),' '.join(self.recordHdl.get_target_list())))
 
     def work_heartbeat(self):
         """ 快速定时器(心跳定时器)回调函数 : 数据抓取模块和行情数据库线程(缓冲字典)之间协同工作函数 """

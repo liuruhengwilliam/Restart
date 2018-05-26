@@ -20,7 +20,7 @@ class Quotation():
         self.quoteRecord = quoteRecordIns
         self.updatePeriodFlag = quoteRecordIns.get_period_flag()
         self.recordPeriodDict = quoteRecordIns.get_record_dict()
-        self.quoteTypeList = quoteRecordIns.get_stock_list()
+        self.quoteTypeList = quoteRecordIns.get_target_list()
         self.quoteCache = {}
 
         # 对于股票类型的周期行情数据缓存结构

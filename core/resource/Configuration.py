@@ -164,14 +164,15 @@ def get_property(strProperty):
 
     return ret
 
-def get_stock_list():
-    """ 外部函数API：股票行情的初始化函数 """
-    # 获取配置文件中的股票代码
-    stock = get_property("stockID")
-    if stock is not None:
-        return stock.replace('\n','').replace('\t','').replace(' ','').split(';')
+def get_target_list():
+    """ 外部函数API：配置文件中标的列表的查询函数。标的可能是单一期货/大宗商品，也可能是股票代码列表。
+        返回值：标的列表。
+    """
+    target = get_property("target")
+    if target is not None:
+        return target.replace('\n','').replace('\t','').replace(' ','').split(';')
     else:
-        return None
+        return []
 
 DEFAULT_SERVER_URL = "http://192.168.10.81/"
 DEFAULT_PHASE_VERSION = "Fx678-V110BB"
