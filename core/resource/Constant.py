@@ -20,7 +20,7 @@ def get_date_code():
     month,day = dt.strftime('%m'),dt.strftime('%d')
     return MONTH_CODE[int(month)-1]+DAY_CODE[int(day)-1]
 
-VERSION_CODE = 'V1.6.1Q'
+VERSION_CODE = 'V2.0.0Q'
 def get_version_info():
     """ 内/外部接口API: """
     return VERSION_CODE + get_date_code() + "\n" + \
@@ -166,7 +166,7 @@ def get_last_sunday_of_month(year,month):
     else:
         return 36 - firstDayWeek
 
-def is_closing_market():
+def is_futures_closed():
     """ 外部接口API:判断当前时间是否为闭市时间 """
     # 每工作日凌晨5点到6点为结算时间
     now = datetime.datetime.now()
