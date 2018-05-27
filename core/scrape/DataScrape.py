@@ -21,7 +21,7 @@ def query_info_futures():
         else:#低优先级排后
             retList = SinaFinance.deal_with_query()
         if len(retList) == 2:
-            Trace.output('debug',"From %s, quote the price of %s at %s"(dataSrc,retList[0],retList[1]))
+            Trace.output('debug',"From %s, quote the price of %s at %s"%(dataSrc,retList[0],retList[1]))
             break
     else:
         Trace.output('fatal',"Failed to query price on DataScrape module from ALL OF DATASOURCE!")
