@@ -1,5 +1,6 @@
 #coding=utf-8
 
+import re
 import os
 import datetime
 from resource import Trace
@@ -33,100 +34,91 @@ class Coordinate():
         Trace.output('info', " ==== ==== Server Complete Initiation and Run Routine ==== ==== \n")
 
     # 以下是定时器回调函数:
-    def work_hb4stock(self):
+    def work_heartbeat(self):
         """ 外部函数API：抓取某股票代码的实时行情数据处理函数 """
-        if Constant.is_stock_closed():
-            return
         markStart = datetime.datetime.now()
-        for stockID in self.recordHdl.get_target_list():
-            # 数据萃取
-            quoteList = DataScrape.query_info_stock(stockID)
-            if quoteList is None or len(quoteList) != len(Constant.QUOTATION_STRUCTURE):
-                Trace.output('warn',"Faile to query stock:%s"%stockID)
+        for target in self.recordHdl.get_target_list():
+            # 通过正则表达式来区分标的类型：股票（数字） or 大宗商品（英文字母）
+            # re.match(r'[a-zA-Z](.*)',target)#re.match在字符串开始处匹配模式
+            if re.search(r'[^a-zA-Z]',target) is None:#大宗商品类型全是英文字母
+                if Constant.is_futures_closed():
+                    return
+                infoList = DataScrape.query_info_futures()
+                if len(infoList) != 2:
+                    Trace.output('warn',"Faile to query:%s"%target)
+                    continue
+                # 更新record
+                self.recordHdl.update_futures_record([target]+infoList)
+
+            elif re.search(r'[^0-9](.*)',target) is None:#股票类型全是数字
+                if Constant.is_stock_closed():
+                    return
+                quoteList = DataScrape.query_info_stock(target)
+                if quoteList is None or len(quoteList) != len(Constant.QUOTATION_STRUCTURE):
+                    Trace.output('warn',"Faile to query:%s"%target)
+                    continue
+                # 更新record
+                self.recordHdl.update_stock_record([target]+quoteList)
+            else:#错误类型
+                Trace.output('warn',"ERROR target:%s"%target)
                 continue
-            # 更新record
-            self.recordHdl.update_stock_record([stockID]+quoteList)
+
         markQuery = datetime.datetime.now()
         Trace.output('info', "It cost: %s to query stock(%s) from EastMoney."%\
                      (str(markQuery-markStart),' '.join(self.recordHdl.get_target_list())))
 
-    def work_stock_operation(self):
+    def work_operation(self):
         """ 外部函数API：股票代码的周期行情数据缓存处理函数
             挂载在15min定时器。根据倍数关系，驱动更新其他大周期行情数据缓存。
         """
-        if Constant.is_stock_closed():
-            return
         markStart = datetime.datetime.now()
         year,week = markStart.strftime('%Y'),markStart.strftime('%U')
-        for stockID in self.recordHdl.get_target_list():
+        for target in self.recordHdl.get_target_list():
             # 更新各周期行情数据缓存
-            quoteGenerator = self.quoteHdl.update_stock_quote(stockID)
+            quoteGenerator = self.quoteHdl.update_quote(target)
             quoteDF = quoteGenerator.next()
-            quoteDF.to_csv(Configuration.get_working_directory()+stockID+'-%s-%s-quote.csv'%(year,week),\
+            quoteDF.to_csv(Configuration.get_working_directory()+target+'-%s-%s-quote.csv'%(year,week),\
                             columns=['period',]+list(Constant.QUOTATION_STRUCTURE))
+
+            # 按照时间次序排列，并删除开头的十一行（实时记录行）
+            quoteDF = quoteDF.iloc[len(Constant.QUOTATION_DB_PERIOD):]
+
+            # 各周期进行测验。若到期，则进行策略匹配。
+            for index,period in enumerate(Constant.QUOTATION_DB_PREFIX[1:]):
+                if self.quoteHdl.remainder_higher_order_tm(period)!=0:
+                    continue
+
+                # 策略盈亏率数据库操作。先进行统计更新策略盈亏率数据，然后再分析及插入新条目。
+                # 5min周期定时器的主要任务就是更新盈亏率数据库。但5min行情数据必须周期刷新，所以update_quote(period)要前置。
+                if period == '5min':
+                    recInfo = self.recordHdl.get_record_dict(target)
+                    self.strategy.update_strategy([recInfo['time'],recInfo['high'],recInfo['low']])
+                    markEnd5min = datetime.datetime.now()
+                    Trace.output('info', "As for %s,Period %s update strategy cost: %s\n"\
+                             %(target, period, str(markEnd5min-markStart)))
+                    continue
+
+                # 指标计算和记录
+                self.indicator.process_indicator(period,quoteDF[quoteDF['period'==period]])
+                markIndicator = datetime.datetime.now()
+                Trace.output('info', "As for %s,Period %s process indicator cost: %s"\
+                             %(target, period, str(markIndicator-markStart)))
+
+                # 策略算法计算
+                # 数据加工补全
+                dataDealed = StrategyMisc.process_quotes_candlestick_pattern\
+                    (Configuration.get_period_working_folder(period),quoteDF[quoteDF['period'==period]])
+                self.strategy.check_strategy(period,dataDealed)
+                markStrategy = datetime.datetime.now()
+                Trace.output('info', "As for %s,Period %s check strategy cost: %s\n"\
+                             %(target, period, str(markStrategy-markIndicator)))
 
         # 基准定时器计数自增
         self.quoteHdl.increase_timeout_count()
 
         markEnd = datetime.datetime.now()
-        Trace.output('info', "It cost %s to operate stock(%s)."%\
+        Trace.output('info', "It cost %s to operate stock(%s) with timing out at %s."%\
                      (str(markEnd-markStart),' '.join(self.recordHdl.get_target_list())))
-
-    def work_heartbeat(self):
-        """ 快速定时器(心跳定时器)回调函数 : 数据抓取模块和行情数据库线程(缓冲字典)之间协同工作函数 """
-        # 全球市场结算期间不更新缓冲记录
-        # 数据抓取并筛选
-        if Constant.is_closing_market():
-            return
-
-        infoList = DataScrape.query_info()
-        if len(infoList) != 0:
-            self.recordHdl.update_dict_record(infoList)
-
-    def work_server_operation(self):
-        """ 外部接口API: 服务器端某周期的处理回调函数。
-            1.是否结算期及相关处理（转存csv文件和复位相关缓存）；2.更新行情数据库；
-            3.行情数据转dateframe格式文件；4.绘制蜡烛图（若需要）；5.调用策略模块进行计算（若需要）
-        """
-        periodName = threading.currentThread().getName()
-        markStart = datetime.datetime.now()
-
-        #结算期间由更新标志控制不会多次更新
-        if Constant.is_closing_market():
-            self.recordHdl.reset_dict_record(periodName) #对应周期的行情记录缓存及标志复位
-            return
-
-        self.quoteHdl.update_quote(periodName) #更新行情数据
-
-        #策略盈亏率数据库操作。先进行统计更新策略盈亏率数据，然后再分析及插入新条目。
-        #5min周期定时器的主要任务就是更新盈亏率数据库。但5min行情数据必须周期刷新，所以update_quote(period)要前置。
-        if periodName == '5min':
-            recInfo = self.recordHdl.get_record_dict()['5min']
-            self.strategy.update_strategy([recInfo['time'],float(recInfo['high']),float(recInfo['low'])])
-            markEnd5min = datetime.datetime.now()
-            Trace.output('info', "Period %s time out at %s and update strategy cost: %s\n"\
-                         %(periodName, markStart, str(markEnd5min-markStart)))
-            self.statistics_settlement()#统计汇总工作
-            if Constant.is_weekend():
-                os._exit(0) #退出Python程序
-            return
-
-        #其他周期定时器
-        markQuote = datetime.datetime.now()
-        Trace.output('info', "period %s update quote cost: %s"%(periodName,str(markQuote-markStart)))
-
-        #指标计算和记录
-        self.indicator.process_indicator(periodName,self.quoteHdl.query_quote(periodName))
-        markIndicator = datetime.datetime.now()
-        Trace.output('info', "period %s process indicator cost: %s"%(periodName,str(markIndicator-markQuote)))
-
-        #策略算法计算
-        #数据加工补全
-        dataDealed = StrategyMisc.process_quotes_candlestick_pattern\
-            (Configuration.get_period_working_folder(periodName),self.quoteHdl.query_quote(periodName))
-        self.strategy.check_strategy(periodName,dataDealed)
-        markStrategy = datetime.datetime.now()
-        Trace.output('info', "period %s check strategy cost: %s\n"%(periodName,str(markStrategy-markIndicator)))
 
     def statistics_settlement(self):
         """内部接口API: 盈亏统计工作。由汇总各周期盈亏数据库生成表格文件。"""

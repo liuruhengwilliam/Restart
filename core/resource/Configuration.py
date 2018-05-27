@@ -164,7 +164,7 @@ def get_property(strProperty):
 
     return ret
 
-def get_target_list():
+def parse_target_list():
     """ 外部函数API：配置文件中标的列表的查询函数。标的可能是单一期货/大宗商品，也可能是股票代码列表。
         返回值：标的列表。
     """
