@@ -7,7 +7,7 @@ import DataProcess
 from resource import Constant
 from copy import deepcopy
 import datetime
-from resource import Trace
+
 class Indicator():
     """
         指标类。蜡烛图、移动平均线、布林带。
