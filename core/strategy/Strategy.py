@@ -142,8 +142,8 @@ class Strategy():
             更新15min/30min/1hour/2hour/4hour/6hour/12hour周期的SER数据
             currentInfo:当前时间和价格信息
         """
-        closeTime, highPrice, lowPrice = currentInfo#当前时间和价格信息
-        closeTimeStr = closeTime.strftime("%Y-%m-%d %H:%M")
+        closeTimeStr, highPrice, lowPrice = currentInfo#当前时间和价格信息
+        closeTime = datetime.datetime.strptime(closeTimeStr,"%Y-%m-%d %H:%M:%S")
         if highPrice == 0.0 or lowPrice == 0.0:#对于抓取的异常数据不做处理
             return
         for tmName in Constant.QUOTATION_DB_PREFIX[2:-2]:
