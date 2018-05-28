@@ -47,7 +47,7 @@ class QuotationRecord():
         """ 外部接口API: 心跳定时器回调函数。更新缓冲记录。
             入参infoList的数据接口：[target,time,price]
         """
-        future,time,price = infoList
+        future,price,time = infoList
         self.recordPeriodDict[future]['time']=time
         self.recordPeriodDict[future]['close']=price
         if self.recordPeriodDict[future]['open'] == 0.0:
