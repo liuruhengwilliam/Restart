@@ -80,7 +80,7 @@ def get_working_directory():
         return dirPath
     for item in root.findall('workfolder'):
         dirPath = item.find('value').text
-    return  dirPath
+    return dirPath
 
 def get_back_week_directory(path,backDeepCnt):
     """ 外部接口API：搜索前若干周的路径

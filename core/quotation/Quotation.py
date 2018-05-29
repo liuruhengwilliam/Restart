@@ -16,7 +16,7 @@ from copy import deepcopy
 class Quotation():
     """ 行情数据类 """
     def __init__(self,quoteRecordIns):
-        self.baseTmCnt = 0#基本(驱动)定时器计数值
+        self.baseTmCnt = 1#基本(驱动)定时器计数值
         self.quoteRecord = quoteRecordIns
         self.quoteList = quoteRecordIns.get_target_list()
         self.quoteCache = {}
@@ -82,30 +82,31 @@ class Quotation():
             # 小于计数原子的周期不处理。
             if index < Constant.QUOTATION_DB_PERIOD.index(Constant.UPDATE_BASE_PERIOD):
                 continue
+            # 更新条目的截止时间/close价格
+            quoteDF.ix[index,'time'] = record['time']
+            quoteDF.ix[index,'close'] = record['close']
+            if self.baseTmCnt == 1:#更新基准定时器首次计数
+                quoteDF.ix[index,'open'] = record['open']
+                quoteDF.ix[index,'high'] = record['high']
+                quoteDF.ix[index,'low'] = record['low']
 
             # 每次更新DF结构的前若干行len(Constant.QUOTATION_DB_PERIOD)之一
             remainder = self.remainder_higher_order_tm(period)
-            # 高阶定时器的一个周期完结，先存档条目
-            if remainder == 0 and self.baseTmCnt != 0:
+            # 高阶定时器的一个周期完结，先存档旧条目，后更新条目
+            if remainder == 0:
                 # 将待存档的条目附着在本DataFrame结构后面。
                 quoteDF = quoteDF.append(quoteDF.ix[index],ignore_index=True)
-                # 记录附加项(DF结构的最后一行)到日志文件中
                 Trace.output('info',target+':Time out '+' '.join(list(quoteDF.iloc[-1].astype(str))))
-
-            # 再更新条目
-            quoteDF.ix[index,'time'] = record['time']
-            quoteDF.ix[index,'close'] = record['close']
-            # 高阶定时器周期内的首次更新
-            if remainder == 0:
-                    quoteDF.ix[index,'open'] = record['open']
-                    quoteDF.ix[index,'high'] = record['high']
-                    quoteDF.ix[index,'low'] = record['low']
+                # 高阶定时器周期内的首次更新。
+                quoteDF.ix[index,'open'] = record['open']
+                quoteDF.ix[index,'high'] = record['high']
+                quoteDF.ix[index,'low'] = record['low']
             else:
                 if quoteDF.ix[index,'high'] < record['high']:
                     quoteDF.ix[index,'high'] = record['high']
                 if quoteDF.ix[index,'low'] > record['low'] or quoteDF.ix[index,'low'] == 0.0:
                     quoteDF.ix[index,'low'] = record['low']
             self.quoteCache[target] = quoteDF#数据回写
-        #print self.quoteCache[target]#调试点
+        print self.quoteCache[target]#调试点
         self.quoteRecord.reset_target_record(target)
         return self.quoteCache[target]

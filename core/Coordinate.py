@@ -74,6 +74,7 @@ class Coordinate():
         for target in self.recordHdl.get_target_list():
             # 更新各周期行情数据缓存
             quoteDF = self.quoteHdl.update_quote(target)
+            #更新记录附加项(DF结构的最后一行)到日志文件中
             quoteDF.to_csv(Configuration.get_working_directory()+target+'-quote.csv',\
                             columns=['period',]+list(Constant.QUOTATION_STRUCTURE))
 
