@@ -79,8 +79,7 @@ def get_working_directory():
     except Exception,e:
         return dirPath
     for item in root.findall('workfolder'):
-        ret = item.find('value').text
-    return ret
+        return item.find('value').text
 
 def get_back_week_directory(path,backDeepCnt):
     """ 外部接口API：搜索前若干周的路径
