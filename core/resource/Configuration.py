@@ -96,21 +96,6 @@ def get_back_week_directory(path,backDeepCnt):
 
     return dirPath
 
-def create_period_working_folder():
-    """外部接口API: 创建各周期所属文件夹。用来存放csv和png等文件"""
-    for tagPeriod in Constant.QUOTATION_DB_PREFIX:
-        sysName = platform.system()
-        if (sysName == "Windows"):
-            dirPath = get_working_directory()+tagPeriod
-        elif (sysName == "Linux"):
-            dirPath = get_working_directory()+tagPeriod
-        else :# 未知操作系统
-            dirPath = tagPeriod
-
-        if not os.path.exists(dirPath):
-            # 创建当周数据库文件夹
-            os.makedirs(dirPath)
-
 def get_period_working_folder(period):
     """ 外部接口API：获取当前周的某周期属性文件夹路径
         period: 周期字符名称

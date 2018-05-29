@@ -6,7 +6,6 @@ from Coordinate import *
 from timer import TimerMotor
 
 Configuration.create_working_directory() #创建当周工作目录
-Configuration.create_period_working_folder() #创建各周期属性文件夹
 Constant.envi_init()#初始化杂项
 
 def server_main():
