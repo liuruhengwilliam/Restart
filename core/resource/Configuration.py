@@ -71,28 +71,26 @@ def get_working_directory():
 
     return dirPath
 
-def get_back_week_period_directory(path,backDeepCnt):
+def get_back_week_directory(path,backDeepCnt):
     """ 外部接口API：搜索前若干周的路径
         backDeepCnt: 追溯的历史周数
         path: 当前目录（含有周期字符串）
     """
     sysName = platform.system()
     if (sysName == "Windows"):
-        year,week = path.split('\\')[-3].split('-')
-        periodName = path.split('\\')[-2]
+        year,week = path.split('\\')[-2].split('-')
         if int(week)-backDeepCnt <= 0:
             dirPath = os.getcwd()+'\\'+str(int(year)-1)+'\\'+\
-                      '%s-%s'%(str(int(year)-1),str(52+int(week)-backDeepCnt))+'\\'+periodName+'\\'
+                      '%s-%s'%(str(int(year)-1),str(52+int(week)-backDeepCnt))+'\\'
         else:
-            dirPath = os.getcwd()+'\\'+year+'\\'+'%s-%s'%(year,str(int(week)-backDeepCnt))+'\\'+periodName+'\\'
+            dirPath = os.getcwd()+'\\'+year+'\\'+'%s-%s'%(year,str(int(week)-backDeepCnt))+'\\'
     elif (sysName == "Linux"):
-        year,week = path.split('/')[-3].split('-')
-        periodName = path.split('/')[-2]
+        year,week = path.split('/')[-2].split('-')
         if int(week)-backDeepCnt <= 0:
             dirPath = os.getcwd()+'/'+str(int(year)-1)+'/'+\
-                      '%s-%s'%(str(int(year)-1),str(52+int(week)-backDeepCnt))+'/'+periodName+'/'
+                      '%s-%s'%(str(int(year)-1),str(52+int(week)-backDeepCnt))+'/'
         else:
-            dirPath = os.getcwd()+'/'+year+'/'+'%s-%s'%(year,str(int(week)-backDeepCnt))+'/'+periodName+'/'
+            dirPath = os.getcwd()+'/'+year+'/'+'%s-%s'%(year,str(int(week)-backDeepCnt))+'/'
     else :# 未知操作系统
         dirPath = get_working_directory()
 
