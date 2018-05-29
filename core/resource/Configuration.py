@@ -69,7 +69,18 @@ def get_working_directory():
     else :# 未知操作系统
         dirPath = fileNamePrefix
 
-    return dirPath
+    # 避免嵌套调用，不能调用get_property()
+    if not os.path.exists(dirPath+'Properties.xml'):
+        return dirPath
+    # 寻找配置文件中的相关项
+    try:
+        tree = ET.parse(dirPath+'Properties.xml')
+        root = tree.getroot()
+    except Exception,e:
+        return dirPath
+    for item in root.findall('workfolder'):
+        ret = item.find('value').text
+    return ret
 
 def get_back_week_directory(path,backDeepCnt):
     """ 外部接口API：搜索前若干周的路径
