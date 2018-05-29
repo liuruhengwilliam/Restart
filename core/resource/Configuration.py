@@ -96,19 +96,6 @@ def get_back_week_directory(path,backDeepCnt):
 
     return dirPath
 
-def get_period_working_folder(period):
-    """ 外部接口API：获取当前周的某周期属性文件夹路径
-        period: 周期字符名称
-    """
-    sysName = platform.system()
-    if (sysName == "Windows"):
-        dirPath = get_working_directory()+period+'\\'
-    elif (sysName == "Linux"):
-        dirPath = get_working_directory()+period+'/'
-    else :# 未知操作系统
-        dirPath = period
-    return dirPath
-
 def get_period_anyone_folder(path,period):
     """ 外部接口API：获取任意周（当前周or某历史周）的某周期属性文件夹路径
         path: 指定的某文件夹路径
@@ -183,7 +170,7 @@ def download_realtime_file(suffix):
     """
     for tmName in Constant.QUOTATION_DB_PREFIX[1:]:
         dnldUrl = get_server_download_url(tmName)+tmName+'-'+suffix+'.csv'
-        filePath = get_period_working_folder(tmName)+tmName+'-'+suffix+'.csv'
+        filePath = get_working_directory()+tmName+'-'+suffix+'.csv'
         try:
             urllib.urlretrieve(dnldUrl,filename=filePath)
             Trace.output('info',"download csv file from %s"%(dnldUrl))
@@ -199,7 +186,7 @@ def download_statistic_file(suffix):
             for phase in ("quote","ser"):
                 dnldUrl = get_server_download_url(tmName)+\
                         tmName+'-'+phase+str(datetime.date.today())+'.'+suffix
-                filePath = get_period_working_folder(tmName)+\
+                filePath = get_working_directory()+\
                         tmName+'-'+phase+str(datetime.date.today())+'.'+suffix
                 try:
                     urllib.urlretrieve(dnldUrl,filename=filePath)
@@ -212,7 +199,7 @@ def download_statistic_file(suffix):
             for clock in range(24):
                 dnldUrl = get_server_download_url(tmName)+\
                         tmName+'-'+dayStamp+'_'+'%02d'%clock+'_00'+'.'+suffix
-                filePath = get_period_working_folder(tmName)+\
+                filePath = get_working_directory()+\
                         tmName+'-'+dayStamp+'_'+'%02d'%clock+'_00'+'.'+suffix
                 try:
                     urllib.urlretrieve(dnldUrl,filename=filePath)

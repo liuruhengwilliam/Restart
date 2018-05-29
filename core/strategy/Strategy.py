@@ -32,7 +32,7 @@ class Strategy():
         #该字典的键为周期名称字符串，值为DataFrame条目（见下）。
         valueDf = DataFrame(columns=Constant.SER_DF_STRUCTURE)#建立空的DataFrame数据结构
         for keyTag in Constant.QUOTATION_DB_PREFIX[Constant.QUOTATION_DB_PERIOD.index(Constant.UPDATE_BASE_PERIOD):]:
-            filename = Configuration.get_period_working_folder(keyTag)+keyTag+'-ser.csv'
+            filename = Configuration.get_working_directory()+'-ser.csv'
             if os.path.exists(filename):#非首次运行就存在数据库文件
                 valueDf = pd.read_csv(filename)
                 if valueDf is not None and len(valueDf) != 0:#若存在接续的数据记录

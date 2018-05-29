@@ -126,7 +126,7 @@ class Coordinate():
     def statistics_settlement(self):
         """内部接口API: 盈亏统计工作。由汇总各周期盈亏数据库生成表格文件。"""
         for tmName in Constant.QUOTATION_DB_PREFIX[Constant.QUOTATION_DB_PERIOD.index(Constant.UPDATE_BASE_PERIOD):]:
-            path = Configuration.get_period_working_folder(tmName)
+            path = Configuration.get_working_directory()
             if self.strategy.query_strategy_record(tmName) is not None:
                 self.strategy.query_strategy_record(tmName).to_csv(path_or_buf=path+tmName+'-ser.csv',\
                                     columns=Constant.SER_DF_STRUCTURE, index=False)
