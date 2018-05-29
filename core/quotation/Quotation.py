@@ -61,8 +61,8 @@ class Quotation():
             # 取从第（dataCnt-X个）到最后一个（第dataCnt）的数据（共X个）
             dataSupplementWithID = dataWithID.ix[int(gap):]
         else:# 要补齐蜡烛图中K线数目
-            dataSupplementWithID = QuotationKit.supplement_quotes\
-                (Configuration.get_period_working_folder(period),dataWithID,int(abs(gap)))
+            file = Configuration.get_working_directory()+'quote.csv'
+            dataSupplementWithID = QuotationKit.supplement_quotes(file,dataWithID,abs(gap))
 
         return dataSupplementWithID
 
@@ -108,4 +108,4 @@ class Quotation():
             self.quoteCache[target] = quoteDF#数据回写
         #print self.quoteCache[target]#调试点
         self.quoteRecord.reset_target_record(target)
-        yield self.quoteCache[target]
+        return self.quoteCache[target]
