@@ -49,7 +49,6 @@ class Coordinate():
                     continue
                 # 更新record
                 self.recordHdl.update_futures_record([target]+infoList)
-
             elif re.search(r'[^0-9](.*)',target) is None:#股票类型全是数字
                 if Constant.is_stock_closed():
                     return
@@ -72,11 +71,10 @@ class Coordinate():
             挂载在15min定时器。根据倍数关系，驱动更新其他大周期行情数据缓存。
         """
         markStart = datetime.datetime.now()
-        year,week = markStart.strftime('%Y'),markStart.strftime('%U')
         for target in self.recordHdl.get_target_list():
             # 更新各周期行情数据缓存
             quoteDF = self.quoteHdl.update_quote(target)
-            quoteDF.to_csv(Configuration.get_working_directory()+target+'-%s-%s-quote.csv'%(year,week),\
+            quoteDF.to_csv(Configuration.get_working_directory()+target+'-quote.csv',\
                             columns=['period',]+list(Constant.QUOTATION_STRUCTURE))
 
             # 按照时间次序排列，并删除开头的十一行（实时记录行）
@@ -86,22 +84,22 @@ class Coordinate():
             for index,period in enumerate(Constant.QUOTATION_DB_PREFIX):
                 if index < Constant.QUOTATION_DB_PERIOD.index(Constant.UPDATE_BASE_PERIOD):
                     continue
-                if self.quoteHdl.remainder_higher_order_tm(period)!=0:
+                if self.quoteHdl.remainder_higher_order_tm(period)!=0:#未到期
                     continue
 
                 # 策略盈亏率数据库操作。先进行统计更新策略盈亏率数据，然后再分析及插入新条目。
-                # 5min周期定时器的主要任务就是更新盈亏率数据库。但5min行情数据必须周期刷新，所以update_quote(period)要前置。
-                if period == '5min':
+                # 基准更新定时器的主要任务就是更新盈亏率数据库。
+                if index == Constant.QUOTATION_DB_PERIOD.index(Constant.UPDATE_BASE_PERIOD):
                     self.strategy.update_strategy([quoteDF.time[index],quoteDF.high[index],quoteDF.low[index]])
                     markEnd5min = datetime.datetime.now()
                     Trace.output('info', "As for %s,Period %s update strategy cost: %s"\
                              %(target, period, str(markEnd5min-markStart)))
                     continue
 
-                if len(quoteFilterDF) == 0:#若无记录，则跳出循环
+                quotePeriodDF = quoteFilterDF[quoteFilterDF['period']==period]#按周期挑选条目
+                if len(quotePeriodDF) == 0:#若无记录，则无法进行模式匹配。跳出循环。
                     break
 
-                quotePeriodDF = quoteFilterDF[quoteFilterDF['period']==period]
                 # 指标计算和记录
                 self.indicator.process_indicator(quotePeriodDF)
                 markIndicator = datetime.datetime.now()
