@@ -27,13 +27,6 @@ class Strategy():
         tplCandlestickPattern = {'Note':Constant.CANDLESTICK_PATTERN_NOTE, 'Pattern':Constant.CANDLESTICK_PATTERN}
         self.dfCandlestickPattern = DataFrame(tplCandlestickPattern,index=range(len(Constant.CANDLESTICK_PATTERN)))
 
-        #共享资源--数据库文件互斥锁
-        self.dictMutexLock={}
-        #检测5min~12hour的周期
-        for keyTag in Constant.QUOTATION_DB_PREFIX[Constant.QUOTATION_DB_PERIOD.index(Constant.UPDATE_BASE_PERIOD):]:
-            mutex = threading.Lock()
-            self.dictMutexLock.update({keyTag: mutex})
-
         #各周期策略生成后的记录DataFrame对象字典。该对象记录K线组合模式（可能有多条），然后再生成盈亏数据库记录条目，最后进行清理。
         self.dictPolRec = {}
         #该字典的键为周期名称字符串，值为DataFrame条目（见下）。
@@ -55,11 +48,11 @@ class Strategy():
         """
         return self.dictPolRec[period]
 
-    def check_candlestick_pattern(self,tmName,dataDealed):
+    def check_candlestick_pattern(self,dataDealed):
         """ 内部接口API: 蜡烛图组合图形的识别
-            tmName: 定时器周期名称的字符串
             dataDealed: 来自行情数据库的dataframe结构数据(已补全)
         """
+        tmName = dataDealed.period[dataDealed.index[0]]
         dfCollect = DataFrame(columns=Constant.SER_DF_STRUCTURE)#收集本周期内新增策略条目
         for indxs in self.dfCandlestickPattern.index:# 遍历所有已定义的蜡烛图组合模型
             note = self.dfCandlestickPattern.loc[indxs]['Note']
@@ -78,19 +71,7 @@ class Strategy():
                     dfLastLine = dataCache[dataCache[pattern]!=0][-1:] #按照时间排序的最后一行即是更新行。返回DataFrame结构。
 
                     #dfLastLine['time'].values是numpy.ndarray类型
-                    dealTmValue = str(dfLastLine['time'].values)
-                    if dealTmValue.startswith('[u\''):
-                        dealTmValue = dealTmValue.strip('[u\'\']')
-                    elif dealTmValue.startswith('[datetime.datetime'):#拼装成同种格式
-                        valueList = map(lambda x: x.strip(' '), dealTmValue.strip('[datetime.datetime()]').split(','))
-                        dealTmValue = '-'.join(valueList[0:3])+' '+':'.join(valueList[3:])
-                    elif dealTmValue.startswith('[\'') and dealTmValue.find('T')!=-1:
-                        dealTmValue = dealTmValue.strip('[\'\']').replace('T',' ').strip('.0')#理解strip含义
-                    elif dealTmValue.startswith('[\''):
-                        dealTmValue = dealTmValue.strip('[\'\']')
-                    else:
-                        Trace.output('fatal',"  invalid target time %s"%str(dfLastLine['time'].values))
-                        continue
+                    dealTmValue = dfLastLine['time'].values
                     targetTime = time.strptime(dealTmValue,'%Y-%m-%d %H:%M:%S')
 
                     #按照时间进行筛选。只添加不超过一个周期时间的条目。
@@ -101,8 +82,8 @@ class Strategy():
                         Trace.output('info','  find outdated strategy:%s'%pattern+' Time:%s'%dealTmValue+' in Period %s'%tmName)
                         continue
                     #匹配K线组合模式成功后，添加到本周期DataFrame记录对象中。相关统计项暂记为空值。
-                    matchItem = [dealTmValue,float(dfLastLine['close'].values),tmName,pattern,int(dfLastLine[pattern].values),'1900-01-01 00:00']\
-                                +[0.0,'1900-01-01 00:00',10000.0,'1900-01-01 00:00']*7+[0,15*60]
+                    matchItem = [dealTmValue,float(dfLastLine['close'].values),tmName,pattern,int(dfLastLine[pattern].values),\
+                                 '1900-01-01 00:00']+[0.0,'1900-01-01 00:00',10000.0,'1900-01-01 00:00']*7+[0,15*60]
                     #最后两项的含义：设置第一个周期是'15min'--序号为0，周期计数为15*60。
                     dfCollect = dfCollect.append(pd.Series(matchItem,index=Constant.SER_DF_STRUCTURE),ignore_index=True)
             except (Exception),e:
@@ -116,25 +97,23 @@ class Strategy():
             for itemRow in dfCollect.itertuples(index=False):
                 Trace.output('info','    '+(' ').join(map(lambda x:str(x), itemRow)))
 
-            self.dictMutexLock[tmName].acquire()
             if len(self.dictPolRec[tmName]) == 0:
                 self.dictPolRec[tmName] = dfCollect
             else:
                 self.dictPolRec[tmName] = self.dictPolRec[tmName].append(dfCollect,ignore_index=True)
-            self.dictMutexLock[tmName].release()
 
-    def check_strategy(self,periodName,dataWithId):
+    def check_strategy(self,data):
         """ 外部接口API: 检测行情，依据策略生成相关指令
-            periodName:周期名称字符串
-            dataWithID: 来自行情数据库的dataframe结构数据(已补全)
+            data: 来自行情数据库的dataframe结构数据(已补全)
         """
+        periodName = data.period[data.index[0]]
         indx = Constant.QUOTATION_DB_PREFIX.index(periodName)
         # 微尺度周期不匹配蜡烛图模式（减少策略生成的频度）
         if Constant.SCALE_CANDLESTICK[indx] < Constant.DEFAULT_SCALE_CANDLESTICK_PATTERN:
             return
 
         # 首先匹配蜡烛图组合
-        self.check_candlestick_pattern(periodName,dataWithId)
+        self.check_candlestick_pattern(data)
         # 其次结合移动平均线和布林线进行分析
 
     def update_strategy(self,currentInfo):
@@ -147,13 +126,9 @@ class Strategy():
         if highPrice == 0.0 or lowPrice == 0.0:#对于抓取的异常数据不做处理
             return
         for tmName in Constant.QUOTATION_DB_PREFIX[2:-2]:
-            #检查本周期DataFrame结构实例中是否有条目需要插入到数据库文件中。此处只读访问，不进行资源互锁。
-            self.dictMutexLock[tmName].acquire()
+            #检查本周期DataFrame结构实例中是否有条目需要插入到数据库文件中。
             dfStrategy = self.dictPolRec[tmName]
 
-            if dfStrategy is None or len(dfStrategy) == 0:
-                self.dictMutexLock[tmName].release()
-                continue
             rowNo = -1#行号定义为-1，简化后续循环的逻辑处理
             for itemRow in dfStrategy.itertuples(index=False):
                 rowNo+=1#行号自增
@@ -225,4 +200,3 @@ class Strategy():
                     traceback.print_exception(exc_type, exc_value, exc_tb)
                     traceback.print_exc(file=open(Configuration.get_working_directory()+'trace.txt','a'))
 
-            self.dictMutexLock[tmName].release()
