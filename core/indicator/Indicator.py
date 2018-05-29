@@ -25,12 +25,12 @@ class Indicator():
             self.indiMADict.update(itemMA)
             self.indiBBandsDict.update(itemBBands)
 
-    def process_indicator(self,periodName,dataWithId):
+    def process_indicator(self,data):
         """ 外部接口API: 计算指标
-            periodName:周期名称的字符串（用于计算蜡烛图展示根数）
-            dataWithId:行情数据库中dateframe结构的数据。
+            data:行情数据dateframe结构的数据。
         """
-        dataPicked = DataProcess.process_quotes_4indicator(periodName,dataWithId)
+        periodName = data.period[data.index[0]]
+        dataPicked = DataProcess.process_quotes_4indicator(data)
 
         #数据样本太小就不制图
         if len(dataPicked) < Constant.CANDLESTICK_PATTERN_MATCH_CNT[Constant.QUOTATION_DB_PREFIX.index(periodName)]:

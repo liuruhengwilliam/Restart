@@ -44,7 +44,7 @@ def process_compact_dt2num(periodIndx, dataPicked):
     # 补偿差值列表次序同列表Constant.QUOTATION_DB_PREFIX顺序。各周期补偿差值为统计算术平均值，非精确值。
     deltaTickList = [0,0.0035,0.0104,0.0208,0.0417,0.0833,0.1666,0.2500,0.5000,1.0000,7.0000]
     for indx in dataPicked.index:
-        idCursor = int(dataPicked.loc[indx,['id']])
+        idCursor = indx
         if deltaID == 0:#初次检测
             deltaID = idCursor-indx #设置序号偏差初值
         if deltaID != int(idCursor-indx):#出现补全数据（有时间缺口）
@@ -54,40 +54,34 @@ def process_compact_dt2num(periodIndx, dataPicked):
 
         dt2numEx = float(dataPicked.loc[indx,['dt2num']]) #记录'dt2num'前值
 
-def process_quotes_4indicator(periodName,dataWithID):
+def process_quotes_4indicator(data):
     """ 外部接口API：处理quotes数据
         1.去掉id栏
         2.调用date2num函数转换datetime
         periodName:周期名称的字符串
-        dataWithID: dataframe结构的数据
+        data: dataframe结构的数据
         返回值: dateframe结构数据(id, time, open, high, low, close, dt2num)
     """
-    dataCnt = dataWithID.iloc[-1:]['id']
+    dataCnt = len(data)
+    periodName = data.period[data.index[0]]
     indx = Constant.QUOTATION_DB_PREFIX.index(periodName)
     gap = int(dataCnt)-Constant.CANDLESTICK_PERIOD_CNT[indx]
     if gap >= 0:
         # 取从第（dataCnt-X个）到最后一个（第dataCnt）的数据（共X个）
-        dataSupplementWithID = dataWithID.ix[int(gap):]
+        dataSupplement = data.ix[int(gap):]
     else:# 要补齐蜡烛图中K线数目
-        dataSupplementWithID = QuotationKit.supplement_quotes\
-            (Configuration.get_period_working_folder(periodName),dataWithID,int(abs(gap)))
+        file = Configuration.get_working_directory()+'quote.csv'
+        dataSupplement = QuotationKit.supplement_quotes(file,data,abs(gap))
 
-    dataSupplementWithID.is_copy = False #消除告警信息
+    dataSupplement.is_copy = False #消除告警信息
     # 附加'dt2num'列
     dateDeal = []
-    for tm in np.array(dataSupplementWithID['time']):
-        if type(tm) == unicode:#unicode需要转string
-            dateDeal.append(date2num(datetime.datetime.strptime(tm.encode('unicode-escape'),"%Y-%m-%d %H:%M:%S")))
-        elif type(tm) == str:
-            dateDeal.append(date2num(datetime.datetime.strptime(tm,"%Y-%m-%d %H:%M:%S")))
-        elif type(tm) == np.datetime64:#bug fixed
-            dateDeal.append(date2num(datetime.datetime.strptime(str(tm).strip('.0').replace('T',' '),"%Y-%m-%d %H:%M:%S")))
-        else:#Just joke: default would be the type of datetime.datetime
-            dateDeal.append(date2num(tm))
+    for tm in np.array(dataSupplement['time']):
+        dateDeal.append(date2num(datetime.datetime.strptime(tm,"%Y-%m-%d %H:%M:%S")))
 
-    dataSupplementWithID['dt2num'] = (dateDeal)
+    dataSupplement['dt2num'] = (dateDeal)
 
     # 为绘图时将空白时间删除，调整DataFrame中的‘dt2num’列
-    process_compact_dt2num(indx, dataSupplementWithID)
+    #process_compact_dt2num(indx, dataSupplementWithID)
 
-    return dataSupplementWithID
+    return dataSupplement
