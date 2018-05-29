@@ -507,11 +507,13 @@ def get_week_of_month(year, month, day):
      return end - begin + 1
 
 def dataframe_transfer_csv():
-    filename = 'F:\\code\\python\\RESTART\\core\\2018\\2018-19\\5min\\5min-quote.csv'
+    #filename = 'F:\\code\\python\\RESTART\\core\\2018\\2018-19\\5min\\5min-quote.csv'
+    filename = 'F:\\code\\python\\RESTART\\core\\2018\\2018-20\\002008-2018-20-quote.csv'
     tempDf = pd.read_csv(filename)
     print tempDf
-    print tempDf['close'].as_matrix()
-    print tempDf['close'].as_matrix()[0],type(tempDf['close'].as_matrix()[0])
+    print tempDf[tempDf['period']=='5min']
+    #print tempDf['close'].as_matrix()
+    #print tempDf['close'].as_matrix()[0],type(tempDf['close'].as_matrix()[0])
     #for item in tempDf.index:
     #    print item
     time1 = datetime.datetime.now()
@@ -624,7 +626,7 @@ def yield_caller():
         print value
 
 if __name__ == '__main__':
-    yield_caller()
+    #yield_caller()
     #csv_test()
     #db_test()
     #file_test()
@@ -632,7 +634,7 @@ if __name__ == '__main__':
     #talib_macd()
     #talib_sma_test()
     #query_info()
-    #dataframe_transfer_csv()
+    dataframe_transfer_csv()
     #configuration_stock()
     #stock_from_eastMoney()
     #get_property()
