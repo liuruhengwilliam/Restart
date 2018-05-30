@@ -1,4 +1,5 @@
 #coding=utf-8
+import re
 import os
 import sys
 import time
@@ -245,3 +246,15 @@ def is_stock_closed():
         return False
     else:
         return True
+
+def is_closed(target):
+    """ 外部接口API:判断当前时间是否为休市时间
+        返回值：True---休/闭市时间；False---交易时间
+    """
+    if re.search(r'[^a-zA-Z]',target) is None:#大宗商品类型全是英文字母
+        if is_futures_closed():
+            return True
+    elif re.search(r'[^0-9](.*)',target) is None:#股票类型全是数字
+        if is_stock_closed():
+            return True
+    return False

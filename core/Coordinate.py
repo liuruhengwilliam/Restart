@@ -38,11 +38,12 @@ class Coordinate():
         """ 外部函数API：抓取某股票代码的实时行情数据处理函数 """
         markStart = datetime.datetime.now()
         for target in self.recordHdl.get_target_list():
+            if Constant.is_closed(target):#当前是否为闭市时间
+                return
+
             # 通过正则表达式来区分标的类型：股票（数字） or 大宗商品（英文字母）
             # re.match(r'[a-zA-Z](.*)',target)#re.match在字符串开始处匹配模式
             if re.search(r'[^a-zA-Z]',target) is None:#大宗商品类型全是英文字母
-                if Constant.is_futures_closed():
-                    return
                 infoList = DataScrape.query_info_futures()
                 if len(infoList) != 2:
                     Trace.output('warn',"Faile to query:%s"%target)
@@ -50,8 +51,6 @@ class Coordinate():
                 # 更新record
                 self.recordHdl.update_futures_record([target]+infoList)
             elif re.search(r'[^0-9](.*)',target) is None:#股票类型全是数字
-                if Constant.is_stock_closed():
-                    return
                 quoteList = DataScrape.query_info_stock(target)
                 if quoteList is None or len(quoteList) != len(Constant.QUOTATION_STRUCTURE):
                     Trace.output('warn',"Faile to query:%s"%target)
@@ -63,8 +62,8 @@ class Coordinate():
                 continue
 
         markQuery = datetime.datetime.now()
-        Trace.output('debug', "It cost %s to query target(%s)."%\
-                     (str(markQuery-markStart),' '.join(self.recordHdl.get_target_list())))
+        Trace.output('debug', "It cost %s to query target(%s) at %s."%\
+                     (str(markQuery-markStart),' '.join(self.recordHdl.get_target_list()),markStart))
 
     def work_operation(self):
         """ 外部函数API：股票代码的周期行情数据缓存处理函数
@@ -72,6 +71,8 @@ class Coordinate():
         """
         markStart = datetime.datetime.now()
         for target in self.recordHdl.get_target_list():
+            if Constant.is_closed(target):#当前是否为闭市时间
+                return
             # 更新各周期行情数据缓存
             quoteDF = self.quoteHdl.update_quote(target)
             #更新记录附加项(DF结构的最后一行)到日志文件中
