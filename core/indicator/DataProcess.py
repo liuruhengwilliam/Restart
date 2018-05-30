@@ -67,10 +67,11 @@ def process_quotes_4indicator(data):
     else:
         dataSupplement = data
 
-    dataSupplement.is_copy = False #消除告警信息
     # 附加'dt2num'列
     dateDeal = []
     for tm in np.array(dataSupplement['time']):
+        if tm.find('/')!=-1:
+            tm = tm.replace('/','-')
         dateDeal.append(date2num(datetime.datetime.strptime(tm,"%Y-%m-%d %H:%M:%S")))
 
     dataSupplement['dt2num'] = (dateDeal)
