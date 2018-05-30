@@ -1,7 +1,8 @@
 #coding=utf-8
 
-import sqlite3
+import re
 import os
+import sqlite3
 import threading
 import platform
 import QuotationKit
@@ -30,9 +31,14 @@ class Quotation():
 
         # 汇总各标的字典项
         for target in self.quoteList:
-            self.quoteCache.update({target:deepcopy(quoteDF)})
+            #程序启动时补全当周数据，为后续指标和策略计算做好准备
+            file = Configuration.get_working_directory()+'%s-quote.csv'%target
+            if not os.path.exists(file):
+                self.quoteCache.update({target:deepcopy(quoteDF)})
+            else:#补全历史数据
+                self.quoteCache.update({target:deepcopy(self.process_quotes_supplement(target,pd.read_csv(file)))})
 
-        #程序启动时补全历史数据，为后续指标和策略计算做好准备
+            print self.quoteCache[target]
 
     def increase_timeout_count(self):
         """ 外部接口API：基准更新定时器的到期计数值。基准更新定时器的回调函数调用。 """
@@ -48,23 +54,23 @@ class Quotation():
         divisor = dividend/Constant.UPDATE_BASE_PERIOD
         return self.baseTmCnt%divisor
 
-    def process_quotes_supplement(self,period,dataWithID):
+    def process_quotes_supplement(self,target,data):
         """ 内部接口API：补全quotes数据
-            periodName:周期名称的字符串
-            dataWithID: dataframe结构的数据
-            返回值: dateframe结构数据(id, time, open, high, low, close)
+            target:标的字符串
+            data: dataframe结构的数据
+            返回值: dateframe结构数据(period, time, open, high, low, close)
         """
-        cnt = len(dataWithID)
-        indx = Constant.QUOTATION_DB_PREFIX.index(period)
-        gap = cnt-Constant.CANDLESTICK_PERIOD_CNT[indx]
-        if gap >= 0:
-            # 取从第（dataCnt-X个）到最后一个（第dataCnt）的数据（共X个）
-            dataSupplementWithID = dataWithID.ix[int(gap):]
-        else:# 要补齐蜡烛图中K线数目
-            file = Configuration.get_working_directory()+'quote.csv'
-            dataSupplementWithID = QuotationKit.supplement_quotes(file,dataWithID,abs(gap))
+        if re.search(r'[^a-zA-Z]',target) is None:#大宗商品类型全是英文字母
+            gap = Constant.CANDLESTICK_PATTERN_MATCH_FUTURE_GAP
+        elif re.search(r'[^0-9](.*)',target) is None:#股票类型全是数字
+            gap = Constant.CANDLESTICK_PATTERN_MATCH_STOCK_GAP
+        else:#异常标的不做补全处理
+            return data
 
-        return dataSupplementWithID
+        file = Configuration.get_working_directory()+'%s-quote.csv'%target
+        dataSupplement = QuotationKit.supplement_quotes(file,data,gap)
+
+        return dataSupplement
 
     def query_quote(self,target):
         """ 外部接口API: 获取某标的quote缓存。

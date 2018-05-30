@@ -19,7 +19,6 @@ def supplement_quotes(path,data,supplementCnt):
         返回值: 增补后的dateframe结构行情数据
     """
     weekGap = 1 # 从前一周开始搜索
-    period = data.period[data.index[0]]#直接获取'period'列的首项
     while supplementCnt > 0:
         preDBfile = Configuration.get_back_week_directory(path,weekGap)+\
                         Configuration.get_field_from_string(path)[-1]
@@ -28,11 +27,9 @@ def supplement_quotes(path,data,supplementCnt):
 
         dataSupplement = pd.read_csv(preDBfile)
         if dataSupplement is None or len(dataSupplement) == 0:
-            #对于无记录文件情形，dataSupplementCnt为空Series。int(dataSupplementCnt)会报错。
             supplCnt = 0
         else:
-            dataSupplementCnt = len(dataSupplement)#dataSupplementWithID.iloc[-1:]['id']
-            supplCnt = int(dataSupplementCnt)
+            supplCnt = len(dataSupplement)
 
         if supplCnt >= supplementCnt: #已经能够补全，取后面的(supplementCnt)个数据
             dataCollect = dataSupplement.iloc[supplCnt-supplementCnt:]
