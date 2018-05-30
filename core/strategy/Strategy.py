@@ -48,11 +48,11 @@ class Strategy():
         """
         return self.dictPolRec[period]
 
-    def check_candlestick_pattern(self,dataDealed):
+    def check_candlestick_pattern(self,data):
         """ 内部接口API: 蜡烛图组合图形的识别
-            dataDealed: 来自行情数据库的dataframe结构数据(已补全)
+            data: 来自行情数据库的dataframe结构数据(已补全)
         """
-        tmName = dataDealed.period[dataDealed.index[0]]
+        tmName = data.period[data.index[0]]
         dfCollect = DataFrame(columns=Constant.SER_DF_STRUCTURE)#收集本周期内新增策略条目
         for indxs in self.dfCandlestickPattern.index:# 遍历所有已定义的蜡烛图组合模型
             note = self.dfCandlestickPattern.loc[indxs]['Note']
@@ -61,11 +61,10 @@ class Strategy():
                 continue
             result = None
             try:
-                result = getattr(talib, pattern)(dataDealed['open'].values,\
-                    dataDealed['high'].values,dataDealed['low'].values,dataDealed['close'].values)
+                result = getattr(talib, pattern)(data['open'].values,data['high'].values,data['low'].values,data['close'].values)
                 # result是numpy.ndarray数据结构
                 if len(result) != 0 and result.any() == True:
-                    dataCache = copy.copy(dataDealed)#浅复制即可。若是赋值会污染‘dataDealed’；若是深拷贝会影响运行效率。
+                    dataCache = copy.copy(data)#浅复制即可。若是赋值会污染‘data’；若是深拷贝会影响运行效率。
                     #关于浅拷贝和深拷贝说明的一篇文章 https://www.cnblogs.com/zxlovenet/p/4575228.html
                     dataCache[pattern] = result #增加蜡烛图组合模式的名称列
                     dfLastLine = dataCache[dataCache[pattern]!=0][-1:] #按照时间排序的最后一行即是更新行。返回DataFrame结构。
