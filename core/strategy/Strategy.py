@@ -70,7 +70,7 @@ class Strategy():
                     dfLastLine = dataCache[dataCache[pattern]!=0][-1:] #按照时间排序的最后一行即是更新行。返回DataFrame结构。
 
                     #dfLastLine['time'].values是numpy.ndarray类型
-                    dealTmValue = dfLastLine['time'].values
+                    dealTmValue = str(dfLastLine['time'].values).strip('[\']')
                     targetTime = time.strptime(dealTmValue,'%Y-%m-%d %H:%M:%S')
 
                     #按照时间进行筛选。只添加不超过一个周期时间的条目。
