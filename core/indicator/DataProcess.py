@@ -72,7 +72,10 @@ def process_quotes_4indicator(data):
     for tm in np.array(dataSupplement['time']):
         if tm.find('/')!=-1:
             tm = tm.replace('/','-')
-        dateDeal.append(date2num(datetime.datetime.strptime(tm,"%Y-%m-%d %H:%M:%S")))
+        if len(tm.split(':')) == 2:
+            dateDeal.append(date2num(datetime.datetime.strptime(tm,"%Y-%m-%d %H:%M")))
+        else:
+            dateDeal.append(date2num(datetime.datetime.strptime(tm,"%Y-%m-%d %H:%M:%S")))
 
     dataSupplement['dt2num'] = (dateDeal)
 

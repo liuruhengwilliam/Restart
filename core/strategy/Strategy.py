@@ -73,7 +73,12 @@ class Strategy():
 
                     #dfLastLine['time'].values是numpy.ndarray类型
                     dealTmValue = str(dfLastLine['time'].values).strip('[\']')
-                    targetTime = time.strptime(dealTmValue,'%Y-%m-%d %H:%M:%S')
+                    if dealTmValue.find('/')!=-1:
+                        dealTmValue = dealTmValue.replace('/','-')
+                    if len(dealTmValue.split(':')) == 2:
+                        targetTime = time.strptime(dealTmValue,"%Y-%m-%d %H:%M")
+                    else:
+                        targetTime = time.strptime(dealTmValue,"%Y-%m-%d %H:%M:%S")
 
                     #按照时间进行筛选。只添加不超过一个周期时间的条目。
                     nowFloat=time.mktime(time.strptime(str(datetime.datetime.now()).split('.')[0],'%Y-%m-%d %H:%M:%S'))
@@ -126,7 +131,11 @@ class Strategy():
         closeTimeStr, highPrice, lowPrice = currentInfo#当前时间和价格信息
         if closeTimeStr.find('/')!=-1:
             closeTimeStr = closeTimeStr.replace('/','-')
-        closeTime = datetime.datetime.strptime(closeTimeStr,"%Y-%m-%d %H:%M:%S")
+        if len(closeTimeStr.split(':')) == 2:
+            closeTime = datetime.datetime.strptime(closeTimeStr,"%Y-%m-%d %H:%M")
+        else:
+            closeTime = datetime.datetime.strptime(closeTimeStr,"%Y-%m-%d %H:%M:%S")
+
         if highPrice == 0.0 or lowPrice == 0.0:#对于抓取的异常数据不做处理
             return
         targetDF = self.dictPolRec[target]
@@ -142,11 +151,18 @@ class Strategy():
                 #    continue
                 if itemRow[-2] >= Constant.SER_MAX_PERIOD:#最小周期从0开始计数故不能取MAX值。
                     continue
+
+                # time项的异常处理
                 baseTime = itemRow[Constant.SER_DF_STRUCTURE.index('time')]
                 if baseTime.find('/')!=-1:
                     baseTime = baseTime.replace('/','-')
+                if len(baseTime.split(':')) == 2:
+                    baseTimeDT = datetime.datetime.strptime(baseTime,"%Y-%m-%d %H:%M")
+                else:
+                    baseTimeDT = datetime.datetime.strptime(baseTime,"%Y-%m-%d %H:%M:%S")
+
                 #不更新过期（相对于策略盈亏条目的生成时间）的收盘价格。入参closeTime是datetime类型
-                if closeTime < datetime.datetime.strptime(baseTime,"%Y-%m-%d %H:%M:%S"):
+                if closeTime < baseTimeDT:
                     continue
                 try:
                     patternStr = itemRow[Constant.SER_DF_STRUCTURE.index('patternName')]
