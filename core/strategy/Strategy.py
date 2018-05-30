@@ -21,35 +21,37 @@ class Strategy():
     """
         策略算法模块
     """
-    def __init__(self):
+    def __init__(self,quoteRecordIns):
         """ 初始化 """
+        self.targetList = quoteRecordIns.get_target_list()
         #蜡烛图组合模式DataFrame结构化
         tplCandlestickPattern = {'Note':Constant.CANDLESTICK_PATTERN_NOTE, 'Pattern':Constant.CANDLESTICK_PATTERN}
         self.dfCandlestickPattern = DataFrame(tplCandlestickPattern,index=range(len(Constant.CANDLESTICK_PATTERN)))
 
         #各周期策略生成后的记录DataFrame对象字典。该对象记录K线组合模式（可能有多条），然后再生成盈亏数据库记录条目，最后进行清理。
         self.dictPolRec = {}
-        #该字典的键为周期名称字符串，值为DataFrame条目（见下）。
+        #该字典的键为标的名称字符串，值为DataFrame条目（见下）
         valueDf = DataFrame(columns=Constant.SER_DF_STRUCTURE)#建立空的DataFrame数据结构
-        for keyTag in Constant.QUOTATION_DB_PREFIX[Constant.QUOTATION_DB_PERIOD.index(Constant.UPDATE_BASE_PERIOD):]:
-            filename = Configuration.get_working_directory()+'-ser.csv'
+        for target in self.targetList:
+            filename = Configuration.get_working_directory()+'%s-ser.csv'%target
             if os.path.exists(filename):#非首次运行就存在数据库文件
                 valueDf = pd.read_csv(filename)
                 if valueDf is not None and len(valueDf) != 0:#若存在接续的数据记录
-                    Trace.output('info'," === %s Period to be continued from SerCSV === "%keyTag)
+                    Trace.output('info',"=== To be continued from %s SerCSV ==="%target)
                     for itemRow in valueDf.itertuples(index=False):
                         Trace.output('info','    '+(' ').join(map(lambda x:str(x), itemRow)))
 
-            self.dictPolRec.update({keyTag: deepcopy(valueDf)})
+            self.dictPolRec.update({target:deepcopy(valueDf)})
 
-    def query_strategy_record(self,period):
+    def get_strategy_record(self,target):
         """ 外部接口API: 获取某周期的策略记录
-            period: 周期字符串
+            target: 标的字符串
         """
-        return self.dictPolRec[period]
+        return self.dictPolRec[target]
 
-    def check_candlestick_pattern(self,data):
+    def check_candlestick_pattern(self,target,data):
         """ 内部接口API: 蜡烛图组合图形的识别
+            target:标的字符串
             data: 来自行情数据库的dataframe结构数据(已补全)
         """
         tmName = data.period[data.index[0]]
@@ -96,13 +98,14 @@ class Strategy():
             for itemRow in dfCollect.itertuples(index=False):
                 Trace.output('info','    '+(' ').join(map(lambda x:str(x), itemRow)))
 
-            if len(self.dictPolRec[tmName]) == 0:
-                self.dictPolRec[tmName] = dfCollect
+            if len(self.dictPolRec[target]) == 0:
+                self.dictPolRec[target] = dfCollect
             else:
-                self.dictPolRec[tmName] = self.dictPolRec[tmName].append(dfCollect,ignore_index=True)
+                self.dictPolRec[target] = self.dictPolRec[target].append(dfCollect,ignore_index=True)
 
-    def check_strategy(self,data):
+    def check_strategy(self,target,data):
         """ 外部接口API: 检测行情，依据策略生成相关指令
+            target:标的字符串
             data: 来自行情数据库的dataframe结构数据(已补全)
         """
         periodName = data.period[data.index[0]]
@@ -112,36 +115,41 @@ class Strategy():
             return
 
         # 首先匹配蜡烛图组合
-        self.check_candlestick_pattern(data)
+        self.check_candlestick_pattern(target,data)
         # 其次结合移动平均线和布林线进行分析
 
-    def update_strategy(self,currentInfo):
-        """ 外部接口API: 更新某周期的策略盈亏率数据。
-            更新15min/30min/1hour/2hour/4hour/6hour/12hour周期的SER数据
+    def update_strategy(self,target,currentInfo):
+        """ 外部接口API: 更新某周期的策略盈亏率数据。更新高阶定时器周期的SER数据。
+            target:标的字符串
             currentInfo:当前时间和价格信息
         """
         closeTimeStr, highPrice, lowPrice = currentInfo#当前时间和价格信息
+        if closeTimeStr.find('/')!=-1:
+            closeTimeStr = closeTimeStr.replace('/','-')
         closeTime = datetime.datetime.strptime(closeTimeStr,"%Y-%m-%d %H:%M:%S")
         if highPrice == 0.0 or lowPrice == 0.0:#对于抓取的异常数据不做处理
             return
-        for tmName in Constant.QUOTATION_DB_PREFIX[2:-2]:
+        targetDF = self.dictPolRec[target]
+        for period in Constant.QUOTATION_DB_PREFIX[2:-2]:
             #检查本周期DataFrame结构实例中是否有条目需要插入到数据库文件中。
-            dfStrategy = self.dictPolRec[tmName]
+            dfStrategy = targetDF[targetDF['period']==period]
+            print dfStrategy#调试点
 
-            rowNo = -1#行号定义为-1，简化后续循环的逻辑处理
             for itemRow in dfStrategy.itertuples(index=False):
-                rowNo+=1#行号自增
+                rowNo = itemRow[0]#行号
                 deadTimeIndx = Constant.SER_DF_STRUCTURE.index('DeadTime')
                 #if itemRow[deadTimeIndx] != '':#DeadTime已经记录，不再更新。
                 #    continue
                 if itemRow[-2] >= Constant.SER_MAX_PERIOD:#最小周期从0开始计数故不能取MAX值。
                     continue
+                baseTime = itemRow[Constant.SER_DF_STRUCTURE.index('time')]
+                if baseTime.find('/')!=-1:
+                    baseTime = baseTime.replace('/','-')
                 #不更新过期（相对于策略盈亏条目的生成时间）的收盘价格。入参closeTime是datetime类型
-                if closeTime < datetime.datetime.strptime(itemRow[Constant.SER_DF_STRUCTURE.index('time')],"%Y-%m-%d %H:%M:%S"):
+                if closeTime < datetime.datetime.strptime(baseTime,"%Y-%m-%d %H:%M:%S"):
                     continue
                 try:
                     patternStr = itemRow[Constant.SER_DF_STRUCTURE.index('patternName')]
-                    baseTime = itemRow[Constant.SER_DF_STRUCTURE.index('time')]
                     basePriceIndx = Constant.SER_DF_STRUCTURE.index('price')
                     dircIndx = Constant.SER_DF_STRUCTURE.index('patternVal')
                     basePrice = itemRow[basePriceIndx]
@@ -182,7 +190,7 @@ class Strategy():
                     #判断是否止损，止损刻度时间的精度是5min。
                     if StrategyMisc.set_dead_price(basePrice,dirc,highPrice,lowPrice)==True:
                         Trace.output('warn','  == In Period %s, item DIED which bsTm %s bsPr %f dirc %d Pattern %s'\
-                                     %(tmName,baseTime,basePrice,dirc,patternStr))
+                                     %(period,baseTime,basePrice,dirc,patternStr))
                         dfStrategy.iat[rowNo,deadTimeIndx] = closeTimeStr
 
                     #链式定时计数小于等于0说明有相关周期策略盈亏率统计周期要增加
