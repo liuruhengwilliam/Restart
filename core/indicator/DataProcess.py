@@ -55,23 +55,17 @@ def process_compact_dt2num(periodIndx, dataPicked):
         dt2numEx = float(dataPicked.loc[indx,['dt2num']]) #记录'dt2num'前值
 
 def process_quotes_4indicator(data):
-    """ 外部接口API：处理quotes数据
-        1.去掉id栏
-        2.调用date2num函数转换datetime
-        periodName:周期名称的字符串
+    """ 外部接口API：处理quotes数据。调用date2num函数转换datetime。
         data: dataframe结构的数据
-        返回值: dateframe结构数据(id, time, open, high, low, close, dt2num)
+        返回值: dateframe结构数据(period, time, open, high, low, close, dt2num)
     """
     dataCnt = len(data)
-    periodName = data.period[data.index[0]]
-    indx = Constant.QUOTATION_DB_PREFIX.index(periodName)
-    gap = int(dataCnt)-Constant.CANDLESTICK_PERIOD_CNT[indx]
-    if gap >= 0:
-        # 取从第（dataCnt-X个）到最后一个（第dataCnt）的数据（共X个）
+    period = data.period[data.index[0]]
+    gap = dataCnt-Constant.CANDLESTICK_PERIOD_CNT[Constant.QUOTATION_DB_PREFIX.index(period)]
+    if gap >= 0:#取出从第（dataCnt-X个）到最后一个（第dataCnt）的数据（共X个）
         dataSupplement = data.ix[int(gap):]
-    else:# 要补齐蜡烛图中K线数目
-        file = Configuration.get_working_directory()+'quote.csv'
-        dataSupplement = QuotationKit.supplement_quotes(file,data,abs(gap))
+    else:
+        dataSupplement = data
 
     dataSupplement.is_copy = False #消除告警信息
     # 附加'dt2num'列
@@ -82,6 +76,6 @@ def process_quotes_4indicator(data):
     dataSupplement['dt2num'] = (dateDeal)
 
     # 为绘图时将空白时间删除，调整DataFrame中的‘dt2num’列
-    #process_compact_dt2num(indx, dataSupplementWithID)
+    #process_compact_dt2num(indx, dataSupplement)
 
     return dataSupplement

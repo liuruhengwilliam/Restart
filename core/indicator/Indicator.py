@@ -29,20 +29,20 @@ class Indicator():
         """ 外部接口API: 计算指标
             data:行情数据dateframe结构的数据。
         """
-        periodName = data.period[data.index[0]]
+        period = data.period[data.index[0]]
         dataPicked = DataProcess.process_quotes_4indicator(data)
 
         #数据样本太小就不制图
-        if len(dataPicked) < Constant.CANDLESTICK_PATTERN_MATCH_CNT[Constant.QUOTATION_DB_PREFIX.index(periodName)]:
+        if len(dataPicked) < Constant.CANDLESTICK_PATTERN_MATCH_CNT[Constant.QUOTATION_DB_PREFIX.index(period)]:
             return
         #移动平均线
         for index,tag in zip(range(len(Constant.MOVING_AVERAGE_LINE)),Constant.MOVING_AVERAGE_LINE):
-            self.indiMADict[periodName][index] = MA.compute_sma(dataPicked['close'].as_matrix(),tag)
+            self.indiMADict[period][index] = MA.compute_sma(dataPicked['close'].as_matrix(),tag)
 
         #布林线
-        self.indiBBandsDict[periodName] = BollingerBands.compute_BBands(dataPicked['close'].as_matrix())
+        self.indiBBandsDict[period] = BollingerBands.compute_BBands(dataPicked['close'].as_matrix())
 
-        self.show_indicator(periodName,dataPicked)
+        self.show_indicator(period,dataPicked)
 
     def fetch_ma_indicator(self,periodName):
         """ 外部接口API:移动均线指标。通过周期字符串在移动平均线字典中查找。
