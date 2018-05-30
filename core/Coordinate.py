@@ -29,7 +29,7 @@ class Coordinate():
         # 指标类初始化
         self.indicator = Indicator()
         # 策略类初始化
-        self.strategy = Strategy()
+        self.strategy = Strategy(self.recordHdl)
 
         Trace.output('info', " ==== ==== Server Complete Initiation and Run Routine ==== ==== \n")
 
@@ -67,7 +67,7 @@ class Coordinate():
 
     def work_operation(self):
         """ 外部函数API：股票代码的周期行情数据缓存处理函数
-            挂载在15min定时器。根据倍数关系，驱动更新其他大周期行情数据缓存。
+            挂载在基准定时器。根据倍数关系，驱动更新其他大周期行情数据缓存。
         """
         markStart = datetime.datetime.now()
         for target in self.recordHdl.get_target_list():
@@ -77,7 +77,7 @@ class Coordinate():
             quoteDF = self.quoteHdl.update_quote(target)
             #更新记录附加项(DF结构的最后一行)到日志文件中
             quoteDF.to_csv(Configuration.get_working_directory()+target+'-quote.csv',\
-                            columns=['period',]+list(Constant.QUOTATION_STRUCTURE))
+                            columns=['period',]+list(Constant.QUOTATION_STRUCTURE),index=False)
 
             # 按照时间次序排列，并删除开头的十一行（实时记录行）
             quoteFilterDF = quoteDF.iloc[len(Constant.QUOTATION_DB_PERIOD):]
@@ -92,9 +92,13 @@ class Coordinate():
                 # 策略盈亏率数据库操作。先进行统计更新策略盈亏率数据，然后再分析及插入新条目。
                 # 基准更新定时器的主要任务就是更新盈亏率数据库。
                 if index == Constant.QUOTATION_DB_PERIOD.index(Constant.UPDATE_BASE_PERIOD):
-                    self.strategy.update_strategy([quoteDF.time[index],quoteDF.high[index],quoteDF.low[index]])
+                    infoList = [quoteDF.time[index],quoteDF.high[index],quoteDF.low[index]]
+                    self.strategy.update_strategy(target,infoList)
+                    # 更新数据csv文件
+                    self.strategy.get_strategy_record(target).to_csv(Configuration.get_working_directory()\
+                                +target+'-ser.csv', columns=Constant.SER_DF_STRUCTURE, index=False)
                     markEnd5min = datetime.datetime.now()
-                    Trace.output('info', "As for %s,Period %s update strategy cost: %s"\
+                    Trace.output('info', "As for %s,Period %s update and save strategy cost: %s"\
                              %(target, period, str(markEnd5min-markStart)))
                     continue
 
@@ -109,9 +113,8 @@ class Coordinate():
                             %(target, period, str(markIndicator-markStart)))
 
                 # 策略算法计算
-                # 数据加工补全
                 dataDealed = StrategyMisc.process_quotes_candlestick_pattern(quotePeriodDF)
-                self.strategy.check_strategy(dataDealed)
+                self.strategy.check_strategy(target,dataDealed)
                 markStrategy = datetime.datetime.now()
                 Trace.output('info', "As for %s,Period %s check strategy cost: %s"\
                             %(target, period, str(markStrategy-markIndicator)))
@@ -123,13 +126,3 @@ class Coordinate():
         Trace.output('info', "It cost %s to operate target(%s) at %s"%\
                      (str(markEnd-markStart),' '.join(self.recordHdl.get_target_list()),markStart))
 
-    def statistics_settlement(self):
-        """内部接口API: 盈亏统计工作。由汇总各周期盈亏数据库生成表格文件。"""
-        for tmName in Constant.QUOTATION_DB_PREFIX[Constant.QUOTATION_DB_PERIOD.index(Constant.UPDATE_BASE_PERIOD):]:
-            path = Configuration.get_working_directory()
-            if self.strategy.query_strategy_record(tmName) is not None:
-                self.strategy.query_strategy_record(tmName).to_csv(path_or_buf=path+tmName+'-ser.csv',\
-                                    columns=Constant.SER_DF_STRUCTURE, index=False)
-            if self.quoteHdl.query_quote(tmName) is not None:
-                self.quoteHdl.query_quote(tmName).to_csv(path_or_buf=path+tmName+'-quote.csv',\
-                                    columns=['id',]+list(Constant.QUOTATION_STRUCTURE), index=False)
