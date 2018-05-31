@@ -142,7 +142,7 @@ class Strategy():
         for period in Constant.QUOTATION_DB_PREFIX[2:-2]:
             #检查本周期DataFrame结构实例中是否有条目需要插入到数据库文件中。
             dfStrategy = targetDF[targetDF['period']==period]
-            print dfStrategy#调试点
+            #print dfStrategy#调试点
 
             #for indx,itemRow in zip(dfStrategy.index,dfStrategy.itertuples(index=False)):
             for rowNo,itemRow in zip(range(len(dfStrategy)),dfStrategy.itertuples(index=False)):

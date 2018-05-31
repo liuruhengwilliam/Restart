@@ -38,7 +38,7 @@ class Quotation():
             else:#补全历史数据
                 self.quoteCache.update({target:deepcopy(self.process_quotes_supplement(target,pd.read_csv(file)))})
 
-            print self.quoteCache[target]
+            #print self.quoteCache[target]#调试点
 
     def increase_timeout_count(self):
         """ 外部接口API：基准更新定时器的到期计数值。基准更新定时器的回调函数调用。 """
@@ -113,6 +113,6 @@ class Quotation():
                 if quoteDF.ix[index,'low'] > record['low'] or quoteDF.ix[index,'low'] == 0.0:
                     quoteDF.ix[index,'low'] = record['low']
             self.quoteCache[target] = quoteDF#数据回写
-        print self.quoteCache[target]#调试点
+        #print self.quoteCache[target]#调试点
         self.quoteRecord.reset_target_record(target)
         return self.quoteCache[target]
