@@ -38,6 +38,8 @@ class Coordinate():
         """ 外部函数API：抓取某股票代码的实时行情数据处理函数 """
         markStart = datetime.datetime.now()
         for target in self.recordHdl.get_target_list():
+            if target == '':#分解出的异常字符
+                continue
             if Constant.is_closed(target):#当前是否为闭市时间
                 return
 
@@ -71,6 +73,8 @@ class Coordinate():
         """
         markStart = datetime.datetime.now()
         for target in self.recordHdl.get_target_list():
+            if target == '':#分解出的异常字符
+                continue
             if Constant.is_closed(target):#当前是否为闭市时间
                 return
             # 更新各周期行情数据缓存
@@ -87,6 +91,10 @@ class Coordinate():
                 if index < Constant.QUOTATION_DB_PERIOD.index(Constant.UPDATE_BASE_PERIOD):
                     continue
                 if self.quoteHdl.remainder_higher_order_tm(period)!=0:#未到期
+                    continue
+                # 异常数据对应的周期不更新/匹配
+                if quoteDF.time[index] == ' ':
+                    Trace.output('warn','%s skip period %s for strategy with zero record'%(target,period))
                     continue
 
                 # 策略盈亏率数据库操作。先进行统计更新策略盈亏率数据，然后再分析及插入新条目。

@@ -82,6 +82,11 @@ class Quotation():
         """ 外部接口API: 周期行情数据缓存更新处理函数。基准更新定时器的回调函数。 """
         record = self.quoteRecord.get_record_dict(target)
 
+        # 对于异常record数据，不更新quote.
+        if record['time']==' ':
+            Trace.output('warn','skip for update %s with zero record'%target)
+            return self.quoteCache[target]
+
         # 更新基准定时器及高阶定时器的记录缓存
         for index,period in enumerate(Constant.QUOTATION_DB_PREFIX):
             quoteDF = self.quoteCache[target]#在循环体内更新
