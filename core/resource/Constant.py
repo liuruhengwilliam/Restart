@@ -231,13 +231,13 @@ def is_stock_closed():
         return True
 
     realnumNow = time.mktime(now.timetuple())
-    EXCHANGE_AM_START = datetime.datetime.strptime(year+'-'+month+'-'+day+' 09:30:00',"%Y-%m-%d %H:%M:%S")
+    EXCHANGE_AM_START = datetime.datetime.strptime(year+'-'+month+'-'+day+' 09:25:00',"%Y-%m-%d %H:%M:%S")
     realnumAMStart = time.mktime(EXCHANGE_AM_START.timetuple())
     EXCHANGE_AM_END = datetime.datetime.strptime(year+'-'+month+'-'+day+' 11:30:00',"%Y-%m-%d %H:%M:%S")
     realnumAMEnd = time.mktime(EXCHANGE_AM_END.timetuple())
     EXCHANGE_PM_START = datetime.datetime.strptime(year+'-'+month+'-'+day+' 13:00:00',"%Y-%m-%d %H:%M:%S")
     realnumPMStart = time.mktime(EXCHANGE_PM_START.timetuple())
-    EXCHANGE_PM_END = datetime.datetime.strptime(year+'-'+month+'-'+day+' 15:00:00',"%Y-%m-%d %H:%M:%S")
+    EXCHANGE_PM_END = datetime.datetime.strptime(year+'-'+month+'-'+day+' 15:05:00',"%Y-%m-%d %H:%M:%S")
     realnumPMEnd = time.mktime(EXCHANGE_PM_END.timetuple())
 
     if realnumAMStart <= realnumNow and realnumNow <= realnumAMEnd:#上午交易时段
