@@ -72,7 +72,7 @@ class Quotation():
 
         return dataSupplement
 
-    def query_quote(self,target):
+    def get_quote(self,target):
         """ 外部接口API: 获取某标的quote缓存。
             返回值：DataFrame结构数据
         """

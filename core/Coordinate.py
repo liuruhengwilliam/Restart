@@ -79,9 +79,6 @@ class Coordinate():
                 return
             # 更新各周期行情数据缓存
             quoteDF = self.quoteHdl.update_quote(target)
-            #更新记录附加项(DF结构的最后一行)到日志文件中
-            quoteDF.to_csv(Configuration.get_working_directory()+target+'-quote.csv',\
-                            columns=['period',]+list(Constant.QUOTATION_STRUCTURE),index=False)
 
             # 按照时间次序排列，并删除开头的十一行（实时记录行）
             quoteFilterDF = quoteDF.iloc[len(Constant.QUOTATION_DB_PERIOD):]
@@ -102,9 +99,6 @@ class Coordinate():
                 if index == Constant.QUOTATION_DB_PERIOD.index(Constant.UPDATE_BASE_PERIOD):
                     infoList = [quoteDF.time[index],quoteDF.high[index],quoteDF.low[index]]
                     self.strategy.update_strategy(target,infoList)
-                    # 更新数据csv文件
-                    self.strategy.get_strategy_record(target).to_csv(Configuration.get_working_directory()\
-                                +target+'-ser.csv', columns=Constant.SER_DF_STRUCTURE, index=False)
                     markEnd5min = datetime.datetime.now()
                     Trace.output('debug', "As for %s,Period %s update and save strategy cost: %s"\
                              %(target, period, str(markEnd5min-markStart)))
@@ -127,10 +121,26 @@ class Coordinate():
                 Trace.output('debug', "As for %s,Period %s check strategy cost: %s"\
                             %(target, period, str(markStrategy-markIndicator)))
 
+            self.storage_data(target)#转存数据到csv文件
         # 基准定时器计数自增
         self.quoteHdl.increase_timeout_count()
 
         markEnd = datetime.datetime.now()
         Trace.output('info', "It cost %s to operate target(%s) at %s"%\
                      (str(markEnd-markStart),' '.join(self.recordHdl.get_target_list()),markStart))
+
+    def storage_data(self,target):
+        """ 内部函数API：转存相关数据
+            target: 标的字符串
+        """
+        if re.search(r'[^0-9](.*)',target) is None:#股票类型全是数字
+            # 股票类型数据较多，需要加以控制。拟定每小时存储一次。
+            if self.quoteHdl.remainder_higher_order_tm('1hour')!=0:#未到期
+                return
+        #更新行情数据到csv文件中
+        self.quoteHdl.get_quote(target).to_csv(Configuration.get_working_directory()+target+'-quote.csv',\
+                            columns=['period',]+list(Constant.QUOTATION_STRUCTURE),index=False)
+        # 更新策略匹配数据到csv文件
+        self.strategy.get_strategy(target).to_csv(Configuration.get_working_directory()+target+'-ser.csv',\
+                            columns=Constant.SER_DF_STRUCTURE, index=False)
 

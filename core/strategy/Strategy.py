@@ -43,7 +43,7 @@ class Strategy():
 
             self.dictPolRec.update({target:deepcopy(valueDf)})
 
-    def get_strategy_record(self,target):
+    def get_strategy(self,target):
         """ 外部接口API: 获取某周期的策略记录
             target: 标的字符串
         """
