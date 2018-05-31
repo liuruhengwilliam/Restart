@@ -144,8 +144,8 @@ class Strategy():
             dfStrategy = targetDF[targetDF['period']==period]
             print dfStrategy#调试点
 
-            for itemRow in dfStrategy.itertuples(index=False):
-                rowNo = itemRow[0]#行号
+            #for indx,itemRow in zip(dfStrategy.index,dfStrategy.itertuples(index=False)):
+            for rowNo,itemRow in zip(range(len(dfStrategy)),dfStrategy.itertuples(index=False)):
                 deadTimeIndx = Constant.SER_DF_STRUCTURE.index('DeadTime')
                 #if itemRow[deadTimeIndx] != '':#DeadTime已经记录，不再更新。
                 #    continue
@@ -222,4 +222,3 @@ class Strategy():
                     exc_type,exc_value,exc_tb = sys.exc_info()
                     traceback.print_exception(exc_type, exc_value, exc_tb)
                     traceback.print_exc(file=open(Configuration.get_working_directory()+'trace.txt','a'))
-
