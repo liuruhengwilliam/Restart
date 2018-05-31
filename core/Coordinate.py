@@ -64,7 +64,7 @@ class Coordinate():
                 continue
 
         markQuery = datetime.datetime.now()
-        Trace.output('debug', "It cost %s to query target(%s) at %s."%\
+        Trace.output('info', "It cost %s to query target(%s) at %s."%\
                      (str(markQuery-markStart),' '.join(self.recordHdl.get_target_list()),markStart))
 
     def work_operation(self):
@@ -106,7 +106,7 @@ class Coordinate():
                     self.strategy.get_strategy_record(target).to_csv(Configuration.get_working_directory()\
                                 +target+'-ser.csv', columns=Constant.SER_DF_STRUCTURE, index=False)
                     markEnd5min = datetime.datetime.now()
-                    Trace.output('info', "As for %s,Period %s update and save strategy cost: %s"\
+                    Trace.output('debug', "As for %s,Period %s update and save strategy cost: %s"\
                              %(target, period, str(markEnd5min-markStart)))
                     continue
 
@@ -117,14 +117,14 @@ class Coordinate():
                 # 指标计算和记录
                 self.indicator.process_indicator(quotePeriodDF)
                 markIndicator = datetime.datetime.now()
-                Trace.output('info', "As for %s,Period %s process indicator cost: %s"\
+                Trace.output('debug', "As for %s,Period %s process indicator cost: %s"\
                             %(target, period, str(markIndicator-markStart)))
 
                 # 策略算法计算
                 dataDealed = StrategyMisc.process_quotes_candlestick_pattern(quotePeriodDF)
                 self.strategy.check_strategy(target,dataDealed)
                 markStrategy = datetime.datetime.now()
-                Trace.output('info', "As for %s,Period %s check strategy cost: %s"\
+                Trace.output('debug', "As for %s,Period %s check strategy cost: %s"\
                             %(target, period, str(markStrategy-markIndicator)))
 
         # 基准定时器计数自增
