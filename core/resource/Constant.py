@@ -7,6 +7,7 @@ import datetime
 import platform
 import threading
 import Trace
+import Configuration
 #=================================================================================
 # 数据抓取模块应该设定在每周一凌晨6点开始启动。这样能够兼顾到各周期记录（不遗漏）。
 # 软件版本，行业相关术语等定义
@@ -229,6 +230,13 @@ def is_stock_closed():
     weekday = int(now.isoweekday())
     if weekday > 5:
         return True
+
+    # 判断是否特定节假日
+    holiday = Configuration.get_property('holiday')
+    if holiday is not None:
+        for date in holiday.split(';'):
+            if date == '%s-%s-%s'%(year,month,day):
+                return True
 
     realnumNow = time.mktime(now.timetuple())
     EXCHANGE_AM_START = datetime.datetime.strptime(year+'-'+month+'-'+day+' 09:25:00',"%Y-%m-%d %H:%M:%S")
