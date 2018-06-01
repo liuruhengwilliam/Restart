@@ -198,12 +198,16 @@ def is_futures_closed():
             return True
     return False
 
-def is_weekend():
-    """ 是否周末---周末闭市 """
+def be_exited(target):
+    """ 外部接口API:是否退出程序。 """
     now = datetime.datetime.now()
-    day, hour = now.isoweekday(),now.strftime("%H")
-    if(int(day) == 6 and int(hour) > SAT_STANDARD_SETTLEMENT_HOUR_TIME) or int(day) == 7:
-        return True
+    day, hour, minute = now.isoweekday(),now.strftime("%H"),now.strftime("%M")
+    if re.search(r'[^a-zA-Z]',target) is None:#大宗商品类型全是英文字母
+        if int(day) >= 6 and int(hour) > SAT_STANDARD_SETTLEMENT_HOUR_TIME:
+            return True
+    elif re.search(r'[^0-9](.*)',target) is None:#股票类型全是数字
+        if int(hour) >= 15 and int(minute) >= 30:
+            return True
     return False
 
 # 欧美国家节假日的定义
@@ -241,11 +245,12 @@ def is_stock_closed():
     realnumNow = time.mktime(now.timetuple())
     EXCHANGE_AM_START = datetime.datetime.strptime(year+'-'+month+'-'+day+' 09:25:00',"%Y-%m-%d %H:%M:%S")
     realnumAMStart = time.mktime(EXCHANGE_AM_START.timetuple())
-    EXCHANGE_AM_END = datetime.datetime.strptime(year+'-'+month+'-'+day+' 11:30:00',"%Y-%m-%d %H:%M:%S")
+    EXCHANGE_AM_END = datetime.datetime.strptime(year+'-'+month+'-'+day+' 11:30:59',"%Y-%m-%d %H:%M:%S")
     realnumAMEnd = time.mktime(EXCHANGE_AM_END.timetuple())
     EXCHANGE_PM_START = datetime.datetime.strptime(year+'-'+month+'-'+day+' 13:00:00',"%Y-%m-%d %H:%M:%S")
     realnumPMStart = time.mktime(EXCHANGE_PM_START.timetuple())
-    EXCHANGE_PM_END = datetime.datetime.strptime(year+'-'+month+'-'+day+' 15:05:00',"%Y-%m-%d %H:%M:%S")
+    # 截止时间延后，确保高阶定时器计数能够完成每日的最后一次刷新
+    EXCHANGE_PM_END = datetime.datetime.strptime(year+'-'+month+'-'+day+' 15:15:59',"%Y-%m-%d %H:%M:%S")
     realnumPMEnd = time.mktime(EXCHANGE_PM_END.timetuple())
 
     if realnumAMStart <= realnumNow and realnumNow <= realnumAMEnd:#上午交易时段

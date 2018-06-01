@@ -77,6 +77,9 @@ class Coordinate():
                 continue
             if Constant.is_closed(target):#当前是否为闭市时间
                 return
+            if Constant.be_exited(target):
+                os._exit()
+
             # 更新各周期行情数据缓存
             quoteDF = self.quoteHdl.update_quote(target)
 
