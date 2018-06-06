@@ -114,8 +114,6 @@ class Coordinate():
                 # 指标计算和记录
                 self.indicator.process_indicator(quotePeriodDF)
                 markIndicator = datetime.datetime.now()
-                Trace.output('debug', "As for %s,Period %s process indicator cost: %s"\
-                            %(target, period, str(markIndicator-markStart)))
 
                 # 策略算法计算
                 dataDealed = StrategyMisc.process_quotes_candlestick_pattern(quotePeriodDF)

@@ -30,6 +30,12 @@ class Indicator():
             data:行情数据dateframe结构的数据。
         """
         period = data.period[data.index[0]]
+
+        # 为降低系统负荷和增加实时性，蜡烛图不再实时绘制
+        indx = Constant.QUOTATION_DB_PREFIX.index(period)
+        if Constant.SCALE_CANDLESTICK[indx] < Constant.DEFAULT_SCALE_CANDLESTICK_SHOW:
+            return
+
         dataPicked = DataProcess.process_quotes_4indicator(data)
 
         #数据样本太小就不制图
@@ -62,10 +68,6 @@ class Indicator():
             dataPicked:dateframe结构的数据。
             isDraw:是否展示图画的标志。对于后台运行模式默认不展示。
         """
-        # 为降低系统负荷和增加实时性，对于零/小尺度周期的蜡烛图不再实时绘制
-        indx = Constant.QUOTATION_DB_PREFIX.index(period)
-        if Constant.SCALE_CANDLESTICK[indx] < Constant.DEFAULT_SCALE_CANDLESTICK_SHOW:
-            return
         CandleStick.show_candlestick(dataPicked,self.indiMADict[period],self.indiBBandsDict[period],period)
 
 
