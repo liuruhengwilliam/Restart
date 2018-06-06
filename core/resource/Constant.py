@@ -22,7 +22,7 @@ def get_date_code():
     month,day = dt.strftime('%m'),dt.strftime('%d')
     return MONTH_CODE[int(month)-1]+DAY_CODE[int(day)-1]
 
-VERSION_CODE = 'V2.1.0Q'
+VERSION_CODE = 'V2.1.1Q'
 def get_version_info():
     """ 内/外部接口API: """
     return VERSION_CODE + get_date_code() + "\n" + \
