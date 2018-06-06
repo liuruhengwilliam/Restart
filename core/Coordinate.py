@@ -135,9 +135,14 @@ class Coordinate():
             target: 标的字符串
         """
         if re.search(r'[^0-9](.*)',target) is None:#股票类型全是数字
-            # 股票类型数据较多，需要加以控制。拟定每小时存储一次。
+            # 股票类型数据较多，需要加以控制。拟定每半小时存储一次。
+            if self.quoteHdl.remainder_higher_order_tm('30min')!=0:#未到期
+                return
+        elif re.search(r'[^a-zA-Z]',target) is None:#大宗商品类型全是英文字母
             if self.quoteHdl.remainder_higher_order_tm('1hour')!=0:#未到期
                 return
+        else:
+            return
         #更新行情数据到csv文件中
         self.quoteHdl.get_quote(target).to_csv(Configuration.get_working_directory()+target+'-quote.csv',\
                             columns=['period',]+list(Constant.QUOTATION_STRUCTURE),index=False)
