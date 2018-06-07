@@ -122,12 +122,23 @@ class Coordinate():
                 Trace.output('debug', "As for %s,Period %s check strategy cost: %s"\
                             %(target, period, str(markStrategy-markIndicator)))
 
-            self.storage_data(target)#转存数据到csv文件
+            if re.search(r'[^a-zA-Z]',target) is None:#股票转存由专门的线程负责，不再这里处理。
+                self.storage_data(target)#转存数据到csv文件
         # 基准定时器计数自增
         self.quoteHdl.increase_timeout_count()
 
         markEnd = datetime.datetime.now()
         Trace.output('info', "It cost %s to operate target(%s) at %s"%\
+                     (str(markEnd-markStart),' '.join(self.recordHdl.get_target_list()),markStart))
+
+    def work_storage(self):
+        """ 外部函数API：数据存档线程的处理函数。30min
+        """
+        markStart = datetime.datetime.now()
+        for target in self.recordHdl.get_target_list():
+            self.storage_data(target)
+        markEnd = datetime.datetime.now()
+        Trace.output('info', "It cost %s to store target(%s) at %s"%\
                      (str(markEnd-markStart),' '.join(self.recordHdl.get_target_list()),markStart))
 
     def storage_data(self,target):

@@ -21,10 +21,10 @@ def stock_main():
     # 数据抓取模块和数据库模块挂载到周期定时器
     HBfuncHook = (coordinate.work_heartbeat,) # 心跳定时器处理回调函数
     # 操作处理回调函数。出于减少定时器操作复杂度的考虑，只保留一个5min级别的定时器。其他周期就在5min基础上收集整理信息。
-    PeriodfuncHook = (coordinate.work_operation,)
+    PeriodfuncHook = (coordinate.work_operation,coordinate.work_storage())#增加存档线程(30min)20180607
     funcList = (HBfuncHook + PeriodfuncHook) # 回调函数列表
 
-    TimerMotor.start_loop_timer(funcList,[int(period),Constant.UPDATE_BASE_PERIOD])
+    TimerMotor.start_loop_timer(funcList,[int(period),Constant.UPDATE_BASE_PERIOD,Constant.QUOTATION_DB_PERIOD[3]])
 
 if __name__ == '__main__':
     stock_main()
