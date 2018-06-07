@@ -22,7 +22,7 @@ def get_date_code():
     month,day = dt.strftime('%m'),dt.strftime('%d')
     return MONTH_CODE[int(month)-1]+DAY_CODE[int(day)-1]
 
-VERSION_CODE = 'V2.1.1Q'
+VERSION_CODE = 'V2.1.2Q'
 def get_version_info():
     """ 内/外部接口API: """
     return VERSION_CODE + get_date_code() + "\n" + \
@@ -206,7 +206,7 @@ def be_exited(target):
         if int(day) >= 6 and int(hour) > SAT_STANDARD_SETTLEMENT_HOUR_TIME:
             return True
     elif re.search(r'[^0-9](.*)',target) is None:#股票类型全是数字
-        if int(hour) >= 15 and int(minute) >= 30:
+        if (int(day) == 5 and int(hour) >= 16) or int(day) >= 6:
             return True
     return False
 
@@ -250,7 +250,7 @@ def is_stock_closed():
     EXCHANGE_PM_START = datetime.datetime.strptime(year+'-'+month+'-'+day+' 13:00:00',"%Y-%m-%d %H:%M:%S")
     realnumPMStart = time.mktime(EXCHANGE_PM_START.timetuple())
     # 截止时间延后，确保高阶定时器计数能够完成每日的最后一次刷新
-    EXCHANGE_PM_END = datetime.datetime.strptime(year+'-'+month+'-'+day+' 15:10:59',"%Y-%m-%d %H:%M:%S")
+    EXCHANGE_PM_END = datetime.datetime.strptime(year+'-'+month+'-'+day+' 15:15:59',"%Y-%m-%d %H:%M:%S")
     realnumPMEnd = time.mktime(EXCHANGE_PM_END.timetuple())
 
     if realnumAMStart <= realnumNow and realnumNow <= realnumAMEnd:#上午交易时段
