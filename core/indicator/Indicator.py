@@ -36,7 +36,7 @@ class Indicator():
         if Constant.SCALE_CANDLESTICK[indx] < Constant.DEFAULT_SCALE_CANDLESTICK_SHOW:
             return
 
-        dataPicked = DataProcess.process_quotes_4indicator(data)
+        dataPicked = DataProcess.process_quotes_4indicator(period,data)
 
         #数据样本太小就不制图
         if len(dataPicked) < Constant.CANDLESTICK_PATTERN_MATCH_CNT[Constant.QUOTATION_DB_PREFIX.index(period)]:

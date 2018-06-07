@@ -78,13 +78,12 @@ def show_candlestick(dfData, ma, BBands, periodName):
         traceback.print_exception(exc_type, exc_value, exc_tb)
         traceback.print_exc(file=open(Configuration.get_working_directory()+'trace.txt','a'))
 
-def manual_show_candlestick(periodName,dataWithId):
+def manual_show_candlestick(periodName,data):
     """ 外部接口API: 手动绘图使用。
         periodName:周期名称的字符串（用于计算蜡烛图展示根数）
-        dataWithId:行情数据库中dateframe结构的数据。
-        isDraw:是否展示图画的标志。对于后台运行模式默认不展示。
+        data:行情数据库中dateframe结构的数据。
     """
-    dataPicked = DataProcess.process_quotes_4indicator(periodName,dataWithId)
+    dataPicked = DataProcess.process_quotes_4indicator(periodName,data)
 
     # 均线
     ma = [0,]*len(Constant.MOVING_AVERAGE_LINE)

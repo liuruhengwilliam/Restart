@@ -31,39 +31,30 @@ def process_xaxis_labels(periodIndx, tmList):
 
     return labelsList
 
-def process_compact_dt2num(periodIndx, dataPicked):
+def process_compact_dt2num(periodIndx, dt2numList):
     """ 内部接口API：dt2num列调整（去掉结算时间的空档）。
         从而达到绘制蜡烛图时X-轴ticks连续的目的，便于观察和追溯。
         periodIndx: 定时器列表中的下标
-        dataPicked: DataFrame数据结构入参
-        返回值：调整dt2num列之后的DataFrame数据结构。
+        dt2numList: dt2num的列表数据结构入参
+        返回值：调整dt2num之后的列表数据结构。
     """
-    deltaID = 0
-    dt2numEx = .0 #'dt2num'前值
-    supplementFlag = False #数据是否补全的标志
     # 补偿差值列表次序同列表Constant.QUOTATION_DB_PREFIX顺序。各周期补偿差值为统计算术平均值，非精确值。
     deltaTickList = [0,0.0035,0.0104,0.0208,0.0417,0.0833,0.1666,0.2500,0.5000,1.0000,7.0000]
-    for indx in dataPicked.index:
-        idCursor = indx
-        if deltaID == 0:#初次检测
-            deltaID = idCursor-indx #设置序号偏差初值
-        if deltaID != int(idCursor-indx):#出现补全数据（有时间缺口）
-            supplementFlag = True #设置补全标志，后面每行的'dt2num'项都要调整。
-        if supplementFlag == True: #调整'dt2num'项
-            dataPicked.loc[indx,['dt2num']] = dt2numEx + deltaTickList[periodIndx] #调整后回写
+    for indx,subValue in enumerate(np.array(dt2numList[1:])-np.array(dt2numList[:-1])):
+        if subValue >= 1.5*deltaTickList[periodIndx]:#允许有50%误差
+            #超出该值则认为出现时间缺口，需要调整数据。从此节点至末尾都要调整。
+            dt2numList[indx+1:]-=np.array([subValue-deltaTickList[periodIndx]]*len(dt2numList[indx+1:]))
 
-        dt2numEx = float(dataPicked.loc[indx,['dt2num']]) #记录'dt2num'前值
-
-def process_quotes_4indicator(data):
+def process_quotes_4indicator(period,data):
     """ 外部接口API：处理quotes数据。调用date2num函数转换datetime。
         data: dataframe结构的数据
         返回值: dateframe结构数据(period, time, open, high, low, close, dt2num)
     """
     dataCnt = len(data)
-    period = data.period[data.index[0]]
-    gap = dataCnt-Constant.CANDLESTICK_PERIOD_CNT[Constant.QUOTATION_DB_PREFIX.index(period)]
-    if gap >= 0:#取出从第（dataCnt-X个）到最后一个（第dataCnt）的数据（共X个）
-        dataSupplement = data.ix[int(gap):]
+    necessaryCnt = Constant.CANDLESTICK_PERIOD_CNT[Constant.QUOTATION_DB_PREFIX.index(period)]
+
+    if dataCnt >= necessaryCnt:
+        dataSupplement = data.iloc[-necessaryCnt:]#取出最近(倒数)的规定数目的条目
     else:
         dataSupplement = data
 
@@ -77,9 +68,10 @@ def process_quotes_4indicator(data):
         else:
             dateDeal.append(date2num(datetime.datetime.strptime(tm,"%Y-%m-%d %H:%M:%S")))
 
-    dataSupplement['dt2num'] = (dateDeal)
-
+    #print "Before adjusted:",dateDeal,(np.array(dateDeal[1:])-np.array(dateDeal[:-1]))#调试点
     # 为绘图时将空白时间删除，调整DataFrame中的‘dt2num’列
-    #process_compact_dt2num(indx, dataSupplement)
-
+    process_compact_dt2num(Constant.QUOTATION_DB_PREFIX.index(period),dateDeal)
+    #print "After adjusted:",dateDeal,(np.array(dateDeal[1:])-np.array(dateDeal[:-1]))#调试点
+    dataSupplement.is_copy = False
+    dataSupplement['dt2num']=dateDeal
     return dataSupplement
