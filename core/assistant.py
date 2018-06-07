@@ -28,9 +28,10 @@ if __name__ == '__main__':
             print "Error period name!"
             sys.exit()
         if filename.find('.csv') != -1:
+            target=Configuration.get_field_from_string(filename)[-1].split('-')[0]
             data = pd.read_csv(filename)
             data = data.iloc[len(Constant.QUOTATION_DB_PERIOD):]
-            CandleStick.manual_show_candlestick(periodName,data[data['period']==periodName])
+            CandleStick.manual_show_candlestick(target,periodName,data[data['period']==periodName])
         else:
             print "Error file name input!"
     elif choiceIndex == '2':
