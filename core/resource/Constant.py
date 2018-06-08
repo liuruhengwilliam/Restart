@@ -22,7 +22,7 @@ def get_date_code():
     month,day = dt.strftime('%m'),dt.strftime('%d')
     return MONTH_CODE[int(month)-1]+DAY_CODE[int(day)-1]
 
-VERSION_CODE = 'V2.1.2Q'
+VERSION_CODE = 'V2.1.3Q'
 def get_version_info():
     """ 内/外部接口API: """
     return VERSION_CODE + get_date_code() + "\n" + \
@@ -206,7 +206,7 @@ def be_exited(target):
         if int(day) >= 6 and int(hour) > SAT_STANDARD_SETTLEMENT_HOUR_TIME:
             return True
     elif re.search(r'[^0-9](.*)',target) is None:#股票类型全是数字
-        if (int(day) == 5 and int(hour) >= 16) or int(day) >= 6:
+        if int(hour) >= 16 or int(day) > 5:#为矫正定时器漂移问题，建议每天收市后退出(每天开盘前启动)。
             return True
     return False
 
