@@ -103,7 +103,7 @@ class Coordinate():
                     infoList = [quoteDF.time[index],quoteDF.high[index],quoteDF.low[index]]
                     self.strategy.update_strategy(target,infoList)
                     markEnd5min = datetime.datetime.now()
-                    Trace.output('debug', "As for %s,Period %s update and save strategy cost: %s"\
+                    Trace.output('debug', "As for %s,Period %s update strategy cost: %s"\
                              %(target, period, str(markEnd5min-markStart)))
                     continue
 
@@ -123,7 +123,8 @@ class Coordinate():
                             %(target, period, str(markStrategy-markIndicator)))
 
             if re.search(r'[^a-zA-Z]',target) is None:#股票转存由专门的线程负责，不再这里处理。
-                self.storage_data(target)#转存数据到csv文件
+                if self.quoteHdl.remainder_higher_order_tm('1hour')==0:#到期
+                    self.storage_data(target)#转存数据到csv文件
         # 基准定时器计数自增
         self.quoteHdl.increase_timeout_count()
 
@@ -136,6 +137,11 @@ class Coordinate():
         """
         markStart = datetime.datetime.now()
         for target in self.recordHdl.get_target_list():
+            if re.search(r'[^0-9](.*)',target) is None:#股票类型全是数字
+                # 股票类型数据较多，需要加以控制。拟定每半小时存储一次。
+                if self.quoteHdl.remainder_higher_order_tm('30min')!=0 and Constant.is_closed(target)==False:#在非结算期中未到期不记录
+                    return
+
             self.storage_data(target)
         markEnd = datetime.datetime.now()
         Trace.output('info', "It cost %s to store target(%s) at %s"%\
@@ -145,19 +151,9 @@ class Coordinate():
         """ 内部函数API：转存相关数据
             target: 标的字符串
         """
-        if re.search(r'[^0-9](.*)',target) is None:#股票类型全是数字
-            # 股票类型数据较多，需要加以控制。拟定每半小时存储一次。
-            if self.quoteHdl.remainder_higher_order_tm('30min')!=0:#未到期
-                return
-        elif re.search(r'[^a-zA-Z]',target) is None:#大宗商品类型全是英文字母
-            if self.quoteHdl.remainder_higher_order_tm('1hour')!=0:#未到期
-                return
-        else:
-            return
         #更新行情数据到csv文件中
         self.quoteHdl.get_quote(target).to_csv(Configuration.get_working_directory()+target+'-quote.csv',\
                             columns=['period',]+list(Constant.QUOTATION_STRUCTURE),index=False)
         # 更新策略匹配数据到csv文件
         self.strategy.get_strategy(target).to_csv(Configuration.get_working_directory()+target+'-ser.csv',\
                             columns=Constant.SER_DF_STRUCTURE, index=False)
-
