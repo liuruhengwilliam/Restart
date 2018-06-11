@@ -6,7 +6,6 @@ import datetime
 import numpy as np
 from matplotlib.dates import date2num
 from resource import Constant
-from quotation import QuotationKit
 from resource import Trace
 from resource import Configuration
 

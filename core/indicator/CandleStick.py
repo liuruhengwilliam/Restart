@@ -17,7 +17,6 @@ from matplotlib.dates import MinuteLocator,HourLocator,DayLocator,WeekdayLocator
 import DataProcess
 from resource import Constant
 from resource import Configuration
-from quotation import QuotationKit
 from indicator import MA
 from indicator import BollingerBands
 

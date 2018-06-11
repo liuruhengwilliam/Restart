@@ -1,11 +1,10 @@
 #coding=utf-8
 
-import re
 import os
 import sqlite3
 import threading
 import platform
-import QuotationKit
+from resource import DataSettleKit
 from resource import Configuration
 from resource import Constant
 from resource import Trace
@@ -33,10 +32,14 @@ class Quotation():
         for target in self.quoteList:
             #程序启动时补全当周数据，为后续指标和策略计算做好准备
             file = Configuration.get_working_directory()+'%s-quote.csv'%target
-            if not os.path.exists(file):
+            preWeekFile = Configuration.get_back_week_directory(file,1)+'%s-quote.csv'%target
+            #补全历史数据
+            if os.path.exists(file):
+                self.quoteCache.update({target:deepcopy(DataSettleKit.process_quotes_supplement(target,file))})
+            elif os.path.exists(preWeekFile):#周一开盘时接续上周条目
+                self.quoteCache.update({target:deepcopy(DataSettleKit.process_quotes_supplement(target,preWeekFile))})
+            else:#若本周及上周都无历史数据，则空白
                 self.quoteCache.update({target:deepcopy(quoteDF)})
-            else:#补全历史数据
-                self.quoteCache.update({target:deepcopy(self.process_quotes_supplement(target,pd.read_csv(file)))})
 
             #print self.quoteCache[target]#调试点
 
@@ -53,27 +56,6 @@ class Quotation():
         dividend = Constant.QUOTATION_DB_PERIOD[Constant.QUOTATION_DB_PREFIX.index(HOPeriod)]
         divisor = dividend/Constant.UPDATE_BASE_PERIOD
         return self.baseTmCnt%divisor
-
-    def process_quotes_supplement(self,target,data):
-        """ 内部接口API：补全quotes数据
-            target:标的字符串
-            data: dataframe结构的数据
-            返回值: dateframe结构数据(period, time, open, high, low, close)
-        """
-        if re.search(r'[^a-zA-Z]',target) is None:#大宗商品类型全是英文字母
-            gap = Constant.CANDLESTICK_PATTERN_MATCH_FUTURE_GAP
-        elif re.search(r'[^0-9](.*)',target) is None:#股票类型全是数字
-            gap = Constant.CANDLESTICK_PATTERN_MATCH_STOCK_GAP
-        else:#异常标的不做补全处理
-            return data
-
-        file = Configuration.get_working_directory()+'%s-quote.csv'%target
-        dataSupplement = QuotationKit.supplement_quotes(file,data,gap)
-        # 输出日志记录
-        Trace.output('info',"=== To be continued from %s Quote CSV ==="%target)
-        for itemRow in dataSupplement.itertuples(index=False):
-            Trace.output('info','    '+(' ').join(map(lambda x:str(x), itemRow)))
-        return dataSupplement
 
     def get_quote(self,target):
         """ 外部接口API: 获取某标的quote缓存。

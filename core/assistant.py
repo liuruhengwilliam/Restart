@@ -6,7 +6,7 @@ import os
 import pandas as pd
 from resource import Constant
 from resource import Configuration
-from quotation import QuotationKit
+from resource import DataSettleKit
 from indicator import CandleStick
 from strategy.ClientMatch import ClientMatch
 from strategy.Strategy import Strategy
@@ -42,7 +42,7 @@ if __name__ == '__main__':
         clientMatchHdl.match_KLineIndicator()
     elif choiceIndex == '3':
         filePath = raw_input("Please input full path of database file: ")
-        ret = QuotationKit.translate_db_into_csv(filePath)
+        ret = DataSettleKit.translate_db_into_csv(filePath)
         if ret == False:
             print "Failed to translate file:%s"%filePath
         else:

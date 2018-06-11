@@ -14,6 +14,7 @@ from copy import deepcopy
 from pandas import DataFrame
 import StrategyMisc
 from resource import Constant
+from resource import DataSettleKit
 from resource import Configuration
 from resource import Trace
 
@@ -33,13 +34,15 @@ class Strategy():
         #该字典的键为标的名称字符串，值为DataFrame条目（见下）
         valueDf = DataFrame(columns=Constant.SER_DF_STRUCTURE)#建立空的DataFrame数据结构
         for target in self.targetList:
-            filename = Configuration.get_working_directory()+'%s-ser.csv'%target
-            if os.path.exists(filename):#非首次运行就存在数据库文件
-                valueDf = pd.read_csv(filename)
-                if valueDf is not None and len(valueDf) != 0:#若存在接续的数据记录
-                    Trace.output('info',"=== To be continued from %s SerCSV ==="%target)
-                    for itemRow in valueDf.itertuples(index=False):
-                        Trace.output('info','    '+(' ').join(map(lambda x:str(x), itemRow)))
+            file = Configuration.get_working_directory()+'%s-ser.csv'%target
+            preWeekFile = Configuration.get_back_week_directory(file,1)+'%s-ser.csv'%target
+            #补全历史数据
+            if os.path.exists(file):
+                self.dictPolRec.update({target:deepcopy(DataSettleKit.process_quotes_supplement(target,file))})
+            elif os.path.exists(preWeekFile):#周一开盘时接续上周条目
+                self.dictPolRec.update({target:deepcopy(DataSettleKit.process_quotes_supplement(target,preWeekFile))})
+            else:#若本周及上周都无历史数据，则空白
+                self.dictPolRec.update({target:deepcopy(valueDf)})
 
             self.dictPolRec.update({target:deepcopy(valueDf)})
 

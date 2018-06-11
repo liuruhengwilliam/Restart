@@ -8,7 +8,6 @@ from resource import Configuration
 from resource import Constant
 from scrape import DataScrape
 from indicator.Indicator import Indicator
-from quotation import QuotationKit
 from quotation.Quotation import *
 from quotation.QuotationRecord import *
 from strategy.Strategy import Strategy

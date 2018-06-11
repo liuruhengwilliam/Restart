@@ -3,7 +3,6 @@
 import numpy as np
 from resource import Constant
 from resource import Configuration
-from quotation import QuotationKit
 
 def process_quotes_candlestick_pattern(data):
     """ 外部接口API:蜡烛图组合模式或图形的预处理函数

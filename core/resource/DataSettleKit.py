@@ -1,5 +1,5 @@
 #coding=utf-8
-
+import re
 import os
 import csv
 import sqlite3
@@ -11,7 +11,28 @@ from resource import Configuration
 from resource import Constant
 from resource import Trace
 
-def supplement_quotes(path,data,supplementCnt):
+def process_quotes_supplement(target,file):
+    """ 内部接口API：补全quotes数据
+        target:标的字符串
+        file:行情数据记录文件(含文件路径)
+        返回值: dateframe结构数据(period, time, open, high, low, close)
+    """
+    data = pd.read_csv(file)
+    if re.search(r'[^a-zA-Z]',target) is None:#大宗商品类型全是英文字母
+        gap = Constant.CANDLESTICK_PATTERN_MATCH_FUTURE_GAP
+    elif re.search(r'[^0-9](.*)',target) is None:#股票类型全是数字
+        gap = Constant.CANDLESTICK_PATTERN_MATCH_STOCK_GAP
+    else:#异常标的不做补全处理
+        return data
+
+    dataSupplement = supplement_items(file,data,gap)
+    # 输出日志记录
+    Trace.output('info',"=== To be continued from %s ==="%Configuration.get_field_from_string(file)[-1])
+    for itemRow in dataSupplement.itertuples(index=False):
+        Trace.output('info','    '+(' ').join(map(lambda x:str(x), itemRow)))
+    return dataSupplement
+
+def supplement_items(path,data,supplementCnt):
     """ 外部接口API：补齐某个数目的行情序列。
         path：路径字符串
         data: 当前周期行情dataframe结构数据
@@ -20,12 +41,12 @@ def supplement_quotes(path,data,supplementCnt):
     """
     weekGap = 1 # 从前一周开始搜索
     while supplementCnt > 0:
-        preDBfile = Configuration.get_back_week_directory(path,weekGap)+\
+        prefile = Configuration.get_back_week_directory(path,weekGap)+\
                         Configuration.get_field_from_string(path)[-1]
-        if not os.path.exists(preDBfile): #若回溯文件完毕，则退出循环。
+        if not os.path.exists(prefile): #若回溯文件完毕，则退出循环。
             break
 
-        dataSupplement = pd.read_csv(preDBfile)
+        dataSupplement = pd.read_csv(prefile)
         if dataSupplement is None or len(dataSupplement) == 0:
             supplCnt = 0
         else:
