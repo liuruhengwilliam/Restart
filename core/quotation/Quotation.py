@@ -69,7 +69,10 @@ class Quotation():
 
         file = Configuration.get_working_directory()+'%s-quote.csv'%target
         dataSupplement = QuotationKit.supplement_quotes(file,data,gap)
-
+        # 输出日志记录
+        Trace.output('info',"=== To be continued from %s Quote CSV ==="%target)
+        for itemRow in dataSupplement.itertuples(index=False):
+            Trace.output('info','    '+(' ').join(map(lambda x:str(x), itemRow)))
         return dataSupplement
 
     def get_quote(self,target):
