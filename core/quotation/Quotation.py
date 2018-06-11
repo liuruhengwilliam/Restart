@@ -78,6 +78,10 @@ class Quotation():
             # 小于计数原子的周期不处理。
             if index < Constant.QUOTATION_DB_PERIOD.index(Constant.UPDATE_BASE_PERIOD):
                 continue
+            # 不更新冗余项
+            if quoteDF.ix[index,'time'] == record['time']:
+                continue
+
             # 更新条目的截止时间/close价格
             quoteDF.ix[index,'time'] = record['time']
             quoteDF.ix[index,'close'] = record['close']
