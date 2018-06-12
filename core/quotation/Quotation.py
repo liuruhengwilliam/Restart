@@ -80,6 +80,7 @@ class Quotation():
                 continue
             # 不更新冗余项
             if quoteDF.ix[index,'time'] == record['time']:
+                Trace.output('warn',target+' get Cloned info at %s'%record['time'])
                 continue
 
             # 更新条目的截止时间/close价格

@@ -82,6 +82,8 @@ class Coordinate():
             # 更新各周期行情数据缓存
             quoteDF = self.quoteHdl.update_quote(target)
 
+            if len(quoteDF) <= len(Constant.QUOTATION_DB_PERIOD):#无附着条目直接返回
+                continue
             # 按照时间次序排列，并删除开头的十一行（实时记录行）
             quoteFilterDF = quoteDF.iloc[len(Constant.QUOTATION_DB_PERIOD):]
 
@@ -138,7 +140,8 @@ class Coordinate():
         for target in self.recordHdl.get_target_list():
             if re.search(r'[^0-9](.*)',target) is None:#股票类型全是数字
                 # 股票类型数据较多，需要加以控制。拟定每半小时存储一次。
-                if self.quoteHdl.remainder_higher_order_tm('30min')!=0 and Constant.is_closed(target)==False:#在非结算期中未到期不记录
+                if self.quoteHdl.remainder_higher_order_tm('30min')!=0 and Constant.is_closed(target)==False:
+                    #在非结算期中未到期不记录
                     return
 
             self.storage_data(target)
