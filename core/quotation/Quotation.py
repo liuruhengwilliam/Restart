@@ -71,15 +71,16 @@ class Quotation():
         if record['time']==' ':
             Trace.output('warn','skip for update %s with zero record'%target)
             return self.quoteCache[target]
-
+        # 驱动定时器列表序号
+        motorPeriodIndx = Constant.QUOTATION_DB_PERIOD.index(Constant.UPDATE_BASE_PERIOD)
         # 更新基准定时器及高阶定时器的记录缓存
         for index,period in enumerate(Constant.QUOTATION_DB_PREFIX):
             quoteDF = self.quoteCache[target]#在循环体内更新
             # 小于计数原子的周期不处理。
-            if index < Constant.QUOTATION_DB_PERIOD.index(Constant.UPDATE_BASE_PERIOD):
+            if index < motorPeriodIndx:
                 continue
-            # 不更新冗余项
-            if quoteDF.ix[index,'time'] == record['time']:
+            # 不更新驱动定时周期的冗余项。高于驱动定时周期项需要更新且不会冗余（通过闭市时间来保证）
+            if index == motorPeriodIndx and quoteDF.ix[index,'time'] == record['time']:
                 Trace.output('warn',target+' get Cloned info at %s'%record['time'])
                 continue
 
