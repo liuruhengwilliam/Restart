@@ -74,10 +74,10 @@ class Coordinate():
         for target in self.recordHdl.get_target_list():
             if target == '':#分解出的异常字符
                 continue
+            if Constant.be_exited(target):
+                os._exit(0)
             if Constant.is_closed(target):#当前是否为闭市时间
                 return
-            if Constant.be_exited(target):
-                os._exit()
 
             # 更新各周期行情数据缓存
             quoteDF = self.quoteHdl.update_quote(target)
