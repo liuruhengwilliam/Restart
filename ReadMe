@@ -94,3 +94,9 @@
 
 2018-03-01
   对于源码中莫名其妙或者不可思议的报错，可以尝试删除相关pyc文件，然后重新编译调试。
+
+2018-06-01
+  numpy版本问题，报错如下：
+  TypeError: The numpy boolean negative, the `-` operator, is not supported, use the `~` operator or the logical_not function instead
+  解决方法：
+    根据报错提示信息，修改文件...\python2.7\...\pandas\core\common.py相应行代码。
