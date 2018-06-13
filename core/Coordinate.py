@@ -28,7 +28,7 @@ class Coordinate():
         # 指标类初始化
         self.indicator = Indicator()
         # 策略类初始化
-        self.strategy = Strategy(self.recordHdl)
+        self.strategy = Strategy(self.recordHdl.get_target_list())
 
         Trace.output('info', " ==== ==== Server Complete Initiation and Run Routine ==== ==== \n")
 

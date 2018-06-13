@@ -22,9 +22,14 @@ class ClientMatch():
         各周期的匹配搜索实例包含：K线组合信号、MA趋势、BBand支撑/压力值、MACD指示信号
     """
     def __init__(self,path):
-        """ 初始化相关指标各周期的实例 """
+        """ 初始化相关指标各周期的实例
+            path:数据文件存储目录（可能为服务程序的工作目录）。即客户端程序的依赖目录。
+        """
         self.path = path
-        self.strategyIns = Strategy()
+        self.targetList = Configuration.parse_target_list(path)
+        if len(self.targetList)==0:
+            self.targetList=['Silver']
+        self.strategyIns = Strategy(self.targetList)
         self.KLineIndicator = dict(zip(Constant.QUOTATION_DB_PREFIX[1:-2],[0]*len(Constant.QUOTATION_DB_PREFIX[1:-2])))
         self.BBandIndicator = {}
         self.MAIndicator = {}
@@ -39,6 +44,16 @@ class ClientMatch():
         self.serDict = {}
         # 按周期定义的策略区间格字典--周期+位图数组（值，时间）
         self.PeriodLattice = {}
+        self.reset_relevant_dict()
+
+    def reset_relevant_dict(self):
+        """ 内部接口API: 复位相关字典项
+        """
+        # 行情数据的记录字典--周期+DataFrame
+        self.quoteDict = {}
+        # 策略盈亏的记录字典--周期+DataFrame
+        self.serDict = {}
+        # 按周期定义的策略区间格字典--周期+位图数组（值，时间）
         structType = np.dtype([('value',np.int16),('time',np.str_,40)])
         for period in Constant.QUOTATION_DB_PREFIX[1:-2]:
             value = Constant.QUOTATION_DB_PERIOD[Constant.QUOTATION_DB_PREFIX.index(period)]
@@ -95,7 +110,7 @@ class ClientMatch():
                 preValue = item['value']
                 preTime = item['time']
 
-    def count_cross_M15M30H1_period(self):
+    def count_cross_M15M30H1_period(self,target):
         """ 内部接口API：按交叉周期类型进行统计。
         """
         recTime = ''
@@ -128,19 +143,19 @@ class ClientMatch():
             if (block15minVal * block30minVal)>0:
                 F15M_30M = pd.concat([F15M_30M,self.serDict['15min'][self.serDict['15min']['time'] == block15minTime]],ignore_index=True)
                 F15M_30M = pd.concat([F15M_30M,self.serDict['30min'][self.serDict['30min']['time'] == block30minTime]],ignore_index=True)
-                F15M_30M.to_csv(self.path+'15M-30M-ser.csv',sep=',',header=True)
+                F15M_30M.to_csv(self.path+'%s-15M-30M-ser.csv'%target,sep=',',header=True)
                 self.serDict.update({'15min-30min':F15M_30M})
             if (block15minVal * block1hourVal)>0:
                 F15M_1H = pd.concat([F15M_1H,self.serDict['15min'][self.serDict['15min']['time'] == block15minTime]],ignore_index=True)
                 F15M_1H = pd.concat([F15M_1H,self.serDict['1hour'][self.serDict['1hour']['time'] == block1hourTime]],ignore_index=True)
-                F15M_1H.to_csv(self.path+'15M-1H-ser.csv',sep=',',header=True)
+                F15M_1H.to_csv(self.path+'%s-15M-1H-ser.csv'%target,sep=',',header=True)
                 self.serDict.update({'15min-1hour':F15M_1H})
             if (block15minVal * block30minVal)>0 and (block15minVal * block1hourVal)>0:
                 # 多个dataframe数据叠加在一起
                 F15M_30M_1H = pd.concat([F15M_30M_1H,self.serDict['15min'][self.serDict['15min']['time'] == block15minTime]],ignore_index=True)
                 F15M_30M_1H = pd.concat([F15M_30M_1H,self.serDict['30min'][self.serDict['30min']['time'] == block30minTime]],ignore_index=True)
                 F15M_30M_1H = pd.concat([F15M_30M_1H,self.serDict['1hour'][self.serDict['1hour']['time'] == block1hourTime]],ignore_index=True)
-                F15M_30M_1H.to_csv(self.path+'15M-30M-1H-ser.csv',sep=',',header=True)
+                F15M_30M_1H.to_csv(self.path+'%s-15M-30M-1H-ser.csv'%target,sep=',',header=True)
                 self.serDict.update({'15min-30min-1hour':F15M_30M_1H})
 
         #最小周期是30min的交叉匹配
@@ -161,7 +176,7 @@ class ClientMatch():
             if (block1hourVal * block30minVal)>0:
                 F30M_1H = pd.concat([F30M_1H,self.serDict['30min'][self.serDict['30min']['time'] == block30minTime]],ignore_index=True)
                 F30M_1H = pd.concat([F30M_1H,self.serDict['1hour'][self.serDict['1hour']['time'] == block1hourTime]],ignore_index=True)
-                F30M_1H.to_csv(self.path+'30M-1H-ser.csv',sep=',',header=True)
+                F30M_1H.to_csv(self.path+'%s-30M-1H-ser.csv'%target,sep=',',header=True)
                 self.serDict.update({'30min-1hour':F30M_1H})
 
     def pickup_pure_item(self,period,serDataTag):
@@ -172,7 +187,7 @@ class ClientMatch():
         """
         recTime = ''
         filterDF = None
-        serData = self.serDict[serDataTag][self.serDict[serDataTag]['tmName']==period]
+        serData = self.serDict[serDataTag][self.serDict[serDataTag]['period']==period]
 
         for indx in range(len(serData)):
             patternVal = serData.iloc[indx]['patternVal']
@@ -271,7 +286,10 @@ class ClientMatch():
                 if tm == '':# 没有时间记录
                     deltaTm = 0
                 else:
-                    tagDT = datetime.datetime.strptime(tm,"%Y-%m-%d %H:%M")# 无秒单位的计数
+                    if len(tm.split(':')) == 2:
+                        tagDT = datetime.datetime.strptime(tm,"%Y-%m-%d %H:%M")
+                    else:
+                        tagDT = datetime.datetime.strptime(tm,"%Y-%m-%d %H:%M:%S")
                     deltaTm = (tagDT-baseTimeDT).total_seconds()
 
                 cacheList.append(deltaTm)
@@ -299,7 +317,7 @@ class ClientMatch():
         # Y轴为盈利比率。有正有负
         rateEarnDF = rateDF.ix[:,Constant.SER_DF_STRUCTURE[Constant.SER_DF_STRUCTURE.index('M15maxEarn'):-2:4]]
         rateLossDF = rateDF.ix[:,Constant.SER_DF_STRUCTURE[Constant.SER_DF_STRUCTURE.index('M15maxLoss'):-2:4]]
-        plt.title("%s"%self.path[-8:-1]+" %s"%tag+" Rate based on Time-Cost")
+        plt.title(tag+" Rate based on Time-Cost")
         #   Period     Earn marker styles          Loss marker styles      Color
         #  15Minute  >(Triangle right marker)    <(Triangle left marker)   blue
         #  30Minute  ^(Triangle up marker)       v(Triangle down marker)   magenta
@@ -321,35 +339,41 @@ class ClientMatch():
         plt.plot(deltaTmDF.ix[:,'H6maxEarnTime']/3600,rateEarnDF['H6maxEarn'].as_matrix(),'yp',label="H6")
         plt.plot(deltaTmDF.ix[:,'H6maxLossTime']/3600,rateLossDF['H6maxLoss'].as_matrix(),'yh')
         plt.legend()
-        plt.savefig('%s%s_%s.png'%(self.path,datetime.datetime.now().strftime("%Y-%m-%d"),tag),dpi=200)
+        plt.savefig('%s%s_%s.png'%(self.path,tag,datetime.datetime.now().strftime("%Y-%m-%d")),dpi=200)
         #plt.show()
 
-    def analyse_ser_data_in_history(self):
+    def analyse_ser_data_in_history(self,target):
         """ 外部接口API：策略盈亏率数据库的统计分析数据展示。
         """
+        serFile = self.path+'%s-ser.csv'%target
+        if not os.path.exists(serFile):
+            Trace.output('fatal','LEAK FOR %s ser.csv FILE'%target)
+            return
+
+        serDF = pd.read_csv(serFile)
         # 填充字典项:策略盈亏周期字典，策略方向周期位图字典
         for period in Constant.QUOTATION_DB_PREFIX[2:-2]:#前闭后开
-            filename = Configuration.get_period_anyone_folder(self.path,period)+period+'-ser.csv'
-            if os.path.exists(filename):
-                tempDf = pd.read_csv(filename)
-            else:
-                tempDf = DataFrame(columns=Constant.SER_DF_STRUCTURE)#建立空的DataFrame数据结构
+            tmpDf = serDF[serDF['period']==period]
+            if len(tmpDf) == 0:
+                tmpDf = DataFrame(columns=Constant.SER_DF_STRUCTURE)#建立空的DataFrame数据结构
             # 填充字典。结构为"周期:DataFrame"
-            self.serDict.update({period:tempDf})
+            self.serDict.update({period:tmpDf})
             # 更新区间格映射位图
-            self.update_lattice_map(period,tempDf)
+            self.update_lattice_map(period,tmpDf)
 
-    def analyse_quote_data_in_history(self):
+    def analyse_quote_data_in_history(self,target):
         """ 内部接口API：从策略盈亏率数据库中提取K线组合模式的指标值并更新相应实例。
                        实时更新--只需截取数据库中最后若干条目。
             说明：暂时只考虑15min/30min/1hour
         """
+        quoteFile = self.path+'%s-quote.csv'%target
+        if not os.path.exists(quoteFile):
+            Trace.output('fatal','LEAK FOR %s quote.csv FILE'%target)
+            return
+
+        quoteDF = pd.read_csv(quoteFile)
         for period in Constant.QUOTATION_DB_PREFIX[2:-2]:#前闭后开
-            filename = Configuration.get_period_anyone_folder(self.path,period)+period+'-quote.csv'
-            if not os.path.exists(filename):
-                Trace.output('fatal','LEAK FOR %s quote.csv FILE'%period)
-                return
-            tmpDf = np.read_csv(filename)
+            tmpDf = quoteDF[quoteDF['period']==period]
             self.quoteDict.update({period:tmpDf})
 
             # 模式匹配
@@ -359,14 +383,13 @@ class ClientMatch():
                     subsetDF = self.quoteDict[period].iloc[indx:indx+1]
                 else:
                     subsetDF = subsetDF.append(self.quoteDict[period].iloc[indx:indx+1])
-                dataDealed = StrategyMisc.process_quotes_candlestick_pattern\
-                    (Configuration.get_period_anyone_folder(self.path,period),subsetDF)
+                dataDealed = StrategyMisc.process_quotes_candlestick_pattern(subsetDF)
                 # 逐条进行匹配
                 self.strategyIns.check_strategy(period,dataDealed)
 
         # 更新策略条目的极值
-        quotefile5M = Configuration.get_period_anyone_folder(self.path,'5min')+'5min-quote.csv'
-        for item in np.read_csv(quotefile5M).itertuples(index=False):
+        quoteM5 = quoteDF[quoteDF['period']=='5min']
+        for item in quoteM5.itertuples(index=False):
             self.strategyIns.update_strategy([datetime.datetime.strptime(item[1],\
                                 '%Y-%m-%d %H:%M:%S'),float(item[3]),float(item[4])])
 
@@ -380,30 +403,34 @@ class ClientMatch():
         """ 外部接口API: K线指标组合模式
             strategy: 策略匹配实例
         """
-        filename15M = Configuration.get_period_anyone_folder(self.path,'15min')+'15min-ser.csv'
-        if not os.path.exists(filename15M):# 从行情数据库中提取并匹配策略组合模式，生成策略盈亏数据
-            self.analyse_quote_data_in_history()
-        else:
-            self.analyse_ser_data_in_history()
+        for target in self.targetList:
+            if not os.path.exists(self.path+'%s-ser.csv'%target):
+                # 从行情数据库中提取并匹配策略组合模式，生成策略盈亏数据
+                self.analyse_quote_data_in_history(target)
+            else:
+                self.analyse_ser_data_in_history(target)
 
-        # M15 M30 H1周期的同向时间点条目汇总--以下操作基于这些交叉周期
-        self.count_cross_M15M30H1_period()
+            # M15 M30 H1周期的同向时间点条目汇总--以下操作基于这些交叉周期
+            self.count_cross_M15M30H1_period(target)
 
-        for mixTag in ['15min-30min','15min-1hour','15min-30min-1hour']:
-            # 过滤数据(同向中的干扰条目，即弱势项)--提纯操作
-            pureDf = self.pickup_pure_item('15min',mixTag)
-            if pureDf is None:
-                continue
-            for ruler in ["Gold_saint","Silver_saint","Copper_saint"]:
-                # 依据时间段提取条目
-                filterDf = self.filter_time_phase_item(pureDf,ruler)
-                if filterDf is None:
+            for mixTag in ['15min-30min','15min-1hour','15min-30min-1hour']:
+                # 过滤数据(同向中的干扰条目，即弱势项)--提纯操作
+                pureDf = self.pickup_pure_item('15min',mixTag)
+                #print 'Pure DataFrame\n',pureDf#调试点
+                if pureDf is None:
                     continue
-                # 计算盈亏比率
-                rateDF = self.calculate_profit_rate(filterDf)
-                # 计算时间差值
-                deltaTimeDF = self.calculate_time_cost_on_peak(filterDf)
-                # 制图
-                self.draw_statistics(mixTag+ruler,rateDF,deltaTimeDF)
+                for ruler in ["Gold_saint","Silver_saint","Copper_saint"]:
+                    # 依据时间段提取条目
+                    filterDf = self.filter_time_phase_item(pureDf,ruler)
+                    if filterDf is None:
+                        continue
+                    # 计算盈亏比率
+                    rateDF = self.calculate_profit_rate(filterDf)
+                    #print 'Rate DataFrame\n',rateDF#调试点
+                    # 计算时间差值
+                    deltaTimeDF = self.calculate_time_cost_on_peak(filterDf)
+                    #print 'delta Time DataFrame\n',deltaTimeDF#调试点
+                    # 制图
+                    self.draw_statistics(target+mixTag+ruler,rateDF,deltaTimeDF)
 
-
+            self.reset_relevant_dict()

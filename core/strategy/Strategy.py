@@ -22,9 +22,9 @@ class Strategy():
     """
         策略算法模块
     """
-    def __init__(self,quoteRecordIns):
+    def __init__(self,targetList):
         """ 初始化 """
-        self.targetList = quoteRecordIns.get_target_list()
+        self.targetList = targetList
         #蜡烛图组合模式DataFrame结构化
         tplCandlestickPattern = {'Note':Constant.CANDLESTICK_PATTERN_NOTE, 'Pattern':Constant.CANDLESTICK_PATTERN}
         self.dfCandlestickPattern = DataFrame(tplCandlestickPattern,index=range(len(Constant.CANDLESTICK_PATTERN)))
@@ -92,7 +92,7 @@ class Strategy():
                         continue
                     #匹配K线组合模式成功后，添加到本周期DataFrame记录对象中。相关统计项暂记为空值。
                     matchItem = [dealTmValue,float(dfLastLine['close'].values),tmName,pattern,int(dfLastLine[pattern].values),\
-                                 '1900-01-01 00:00']+[0.0,'1900-01-01 00:00',10000.0,'1900-01-01 00:00']*7+[0,15*60]
+                                 '1900-01-01 00:00:00']+[0.0,'1900-01-01 00:00:00',10000.0,'1900-01-01 00:00:00']*7+[0,15*60]
                     #最后两项的含义：设置第一个周期是'15min'--序号为0，周期计数为15*60。
                     dfCollect = dfCollect.append(pd.Series(matchItem,index=Constant.SER_DF_STRUCTURE),ignore_index=True)
             except (Exception),e:
@@ -220,8 +220,7 @@ class Strategy():
                             dfStrategy.ix[rowNo,-1] = Constant.QUOTATION_DB_PERIOD[baseAddr+int(itemRow[-2])]
                     else:#链式计数还未到期
                         dfStrategy.ix[rowNo,-1] -= Constant.CHAIN_PERIOD[0]
-                    #print "update the following:"
-                    #print dfStrategy.ix[rowNo]#调试点
+                    #print "update the following:\n",dfStrategy.ix[rowNo]#调试点
                     self.dictPolRec[target].ix[rowNo] = dfStrategy.ix[rowNo]#数据回写
                 except (Exception),e:
                     exc_type,exc_value,exc_tb = sys.exc_info()

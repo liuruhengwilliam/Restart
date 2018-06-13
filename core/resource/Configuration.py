@@ -107,28 +107,17 @@ def get_back_week_directory(path,backDeepCnt):
 
     return dirPath
 
-def get_period_anyone_folder(path,period):
-    """ 外部接口API：获取任意周（当前周or某历史周）的某周期属性文件夹路径
-        path: 指定的某文件夹路径
-        period: 周期字符名称
-    """
-    sysName = platform.system()
-    if (sysName == "Windows"):
-        dirPath = path+period+'\\'
-    elif (sysName == "Linux"):
-        dirPath = path+period+'/'
-    else :# 未知操作系统
-        dirPath = period
-    return dirPath
-
 # 对于程序运行过程中的调试和异常等情况，需要通过XML配置文件加载相关属性方式调整流程，便于分析问题。
-def get_property(strProperty):
+def get_property(strProperty,path=None):
     """ 内/外部接口API：根据XML配置文件读取相关属性字段
         入参：strProperty 属性字符串
         返回值：若XML文件中存在对应属性，则返回属性值；否则返回None。
     """
     ret = None
-    fileName = get_working_directory()+'Properties.xml'
+    if path is None:#服务端程序(Stock/Futures)调用
+        fileName = get_working_directory()+'Properties.xml'
+    else:#客户端程序调用
+        fileName = path+'Properties.xml'
 
     if not os.path.exists(fileName):
         return None
@@ -145,11 +134,12 @@ def get_property(strProperty):
 
     return ret
 
-def parse_target_list():
+def parse_target_list(path=None):
     """ 外部函数API：配置文件中标的列表的查询函数。标的可能是单一期货/大宗商品，也可能是股票代码列表。
         返回值：标的列表。
+        path
     """
-    target = get_property("target")
+    target = get_property("target",path)
     if target is not None:
         return target.replace('\n','').replace('\t','').replace(' ','').split(';')
     else:
