@@ -12,7 +12,6 @@ from quotation.Quotation import *
 from quotation.QuotationRecord import *
 from strategy.Strategy import Strategy
 from strategy import StrategyMisc
-from strategy.ClientMatch import ClientMatch
 from indicator import CandleStick
 
 class Coordinate():
