@@ -497,6 +497,10 @@ def email_withattachment_send_test():
         print e.message
     smtp.quit()
 
+def configuration_API_test():
+    Configuration.send_notification_email('title','text',\
+        ['D:\\misc\\2018-06-14\\Stock000E-2018-23\\000651-quote.csv'])
+
 def get_week_of_month(year, month, day):
      """
      获取指定的某天是某个月中的第几周
@@ -634,7 +638,8 @@ if __name__ == '__main__':
     #talib_macd()
     #talib_sma_test()
     #query_info()
-    dataframe_transfer_csv()
+    #dataframe_transfer_csv()
+    configuration_API_test()
     #configuration_stock()
     #stock_from_eastMoney()
     #get_property()
