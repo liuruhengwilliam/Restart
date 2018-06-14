@@ -55,6 +55,18 @@ def create_working_directory():
         # 创建当周数据库文件夹
         os.makedirs(dirPath)
 
+def get_current_directory():
+    """内/外部接口API：获取当前目录"""
+    #生成文件路径(依据不同操作系统)
+    sysName = platform.system()
+    if (sysName == "Windows"):
+        dirPath = os.getcwd()+'\\'
+    elif (sysName == "Linux"):
+        dirPath = os.getcwd()+'/'
+    else :# 未知操作系统
+        dirPath = ''
+    return dirPath
+
 def get_working_directory():
     """内/外部接口API：获取当前周工作目录"""
     dt = datetime.datetime.now()
