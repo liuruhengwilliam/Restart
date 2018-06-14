@@ -1,6 +1,7 @@
 #coding=utf-8
 
 import os
+import zipfile
 import urllib
 import datetime
 import platform
@@ -145,68 +146,16 @@ def parse_target_list(path=None):
     else:
         return []
 
-DEFAULT_SERVER_URL = "http://192.168.10.81/"
-DEFAULT_PHASE_VERSION = "Fx678-V110BB"
-def get_server_download_url(period):
-    """ 外部接口API：获取远端服务器(only should be Linux)的下载url
-        period: 周期名称字符串
+def zip_data_statistics_file(zipfile,path):
+    """ 外部接口API:数据和分析文件打包函数
+        zipfile:打包文件名。
+        path:打包文件的路径。
     """
-    dt = datetime.datetime.now()
-    year,week = dt.strftime('%Y'),dt.strftime('%U')
-    fileNamePrefix = year+'-'+week
-
-    serverUrl = get_property('serverUrl')
-    if serverUrl == None:
-        serverUrl = DEFAULT_SERVER_URL
-
-    phaseVersion = get_property('phaseVer')
-    if phaseVersion == None:
-        phraseVersion = DEFAULT_PHASE_VERSION
-
-    return serverUrl + phaseVersion + '/'+year+'/'+fileNamePrefix+'/'+period+'/'
-
-def download_realtime_file(suffix):
-    """ 外部接口API:下载实时更新的文件--相关数据库文件
-        suffix:文件名伪后缀-- ser or quote
-    """
-    for tmName in Constant.QUOTATION_DB_PREFIX[1:]:
-        dnldUrl = get_server_download_url(tmName)+tmName+'-'+suffix+'.csv'
-        filePath = get_working_directory()+tmName+'-'+suffix+'.csv'
-        try:
-            urllib.urlretrieve(dnldUrl,filename=filePath)
-            Trace.output('info',"download csv file from %s"%(dnldUrl))
-        except Exception,e:
-            continue
-
-def download_statistic_file(suffix):
-    """外部接口API：下载每日结算期统计文件--相关csv和png文件
-        suffix:文件后缀-- csv or png
-    """
-    for tmName in Constant.QUOTATION_DB_PREFIX[1:]:
-        if suffix == "csv":#制表文件
-            for phase in ("quote","ser"):
-                dnldUrl = get_server_download_url(tmName)+\
-                        tmName+'-'+phase+str(datetime.date.today())+'.'+suffix
-                filePath = get_working_directory()+\
-                        tmName+'-'+phase+str(datetime.date.today())+'.'+suffix
-                try:
-                    urllib.urlretrieve(dnldUrl,filename=filePath)
-                    Trace.output('info',"download db file from %s"%(dnldUrl))
-                except Exception,e:
-                    continue
-        else:#png文件
-            #下载前一天的指标绘图文件
-            dayStamp = (datetime.date.today()-datetime.timedelta(days=1)).strftime('%b%d')
-            for clock in range(24):
-                dnldUrl = get_server_download_url(tmName)+\
-                        tmName+'-'+dayStamp+'_'+'%02d'%clock+'_00'+'.'+suffix
-                filePath = get_working_directory()+\
-                        tmName+'-'+dayStamp+'_'+'%02d'%clock+'_00'+'.'+suffix
-                try:
-                    urllib.urlretrieve(dnldUrl,filename=filePath)
-                    Trace.output('info',"download db file from %s"%(dnldUrl))
-                except Exception,e:
-                    continue
+    f = zipfile.ZipFile(zipfile,'w',zipfile.ZIP_STORED)
+    for dirpath, dirnames, filenames in os.walk(path):
+        for filename in filenames:
+            f.write(os.path.join(dirpath,filename))
+    f.close()
 
 def exit_client():
     """外部接口API：客户端程序退出检测
