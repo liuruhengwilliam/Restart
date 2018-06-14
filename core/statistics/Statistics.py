@@ -434,11 +434,13 @@ class Statistics():
 
     def statistics_operation(self):
         """ 外部接口API:分析线程的主处理函数。 """
-        for target in self.targetList:
-            if Constant.be_exited(target):
-                # 相关数据文件打包
-
-                os._exit(0)
+        if Constant.be_exited(self.targetList[0]):
+            # 相关数据文件打包
+            zipName = '-'.join(self.targetList)+datetime.datetime.now().strftime('-%m-%d')+'.zip'
+            Configuration.zip_data_statistics_file(zipName,self.path)
+            # 发送电子邮件
+            Configuration.send_notification_email(zipName,' '.join(self.targetList),self.path+zipName)
+            os._exit(0)
 
         self.match_KLineIndicator()
 

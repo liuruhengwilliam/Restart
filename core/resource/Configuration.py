@@ -146,12 +146,12 @@ def parse_target_list(path=None):
     else:
         return []
 
-def zip_data_statistics_file(zipfile,path):
+def zip_data_statistics_file(zipName,path):
     """ 外部接口API:数据和分析文件打包函数
-        zipfile:打包文件名。
+        zipName:打包文件名。
         path:打包文件的路径。
     """
-    f = zipfile.ZipFile(zipfile,'w',zipfile.ZIP_STORED)
+    f = zipfile.ZipFile(zipName,'w',zipfile.ZIP_STORED)
     for dirpath, dirnames, filenames in os.walk(path):
         for filename in filenames:
             f.write(os.path.join(dirpath,filename))
