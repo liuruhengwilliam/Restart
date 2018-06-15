@@ -206,7 +206,8 @@ def be_exited(target):
         if int(day) >= 6 and int(hour) > SAT_STANDARD_SETTLEMENT_HOUR_TIME:
             return True
     elif re.search(r'[^0-9](.*)',target) is None:#股票类型全是数字
-        if int(hour) >= 16 or int(day) > 5:#为矫正定时器漂移问题，建议每天收市后退出(每天开盘前启动)。
+        if (int(hour)==15 and int(minute)>=40) or int(hour) >= 16 or int(day) > 5:
+        #为矫正定时器漂移问题，建议每天收市后退出(每天开盘前启动)。
             return True
     return False
 

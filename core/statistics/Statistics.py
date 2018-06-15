@@ -25,7 +25,6 @@ class Statistics():
         """ 初始化相关指标各周期的实例
             path:数据文件存储目录（可能为服务程序的工作目录）。即客户端程序的依赖目录。
         """
-        self.closedFlag = False#收盘标志
         self.path = path
         self.targetList = Configuration.parse_target_list(path+'Properties.xml')
         self.strategyIns = Strategy(self.targetList)
@@ -433,14 +432,15 @@ class Statistics():
 
     def statistics_operation(self):
         """ 外部接口API:分析线程的主处理函数。 """
-        if self.closedFlag==False and Constant.be_exited(self.targetList[0]):
-            # 相关数据文件打包
+        if Constant.be_closed(self.targetList[0])==True and Constant.be_exited(self.targetList[0])==False:
+            # 在闭市和程序退出时间差(30min)中有且仅有一次定时器到期，相关数据文件打包
             zipName = '-'.join(self.targetList)+datetime.datetime.now().strftime('-%m-%d')+'.zip'
             Configuration.zip_data_statistics_file(zipName,self.path)
             # 发送电子邮件
             Configuration.send_notification_email(zipName,' '.join(self.targetList),\
                                     [Configuration.get_current_directory()+zipName])
-            self.closedFlag = True
 
+        if Constant.be_exited(self.targetList[0]):
+            os._exit(0)
         self.match_KLineIndicator()
 

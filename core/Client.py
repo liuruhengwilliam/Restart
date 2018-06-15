@@ -18,7 +18,7 @@ def client_main():
     #也可使用配置文件设置循环定时器的方式
     clientPeriod = Configuration.get_property("clientPeriod")#单位是秒
     if clientPeriod == None:
-        clientPeriod = Constant.QUOTATION_DB_PERIOD[1]
+        clientPeriod = Constant.QUOTATION_DB_PERIOD[3]
 
     #在Linux平台下可以利用while命令循环执行shell命令
     #参考文档：http://blog.csdn.net/daoshuti/article/details/72831256
