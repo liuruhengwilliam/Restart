@@ -14,7 +14,7 @@ def client_main():
     if pathTotal == None:
         Trace.output('fatal','no data path depended!')
         return
-
+    pathTotal = pathTotal.replace('\n','').replace('\t','').replace(' ','')
     #也可使用配置文件设置循环定时器的方式
     clientPeriod = Configuration.get_property("clientPeriod")#单位是秒
     if clientPeriod == None:
@@ -24,7 +24,8 @@ def client_main():
     #参考文档：http://blog.csdn.net/daoshuti/article/details/72831256
     for path in pathTotal.split(';'):
         statisticHdl = Statistics(path)
-        TimerMotor.start_loop_timer((statisticHdl.statistics_operation,),[int(clientPeriod),])
+        statisticHdl.statistics_operation()#调试点
+        #TimerMotor.start_loop_timer((statisticHdl.statistics_operation,),[int(clientPeriod),])
 
 if __name__ == '__main__':
     client_main()
