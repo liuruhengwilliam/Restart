@@ -121,17 +121,14 @@ def get_back_week_directory(path,backDeepCnt):
     return dirPath
 
 # 对于程序运行过程中的调试和异常等情况，需要通过XML配置文件加载相关属性方式调整流程，便于分析问题。
-def get_property(strProperty,path=None):
+def get_property(strProperty):
     """ 内/外部接口API：根据XML配置文件读取相关属性字段
         入参：strProperty 属性字符串
         返回值：若XML文件中存在对应属性，则返回属性值；否则返回None。
     """
     ret = None
-    if path is None:#服务端程序(Stock/Futures)调用
-        fileName = get_working_directory()+'Properties.xml'
-    else:#客户端程序调用
-        fileName = path+'Properties.xml'
-
+    #服务端程序(Stock/Futures)调用
+    fileName = get_working_directory()+'Properties.xml'
     if not os.path.exists(fileName):
         return None
 
@@ -147,16 +144,30 @@ def get_property(strProperty,path=None):
 
     return ret
 
-def parse_target_list(path=None):
+def parse_target_list(specialPath=None):
     """ 外部函数API：配置文件中标的列表的查询函数。标的可能是单一期货/大宗商品，也可能是股票代码列表。
         返回值：标的列表。
-        path
     """
-    target = get_property("target",path)
-    if target is not None:
-        return target.replace('\n','').replace('\t','').replace(' ','').split(';')
+    if specialPath is None:
+        fileName = get_working_directory()+'Properties.xml'
     else:
-        return []
+        fileName = specialPath+'Properties.xml'
+    if os.path.exists(specialPath)==False:
+        return None
+
+    try:
+        tree = ET.parse(specialPath)
+        root = tree.getroot()
+    except Exception,e:
+        Trace.output('fatal','get_property exception:'+e.message)
+        return None
+    ret = ['Silver']
+    for item in root.findall('target'):
+        ret = item.find('value').text
+    if ret is not None:
+        return ret.replace('\n','').replace('\t','').replace(' ','').split(';')
+    else:
+        return ret
 
 def zip_data_statistics_file(zipName,path):
     """ 外部接口API:数据和分析文件打包函数

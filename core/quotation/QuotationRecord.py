@@ -9,13 +9,9 @@ class QuotationRecord():
     """ 行情记录类 """
     def __init__(self):
         """ 行情实时数据处理模块初始化函数 """
-        target = Configuration.parse_target_list()
+        self.quoteList = Configuration.parse_target_list()
         # QDB中各周期记录字典
         self.recordPeriodDict = {}
-        if len(target)==0:#未配置就默认为'Silver'
-            self.quoteList = ['Silver']
-        else:
-            self.quoteList = target
 
         atomicDictItem = dict(zip(Constant.QUOTATION_STRUCTURE,[' ',0.0,0.0,0.0,0.0]))
         for name in self.quoteList:# 生成期货/大宗商品/股票代码和TOHLC字典项。周期标记因子在定时器中叠加。
