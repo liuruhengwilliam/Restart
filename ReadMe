@@ -100,3 +100,10 @@
   TypeError: The numpy boolean negative, the `-` operator, is not supported, use the `~` operator or the logical_not function instead
   解决方法：
     根据报错提示信息，修改文件...\python2.7\...\pandas\core\common.py相应行代码。
+
+2018-06-15
+  wxPython安装说明：
+  1.下载步骤：在https://wxpython.org/pages/downloads/网页中点击下载链接。根据本机的Python版本，匹配对应的whl文件。
+  比如：Windows64位OS和Python2.7.13版本对应的文件有wxPython-4.0.1-cp27-cp27m-win_amd64.whl等版本。
+  2.安装步骤：类似TA_Lib，在shell或者cmd中，执行命令pip install wxPython-4.0.1-cp27-cp27m-win_amd64.whl即可。
+  3.验证步骤：在shell或者cmd中，执行import wx命令即可验证。
