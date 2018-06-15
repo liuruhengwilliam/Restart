@@ -25,10 +25,9 @@ class Statistics():
         """ 初始化相关指标各周期的实例
             path:数据文件存储目录（可能为服务程序的工作目录）。即客户端程序的依赖目录。
         """
+        self.closedFlag = False#收盘标志
         self.path = path
-        self.targetList = Configuration.parse_target_list(path)
-        if len(self.targetList)==0:
-            self.targetList=['Silver']
+        self.targetList = Configuration.parse_target_list(path+'Properties.xml')
         self.strategyIns = Strategy(self.targetList)
         self.KLineIndicator = dict(zip(Constant.QUOTATION_DB_PREFIX[1:-2],[0]*len(Constant.QUOTATION_DB_PREFIX[1:-2])))
         self.BBandIndicator = {}
@@ -434,13 +433,14 @@ class Statistics():
 
     def statistics_operation(self):
         """ 外部接口API:分析线程的主处理函数。 """
-        if Constant.be_exited(self.targetList[0]):
+        if self.closedFlag==False and Constant.be_exited(self.targetList[0]):
             # 相关数据文件打包
             zipName = '-'.join(self.targetList)+datetime.datetime.now().strftime('-%m-%d')+'.zip'
             Configuration.zip_data_statistics_file(zipName,self.path)
             # 发送电子邮件
-            Configuration.send_notification_email(zipName,' '.join(self.targetList),self.path+zipName)
-            os._exit(0)
+            Configuration.send_notification_email(zipName,' '.join(self.targetList),\
+                                    [Configuration.get_current_directory()+zipName])
+            self.closedFlag = True
 
         self.match_KLineIndicator()
 
