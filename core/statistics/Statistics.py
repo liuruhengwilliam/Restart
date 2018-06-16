@@ -1,8 +1,10 @@
 #coding=utf-8
 
 import os
+import time
 import datetime
 import platform
+import random
 if (platform.system() == "Linux"):#适配Linux系统下运行环境
     import matplotlib
     matplotlib.use("Pdf")
@@ -432,6 +434,7 @@ class Statistics():
 
     def statistics_operation(self):
         """ 外部接口API:分析线程的主处理函数。 """
+        time.sleep(random.randint(0,180))
         if Constant.be_closed(self.targetList[0])==True and Constant.be_exited(self.targetList[0])==False:
             # 在闭市和程序退出时间差(30min)中有且仅有一次定时器到期，相关数据文件打包
             zipName = '-'.join(self.targetList)+datetime.datetime.now().strftime('-%m-%d')+'.zip'
