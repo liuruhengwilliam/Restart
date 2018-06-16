@@ -1,22 +1,48 @@
 #coding=utf-8
 
+import wx
 import platform
 import sys
 import os
 import pandas as pd
-from resource import Constant
-from resource import Configuration
-from resource import DataSettleKit
-from indicator import CandleStick
-from strategy.ClientMatch import ClientMatch
-from strategy.Strategy import Strategy
+#from resource import Constant
+#from resource import Configuration
+#from resource import DataSettleKit
+#from indicator import CandleStick
+#from strategy.ClientMatch import ClientMatch
+#from strategy.Strategy import Strategy
+
+class DirDialog(wx.Frame):
+    """"""
+    #----------------------------------------------------------------------
+    def __init__(self):
+        """Constructor"""
+        wx.Frame.__init__(self,None,-1,u"文件夹选择对话框")
+        b = wx.Button(self,-1,u"文件夹选择对话框")
+        self.Bind(wx.EVT_BUTTON, self.OnButton, b)
+
+    #----------------------------------------------------------------------
+    def OnButton(self, event):
+        """"""
+        dlg = wx.DirDialog(self,u"选择文件夹",style=wx.DD_DEFAULT_STYLE)
+        if dlg.ShowModal() == wx.ID_OK:
+            print dlg.GetPath() #文件夹路径
+
+        dlg.Destroy()
+
+if __name__ == '__main__':
+    frame = wx.PySimpleApp()
+    app = DirDialog()
+    app.Show()
+    frame.MainLoop()
 
 """
     辅助类：
     1.画图方法；
     2.历史数据分析；
 """
-if __name__ == '__main__':
+
+def old_API():
     choiceIndex = raw_input("Please choose:\n"+"  1.drawing picture of indicator\n"\
                             +"  2.analyse quote data in history\n"\
                             +"  3.translate quote database to csv file\n"\
