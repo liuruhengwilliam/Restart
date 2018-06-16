@@ -107,3 +107,14 @@
   比如：Windows64位OS和Python2.7.13版本对应的文件有wxPython-4.0.1-cp27-cp27m-win_amd64.whl等版本。
   2.安装步骤：类似TA_Lib，在shell或者cmd中，执行命令pip install wxPython-4.0.1-cp27-cp27m-win_amd64.whl即可。
   3.验证步骤：在shell或者cmd中，执行import wx命令即可验证。
+
+2018-06-16
+  Windows环境下py2exe使用初探：
+  1.报错SyntaxError: invalid syntax (asyncsupport.py, line 22)。
+  根据文章(https://stackoverflow.com/questions/42124464/python-setup-py-py2exe-invalid-syntax-asyncsupport-py-line-22)分析所述。
+  PC环境中Python2.7和jinja2模块的2.9版本有不匹配的地方，需要将jinja2模块退到2.8版本即可。在该文章的链接中(https://pypi.org/project/Jinja2/2.8/#files)
+  下载Jinja2-2.8-py2.py3-none-any.whl。然后备份Anaconda2\Lib\site-packages中的2.9版本jinja2模块到其他目录，
+  最后执行安装命令pip install Jinja2-2.8-py2.py3-none-any.whl。
+  2.在cmd环境中执行python setup.py py2exe即可生成dist目录。该目录包含对应的可执行程序.exe文件。
+  
+  
