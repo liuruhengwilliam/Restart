@@ -117,4 +117,9 @@
   最后执行安装命令pip install Jinja2-2.8-py2.py3-none-any.whl。
   2.在cmd环境中执行python setup.py py2exe即可生成dist目录。该目录包含对应的可执行程序.exe文件。
   
+2018-06-19
+  Windows环境下py2exe使用示例：
+  1.要创建图形用户界的程序，需要将setup.py中的console=["xxx.py"]替换为windows=["xxx.py"]。
+  2.对于报错"RuntimeError: Could not find the matplotlib data files"，需要指明相关依赖文件的路径。
+    在setup.py文件中，增加data_files项。具体请参见示例程序。
   
