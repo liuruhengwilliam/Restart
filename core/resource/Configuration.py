@@ -152,11 +152,11 @@ def parse_target_list(specialPath=None):
         fileName = get_working_directory()+'Properties.xml'
     else:
         fileName = specialPath+'Properties.xml'
-    if os.path.exists(specialPath)==False:
+    if os.path.exists(fileName)==False:
         return None
 
     try:
-        tree = ET.parse(specialPath)
+        tree = ET.parse(fileName)
         root = tree.getroot()
     except Exception,e:
         Trace.output('fatal','get_property exception:'+e.message)
