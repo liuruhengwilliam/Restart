@@ -346,7 +346,7 @@ class Statistics():
         """
         serFile = self.path+'%s-ser.csv'%target
         if not os.path.exists(serFile):
-            Trace.output('fatal','LEAK FOR %s ser.csv FILE'%target)
+            Trace.output('fatal','Lack for %s ser.csv FILE'%target)
             return
 
         serDF = pd.read_csv(serFile)
@@ -367,7 +367,7 @@ class Statistics():
         """
         quoteFile = self.path+'%s-quote.csv'%target
         if not os.path.exists(quoteFile):
-            Trace.output('fatal','LEAK FOR %s quote.csv FILE'%target)
+            Trace.output('fatal','Lack for %s quote.csv FILE'%target)
             return
 
         quoteDF = pd.read_csv(quoteFile)
