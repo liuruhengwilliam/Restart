@@ -17,12 +17,12 @@ def process_xaxis_labels(periodIndx, tmList):
     """
     labelsList = []
     scale = Constant.SCALE_CANDLESTICK[periodIndx]
-
+    print tmList
     if  scale == Constant.BIG_SCALE_STAGE:
         labelsList = map(lambda x:(x.split(' ')[0]).split('-')[1]+'-'+(x.split(' ')[0]).split('-')[2],\
             [tm for tm in tmList])
     elif scale == Constant.MEDIUM_SCALE_STAGE:
-        labelsList = map(lambda x:(x.split(' ')[0]).split('-')[1]+'-'+(x.split(' ')[0]).split('-')[2]+\
+        labelsList = map(lambda x:(x.split(' ')[0]).split('/')[1]+'-'+(x.split(' ')[0]).split('/')[2]+\
             ' '+(x.split(' ')[1]).split(':')[0]+':'+(x.split(' ')[1]).split(':')[1],[tm for tm in tmList])
     else:
         labelsList = map(lambda x:(x.split(' ')[1]).split(':')[0]+':'+(x.split(' ')[1]).split(':')[1],\
