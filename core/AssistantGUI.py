@@ -198,7 +198,6 @@ class ToolsFrame ( wx.Frame ):
 
     def OperateAssistant(self):
         """ 具体事务的处理函数 """
-        print self.filePath
         if self.filePath=='':
             self.UpdateUI(FRAME_INFO,"Be lack of file Path.")
             return
