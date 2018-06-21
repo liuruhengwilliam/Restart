@@ -26,6 +26,8 @@ def get_field_from_string(str,separator=None):
     if (sysName == "Windows"):
         if separator == None:
             retList = str.split('\\')
+        else:
+            retList = str.split(separator)
     elif (sysName == "Linux"):
         if separator == None:
             retList = str.split('/')
