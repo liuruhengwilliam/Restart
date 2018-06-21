@@ -149,11 +149,12 @@ def get_property(strProperty):
 def parse_target_list(specialPath=None):
     """ 外部函数API：配置文件中标的列表的查询函数。标的可能是单一期货/大宗商品，也可能是股票代码列表。
         返回值：标的列表。
+        specialPath：包含文件名(Properties.xml)的文件路径。
     """
     if specialPath is None:
         fileName = get_working_directory()+'Properties.xml'
     else:
-        fileName = specialPath+'Properties.xml'
+        fileName = specialPath
     if os.path.exists(fileName)==False:
         return None
 
