@@ -11,7 +11,6 @@ FRAME_ABOUT = 1#About窗体框架
 FRAME_INFO = 2#提示信息窗体框架。
 
 import wx
-import wx.xrc
 import pandas as pd
 from resource import Constant
 from resource import Configuration
