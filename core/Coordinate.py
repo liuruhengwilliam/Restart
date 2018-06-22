@@ -153,8 +153,9 @@ class Coordinate():
             target: 标的字符串
         """
         #更新行情数据到csv文件中
-        self.quoteHdl.get_quote(target).to_csv(Configuration.get_working_directory()+target+'-quote.csv',\
+        quoteRecord = self.quoteHdl.get_quote(target).iloc[len(Constant.QUOTATION_DB_PERIOD):]
+        quoteRecord.to_csv(Configuration.get_working_directory()+target+'-quote.csv',\
                             columns=['period',]+list(Constant.QUOTATION_STRUCTURE),index=False)
         # 更新策略匹配数据到csv文件
-        self.strategy.get_strategy(target).to_csv(Configuration.get_working_directory()+target+'-ser.csv',\
-                            columns=Constant.SER_DF_STRUCTURE, index=False)
+        self.strategy.get_strategy(target).to_csv(Configuration.get_working_directory()+target\
+                            +'-ser.csv',columns=Constant.SER_DF_STRUCTURE, index=False)
