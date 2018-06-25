@@ -66,7 +66,8 @@ class Strategy():
                 continue
             result = None
             try:
-                result = getattr(talib, pattern)(data['open'].values,data['high'].values,data['low'].values,data['close'].values)
+                result = getattr(talib, pattern)(data['open'].values.astype(np.double),data['high'].values.astype(np.double),\
+                                                 data['low'].values.astype(np.double),data['close'].values.astype(np.double))
                 # result是numpy.ndarray数据结构
                 if len(result) != 0 and result.any() == True:
                     dataCache = copy.copy(data)#浅复制即可。若是赋值会污染‘data’；若是深拷贝会影响运行效率。
