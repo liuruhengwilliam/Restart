@@ -25,7 +25,8 @@ def process_quotes_supplement(target,file):
     else:#异常标的不做补全处理
         return data
 
-    dataSupplement = supplement_items(file,data,gap)
+    #dataSupplement = supplement_items(file,data,gap)
+    dataSupplement = data
     # 输出日志记录
     Trace.output('info',"=== To be continued from %s ==="%Configuration.get_field_from_string(file)[-1])
     for itemRow in dataSupplement.itertuples(index=False):
@@ -39,7 +40,7 @@ def supplement_items(path,data,supplementCnt):
         supplementCnt: 需要增补的数目
         返回值: 增补后的dateframe结构行情数据
     """
-    weekGap = 1 # 从前一周开始搜索
+    weekGap = 1 #从前一周开始搜索
     while supplementCnt > 0:
         prefile = Configuration.get_back_week_directory(path,weekGap)+\
                         Configuration.get_field_from_string(path)[-1]
