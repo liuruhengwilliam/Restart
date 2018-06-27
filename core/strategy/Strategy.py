@@ -44,8 +44,6 @@ class Strategy():
             else:#若本周及上周都无历史数据，则空白
                 self.dictPolRec.update({target:deepcopy(valueDf)})
 
-            self.dictPolRec.update({target:deepcopy(valueDf)})
-
     def get_strategy(self,target):
         """ 外部接口API: 获取某周期的策略记录
             target: 标的字符串
