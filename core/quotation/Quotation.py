@@ -35,12 +35,11 @@ class Quotation():
             preWeekFile = Configuration.get_back_week_directory(file,1)+'%s-quote.csv'%target
             #补全历史数据
             if os.path.exists(file):
-                self.quoteCache.update({target:deepcopy(DataSettleKit.process_quotes_supplement(target,file))})
+                quoteDF = quoteDF.append(DataSettleKit.process_quotes_supplement(target,file))
             elif os.path.exists(preWeekFile):#周一开盘时接续上周条目
-                self.quoteCache.update({target:deepcopy(DataSettleKit.process_quotes_supplement(target,preWeekFile))})
-            else:#若本周及上周都无历史数据，则空白
-                self.quoteCache.update({target:deepcopy(quoteDF)})
+                quoteDF = quoteDF.append(DataSettleKit.process_quotes_supplement(target,preWeekFile))
 
+            self.quoteCache.update({target:deepcopy(quoteDF)})
             #print self.quoteCache[target]#调试点
 
     def increase_timeout_count(self):
