@@ -22,7 +22,7 @@ def get_date_code():
     month,day = dt.strftime('%m'),dt.strftime('%d')
     return MONTH_CODE[int(month)-1]+DAY_CODE[int(day)-1]
 
-VERSION_CODE = 'V2.3.1Q'
+VERSION_CODE = 'V2.3.3Q'
 def get_version_info():
     """ 内/外部接口API: """
     return VERSION_CODE + get_date_code() + "\n" + \
@@ -266,9 +266,8 @@ def is_closed(target):
         返回值：True---休/闭市时间；False---交易时间
     """
     if re.search(r'[^a-zA-Z]',target) is None:#大宗商品类型全是英文字母
-        if is_futures_closed():
-            return True
+        return is_futures_closed()
     elif re.search(r'[^0-9](.*)',target) is None:#股票类型全是数字
-        if is_stock_closed():
-            return True
-    return False
+        return is_stock_closed()
+    else:
+        return True
