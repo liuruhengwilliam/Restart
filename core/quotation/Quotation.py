@@ -35,9 +35,9 @@ class Quotation():
             preWeekFile = Configuration.get_back_week_directory(file,1)+'%s-quote.csv'%target
             #补全历史数据
             if os.path.exists(file):
-                quoteDF = quoteDF.append(DataSettleKit.process_quotes_supplement(target,file))
+                quoteDF = quoteDF.append(DataSettleKit.process_quotes_supplement(target,file),ignore_index=True)
             elif os.path.exists(preWeekFile):#周一开盘时接续上周条目
-                quoteDF = quoteDF.append(DataSettleKit.process_quotes_supplement(target,preWeekFile))
+                quoteDF = quoteDF.append(DataSettleKit.process_quotes_supplement(target,preWeekFile),ignore_index=True)
 
             self.quoteCache.update({target:deepcopy(quoteDF)})
             #print self.quoteCache[target]#调试点
