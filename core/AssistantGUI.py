@@ -9,7 +9,9 @@
 FRAME_TOOLS = 0#GUI主窗体框架
 FRAME_ABOUT = 1#About窗体框架
 FRAME_INFO = 2#提示信息窗体框架。
+FRAME_USAGE = 3#提示信息窗体框架。
 
+import os
 import wx
 import pandas as pd
 from resource import Constant
@@ -24,14 +26,16 @@ from statistics.Statistics import Statistics
 class AboutFrame ( wx.Frame ):
     """ About窗体框架。拷贝自wyFormBuilder工程 """
     def __init__( self, parent, id=-1, UpdateUI=None ):
-        wx.Frame.__init__ ( self, parent, id = wx.ID_ANY, title = wx.EmptyString, pos = wx.DefaultPosition, size = wx.Size( 500,300 ), style = wx.DEFAULT_FRAME_STYLE|wx.TAB_TRAVERSAL )
+        wx.Frame.__init__ ( self, parent, id = wx.ID_ANY, title = u"修改记录", pos = wx.DefaultPosition,\
+                            size = wx.Size( 500,300 ), style = wx.DEFAULT_FRAME_STYLE|wx.TAB_TRAVERSAL )
 
         self.SetSizeHintsSz( wx.DefaultSize, wx.DefaultSize )
         self.UpdateUI = UpdateUI
-        sbSizer = wx.StaticBoxSizer( wx.StaticBox( self, wx.ID_ANY, u"about this software" ), wx.VERTICAL )
+        sbSizer = wx.StaticBoxSizer( wx.StaticBox( self, wx.ID_ANY ), wx.VERTICAL )
 
         self.m_staticText_about = wx.StaticText( sbSizer.GetStaticBox(), wx.ID_ANY, \
-                u"V0.0.1    Author: liuruheng    Date: 2018-06-20", wx.DefaultPosition, wx.DefaultSize, 0 )
+                u"V0.0.1  创建工程和Demo  Date: 2018-06-20\nV0.0.2  布局调整和相关按键事件处理  Date: 2018-06-29",\
+                wx.DefaultPosition, wx.DefaultSize, 0 )
         self.m_staticText_about.Wrap( -1 )
         sbSizer.Add( self.m_staticText_about, 0, wx.ALL, 5 )
 
@@ -52,108 +56,148 @@ class AboutFrame ( wx.Frame ):
         pass
 
 ###########################################################################
-## Class InfoDialog
+## Class UsageFrame
 ###########################################################################
-class InfoDialog ( wx.Dialog ):
-    """ 提示信息对话框。拷贝自wyFormBuilder工程 """
-    def __init__( self, parent, id=-1, UpdateUI=None, info=None ):
-        wx.Dialog.__init__ ( self, parent, id = wx.ID_ANY, title = u"Info", pos = wx.DefaultPosition, size = wx.Size( 322,141 ), style = wx.DEFAULT_DIALOG_STYLE )
+class UsageFrame ( wx.Frame ):
+    """ Usage窗体框架。拷贝自wyFormBuilder工程 """
+    def __init__( self, parent, id=-1, UpdateUI=None ):
+        wx.Frame.__init__ ( self, parent, id = wx.ID_ANY, title = u"使用说明", pos = wx.DefaultPosition,\
+                            size = wx.Size( 500,300 ), style = wx.DEFAULT_FRAME_STYLE|wx.TAB_TRAVERSAL )
 
         self.SetSizeHintsSz( wx.DefaultSize, wx.DefaultSize )
         self.UpdateUI = UpdateUI
-        bSizer = wx.BoxSizer( wx.VERTICAL )
+        sbSizer = wx.StaticBoxSizer( wx.StaticBox( self, wx.ID_ANY ), wx.VERTICAL )
 
-        self.m_staticText_info = wx.StaticText( self, wx.ID_ANY, info, wx.DefaultPosition, wx.DefaultSize, 0 )
-        self.m_staticText_info.Wrap( -1 )
-        bSizer.Add( self.m_staticText_info, 0, wx.ALL, 5 )
+        self.m_staticText_usage = wx.StaticText( sbSizer.GetStaticBox(), wx.ID_ANY, \
+                u"1.通过本软件生成的文件保存在所选择的文件目录中；\n2.只有在绘制蜡烛图等指标文件时才需要选择周期；",\
+                wx.DefaultPosition, wx.DefaultSize, 0 )
+        self.m_staticText_usage.Wrap( -1 )
+        sbSizer.Add( self.m_staticText_usage, 0, wx.ALL, 5 )
 
-        self.m_button_close = wx.Button( self, wx.ID_ANY, u"Close", wx.DefaultPosition, wx.DefaultSize, 0 )
-        bSizer.Add( self.m_button_close, 0, wx.ALL, 5 )
-
-        self.SetSizer( bSizer )
+        self.SetSizer( sbSizer )
         self.Layout()
 
         self.Centre( wx.BOTH )
-
         # Connect Events
-        self.m_button_close.Bind( wx.EVT_BUTTON, self.m_button_closeOnButtonClick )
+        self.Bind( wx.EVT_CLOSE, self.UsageFrameOnClose )
+
+    # Virtual event handlers, overide them in your derived class
+    def UsageFrameOnClose( self, event ):
+        """ 捕捉窗体框架的关闭事件，切换到程序主窗体框架。 """
+        self.UpdateUI(FRAME_TOOLS)
+        event.Skip()
 
     def __del__( self ):
         pass
 
+###########################################################################
+## Class InfoFrame
+###########################################################################
+class InfoFrame ( wx.Frame ):
+    """ 提示信息窗体框架。拷贝自wyFormBuilder工程 """
+    def __init__( self, parent, id=-1, UpdateUI=None, info=None ):
+        wx.Frame.__init__ ( self, parent, id = wx.ID_ANY, title = u"提示信息", pos = wx.DefaultPosition,\
+                            size = wx.Size( 322,141 ), style = wx.DEFAULT_FRAME_STYLE|wx.TAB_TRAVERSAL )
+
+        self.SetSizeHintsSz( wx.DefaultSize, wx.DefaultSize )
+        self.UpdateUI = UpdateUI
+        sbSizer = wx.StaticBoxSizer( wx.StaticBox( self, wx.ID_ANY ), wx.VERTICAL )
+
+        self.m_staticText_info = wx.StaticText( sbSizer.GetStaticBox(), wx.ID_ANY, info, wx.DefaultPosition, wx.DefaultSize, 0 )
+        self.m_staticText_info.Wrap( -1 )
+        sbSizer.Add( self.m_staticText_info, 0, wx.ALL, 5 )
+
+        self.SetSizer( sbSizer )
+        self.Layout()
+
+        self.Centre( wx.BOTH )
+        # Connect Events
+        self.Bind( wx.EVT_CLOSE, self.InfoFrameOnClose )
+
     # Virtual event handlers, overide them in your derived class
-    def m_button_closeOnButtonClick( self, event ):
+    def InfoFrameOnClose( self, event ):
+        """ 捕捉窗体框架的关闭事件，切换到程序主窗体框架。 """
         self.UpdateUI(FRAME_TOOLS)
         event.Skip()
+
+    def __del__( self ):
+        pass
 
 ###########################################################################
 ## Class ToolsFrame
 ###########################################################################
-
 class ToolsFrame ( wx.Frame ):
     """ 程序主窗体框架。拷贝自wyFormBuilder工程 """
     def __init__( self, parent, id=-1, UpdateUI=None ):
-        wx.Frame.__init__ ( self, parent, id = wx.ID_ANY, title = u"工具软件", pos = wx.DefaultPosition, size = wx.Size( -1,-1 ), style = wx.DEFAULT_FRAME_STYLE|wx.TAB_TRAVERSAL )
+        wx.Frame.__init__ ( self, parent, id = wx.ID_ANY, title = u"工具软件", pos = wx.DefaultPosition,\
+                            size = wx.Size( 527,212 ), style = wx.DEFAULT_FRAME_STYLE|wx.TAB_TRAVERSAL )
         self.UpdateUI = UpdateUI
         self.SetSizeHintsSz( wx.DefaultSize, wx.DefaultSize )
 
         self.m_menubar = wx.MenuBar( 0 )
         self.m_menu_file = wx.Menu()
-        self.m_menuItem_open = wx.MenuItem( self.m_menu_file, wx.ID_ANY, u"Open", wx.EmptyString, wx.ITEM_NORMAL )
-        self.m_menu_file.AppendItem( self.m_menuItem_open )
+        self.m_menuItem_usage = wx.MenuItem( self.m_menu_file, wx.ID_ANY, u"使用说明", wx.EmptyString, wx.ITEM_NORMAL )
+        self.m_menu_file.AppendItem( self.m_menuItem_usage )
 
         self.m_menu_file.AppendSeparator()
 
-        self.m_menuItem_exit = wx.MenuItem( self.m_menu_file, wx.ID_ANY, u"Exit", wx.EmptyString, wx.ITEM_NORMAL )
+        self.m_menuItem_exit = wx.MenuItem( self.m_menu_file, wx.ID_ANY, u"退出", wx.EmptyString, wx.ITEM_NORMAL )
         self.m_menu_file.AppendItem( self.m_menuItem_exit )
 
-        self.m_menubar.Append( self.m_menu_file, u"File" )
+        self.m_menubar.Append( self.m_menu_file, u"操作" )
 
         self.m_menu_help = wx.Menu()
-        self.m_menuItem_about = wx.MenuItem( self.m_menu_help, wx.ID_ANY, u"About", wx.EmptyString, wx.ITEM_NORMAL )
+        self.m_menuItem_about = wx.MenuItem( self.m_menu_help, wx.ID_ANY, u"关于软件", wx.EmptyString, wx.ITEM_NORMAL )
         self.m_menu_help.AppendItem( self.m_menuItem_about )
 
-        self.m_menubar.Append( self.m_menu_help, u"Help" )
+        self.m_menubar.Append( self.m_menu_help, u"帮助" )
 
         self.SetMenuBar( self.m_menubar )
 
-        bSizer_operation = wx.BoxSizer( wx.VERTICAL )
+        fgSizer_main = wx.FlexGridSizer( 0, 2, 0, 0 )
+        fgSizer_main.SetFlexibleDirection( wx.BOTH )
+        fgSizer_main.SetNonFlexibleGrowMode( wx.FLEX_GROWMODE_SPECIFIED )
 
-        self.m_filePicker = wx.FilePickerCtrl( self, wx.ID_ANY, wx.EmptyString, u"Select a file", u"*.*", wx.DefaultPosition, wx.Size( 500,-1 ), wx.FLP_DEFAULT_STYLE|wx.FLP_SMALL )
-        bSizer_operation.Add( self.m_filePicker, 0, wx.ALL, 5 )
+        self.m_staticText_type = wx.StaticText( self, wx.ID_ANY, u"操作类型", wx.DefaultPosition, wx.DefaultSize, 0 )
+        self.m_staticText_type.Wrap( -1 )
+        fgSizer_main.Add( self.m_staticText_type, 0, wx.ALL, 5 )
 
-        gSizer = wx.GridSizer( 0, 2, 0, 0 )
+        m_comboBox_typeChoices = [u"1.db文件转换成csv文件",u"2.csv行情文件中的数据排序及去重",u"3.csv行情文件中的数据绘制蜡烛图等指标并存档",u"4.csv盈亏文件中的数据分析及统计"]
+        self.m_comboBox_type = wx.ComboBox( self, wx.ID_ANY, wx.EmptyString, wx.DefaultPosition, wx.Size( 400,-1 ), m_comboBox_typeChoices, 0 )
+        self.m_comboBox_type.SetFont( wx.Font( 12, 70, 90, 90, False, "宋体" ) )
 
-        m_comboBox_typeChoices = [ u"1. translate db to csv file", u"2. draw candlestick with quote file", u"3. analyse strategy with csv file" ]
-        self.m_comboBox_type = wx.ComboBox( self, wx.ID_ANY, wx.EmptyString, wx.DefaultPosition, wx.Size( -1,-1 ), m_comboBox_typeChoices, 0 )
-        self.m_comboBox_type.SetFont( wx.Font( 12, 70, 90, 90, False, wx.EmptyString ) )
+        fgSizer_main.Add( self.m_comboBox_type, 0, wx.ALL, 5 )
 
-        gSizer.Add( self.m_comboBox_type, 0, wx.ALL, 5 )
+        self.m_staticText_file = wx.StaticText( self, wx.ID_ANY, u"文件选择", wx.DefaultPosition, wx.DefaultSize, 0 )
+        self.m_staticText_file.Wrap( -1 )
+        fgSizer_main.Add( self.m_staticText_file, 0, wx.ALL, 5 )
 
-        m_choice_periodChoices = [ u"6sec", u"5min", u"15min", u"30min", u"1hour", u"2hour", u"4hour", u"6hour", u"12hour", u"1day", u"1week" ]
+        self.m_filePicker = wx.FilePickerCtrl( self, wx.ID_ANY, wx.EmptyString, u"选择文件", u"*.*", wx.DefaultPosition, wx.Size( 400,-1 ), wx.FLP_DEFAULT_STYLE|wx.FLP_SMALL )
+        fgSizer_main.Add( self.m_filePicker, 0, wx.ALL, 5 )
+
+        self.m_staticText_period = wx.StaticText( self, wx.ID_ANY, u"周期（可选）", wx.DefaultPosition, wx.DefaultSize, 0 )
+        self.m_staticText_period.Wrap( -1 )
+        fgSizer_main.Add( self.m_staticText_period, 0, wx.ALL, 5 )
+
+        m_choice_periodChoices = [u"5分钟", u"12小时", u"1天", u"1周", u"15分钟", u"30分钟", u"1小时", u"2小时", u"4小时", u"6小时" ]
         self.m_choice_period = wx.Choice( self, wx.ID_ANY, wx.DefaultPosition, wx.DefaultSize, m_choice_periodChoices, 0 )
         self.m_choice_period.SetSelection( 0 )
-        gSizer.Add( self.m_choice_period, 0, wx.ALL, 5 )
+        fgSizer_main.Add( self.m_choice_period, 0, wx.ALL, 5 )
 
-        self.m_button_ok = wx.Button( self, wx.ID_ANY, u"OK", wx.DefaultPosition, wx.DefaultSize, 0 )
-        gSizer.Add( self.m_button_ok, 0, wx.ALL, 5 )
+        self.m_button_done = wx.Button( self, wx.ID_ANY, u"确定", wx.DefaultPosition, wx.DefaultSize, 0 )
+        fgSizer_main.Add( self.m_button_done, 0, wx.ALL, 5 )
 
-        bSizer_operation.Add( gSizer, 1, wx.EXPAND, 5 )
-
-        self.SetSizer( bSizer_operation )
-        self.Layout()
-        bSizer_operation.Fit( self )
-
+        self.SetSizer( fgSizer_main )
         self.Centre( wx.BOTH )
 
         # Connect Events
-        self.Bind( wx.EVT_MENU, self.m_menuItem_openOnMenuSelection, id = self.m_menuItem_open.GetId() )
+        self.Bind( wx.EVT_MENU, self.m_menuItem_usageOnMenuSelection, id = self.m_menuItem_usage.GetId() )
         self.Bind( wx.EVT_MENU, self.m_menuItem_exitOnMenuSelection, id = self.m_menuItem_exit.GetId() )
         self.Bind( wx.EVT_MENU, self.m_menuItem_aboutOnMenuSelection, id = self.m_menuItem_about.GetId() )
         self.m_filePicker.Bind( wx.EVT_FILEPICKER_CHANGED, self.m_filePickerOnFileChanged )
         self.m_comboBox_type.Bind( wx.EVT_COMBOBOX, self.m_comboBox_typeOnCombobox )
         self.m_choice_period.Bind( wx.EVT_CHOICE, self.m_choice_periodOnChoice )
-        self.m_button_ok.Bind( wx.EVT_BUTTON, self.m_button_okOnButtonClick )
+        self.m_button_done.Bind( wx.EVT_BUTTON, self.m_button_doneOnButtonClick )
 
         self.filePath = ''#文件路径
         self.operationType = -1#操作类型
@@ -163,13 +207,15 @@ class ToolsFrame ( wx.Frame ):
         pass
 
     # Virtual event handlers, overide them in your derived class
-    def m_menuItem_openOnMenuSelection( self, event ):
+    def m_menuItem_usageOnMenuSelection( self, event ):
         """ Open事件处理回调 """
+        self.UpdateUI(FRAME_USAGE)
         event.Skip()
 
     def m_menuItem_exitOnMenuSelection( self, event ):
         """ Exit事件处理回调 """
         event.Skip()
+        os._exit(0)
 
     def m_menuItem_aboutOnMenuSelection( self, event ):
         """ About事件处理回调。启动About窗体框架 """
@@ -190,7 +236,7 @@ class ToolsFrame ( wx.Frame ):
         self.period = self.m_choice_period.GetSelection()
         event.Skip()
 
-    def m_button_okOnButtonClick( self, event ):
+    def m_button_doneOnButtonClick( self, event ):
         """ OK按键事件的回调 """
         self.OperateAssistant()
         event.Skip()
@@ -198,11 +244,11 @@ class ToolsFrame ( wx.Frame ):
     def OperateAssistant(self):
         """ 具体事务的处理函数 """
         if self.filePath=='':
-            self.UpdateUI(FRAME_INFO,"Be lack of file Path.")
+            self.UpdateUI(FRAME_INFO,u"未选择文件")
             return
 
         if self.filePath.find('.db')==-1 and self.filePath.find('-quote.csv')==-1 and self.filePath.find('Properties.xml')==-1:
-            self.UpdateUI(FRAME_INFO,"Be unsuitable for operating this file.")
+            self.UpdateUI(FRAME_INFO,u"所选择的文件类型不匹配")
             return
         # 相关目录路径
         path = self.filePath.strip(Configuration.get_field_from_string(self.filePath,'\\')[-1])
@@ -219,7 +265,7 @@ class ToolsFrame ( wx.Frame ):
             clientMatchHdl = Statistics(path)
             clientMatchHdl.match_KLineIndicator()
         else:#should be popup toast of ERROR
-            self.UpdateUI(FRAME_INFO,"Error for the operation type.")
+            self.UpdateUI(FRAME_INFO,u"未选择操作类型")
 
 class GuiManager():
     """ 窗体管理(切换)类 """
@@ -244,8 +290,10 @@ class GuiManager():
             return ToolsFrame(parent=None, id=type, UpdateUI=self.UpdateUI)
         elif type == FRAME_ABOUT:
             return AboutFrame(parent=None, id=type, UpdateUI=self.UpdateUI)
+        elif type == FRAME_USAGE:
+            return UsageFrame(parent=None, id=type, UpdateUI=self.UpdateUI)
         elif type == FRAME_INFO:
-            return InfoDialog(parent=None, id=type, UpdateUI=self.UpdateUI, info=info)
+            return InfoFrame(parent=None, id=type, UpdateUI=self.UpdateUI, info=info)
 
 class AssistantGUI(wx.App):
     def OnInit(self):
