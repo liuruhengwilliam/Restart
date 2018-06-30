@@ -28,12 +28,13 @@ from email.mime.multipart import MIMEMultipart
 from email.header import Header
 #from engine.DataScrape import *
 #from timer.TimerMotor import *
-from scrape import EastMoney
-from scrape import DataScrape
+#from scrape import EastMoney
+#from scrape import DataScrape
 import matplotlib.pyplot as plt
+from matplotlib.dates import date2num
 import xml.etree.ElementTree as ET
-from resource import Constant
-from resource import Configuration
+#from resource import Constant
+#from resource import Configuration
 #from strategy import Strategy
 #from quotation import QuotationKit
 
@@ -629,7 +630,92 @@ def yield_caller():
         value = generator.next()
         print value
 
+def sort_quote_csv(quoteCsvFile):
+    """ 外部接口API:行情csv文件排序及条目去重。
+        quoteCsvFile: 行情csv文件（含文件路径）
+    """
+    data = pd.read_csv(quoteCsvFile)
+    #统一时间格式
+    for row in data.itertuples():
+        if data.ix[row.Index,'time'].find('/')!=-1:
+            data.ix[row.Index,'time'] = data.ix[row.Index,'time'].replace('/','-')
+        if len(data.ix[row.Index,'time'].split(':')) == 2:
+            data.ix[row.Index,'time'] = data.ix[row.Index,'time']+':00'
+
+    columnDt2num = []
+    for tm in np.array(data['time']):
+        columnDt2num.append(date2num(datetime.datetime.strptime(tm,"%Y-%m-%d %H:%M:%S")))
+
+    #data.is_copy = False
+    data['clmndt2num']=columnDt2num
+    data = data.sort_index(axis=0,ascending=True,by='clmndt2num')
+    #print data
+    pureDf = DataFrame(columns=['period','time','open','high','low','close','clmndt2num'])
+    for period in ('6sec','5min','15min','30min','1hour','2hour','4hour','6hour','12hour'):
+        dataPickup = data[data['period']==period]
+        print dataPickup
+        preTime = ''
+        dataPickup.is_copy = False
+        for row in dataPickup.itertuples():
+            if preTime == row.time:
+                dataPickup.drop(row.Index,inplace=True)
+            else:
+                preTime = row.time
+        pureDf = pureDf.append(dataPickup)
+    pureDf = pureDf.sort_values(axis=0,ascending=True,by='clmndt2num')
+    pureDf.drop(['clmndt2num'],axis=1,inplace=True)
+    pureDf.to_csv('000050-bysortindex.csv',columns=['period','time','open','high','low','close'],index=False)
+
+
+def sort_quote_csv_method1(quoteCsvFile):
+    """ 外部接口API:行情csv文件排序及条目去重。
+        quoteCsvFile: 行情csv文件（含文件路径）
+    """
+    data = pd.read_csv(quoteCsvFile)
+    listBegin = []#重复条目段落的起始点列表
+    listEnd = []#重复条目段落的结束点列表
+    beginPointIndx = 0#重复条目段落的起始点序号
+    endPointTimeStr = ''#重复条目段落的结束时间字符串
+    #统一时间格式
+    for row in data.itertuples():
+        if data.ix[row.Index,'time'].find('/')!=-1:
+            data.ix[row.Index,'time'] = data.ix[row.Index,'time'].replace('/','-')
+        if len(data.ix[row.Index,'time'].split(':')) == 2:
+            data.ix[row.Index,'time'] = data.ix[row.Index,'time']+':00'
+
+    print data
+    aheadtime = data.ix[0,'time']#用第一个条目初始化时间字符串
+    for row in data.itertuples():
+        if row.time == endPointTimeStr:
+            listEnd.append(row.Index)
+            endPointTimeStr = ''
+            beginPointIndx = row.Index+1
+
+        aheadTm = datetime.datetime.strptime(aheadtime,"%Y-%m-%d %H:%M:%S")
+        hindTm = datetime.datetime.strptime(row.time,"%Y-%m-%d %H:%M:%S")
+
+        if aheadTm > hindTm:#条目按时间排列倒挂。
+            # 要寻找重复条目段落的起始
+            beginPointTm = datetime.datetime.strptime(data.ix[beginPointIndx,'time'],"%Y-%m-%d %H:%M:%S")
+            if beginPointTm >= hindTm:#删除从beginPointIndx到row.Index-1之间的条目
+                listBegin.append(beginPointIndx)
+                listEnd.append(row.Index-1)
+                beginPointIndx = row.Index
+            else:#删除从row.Index到下一个aheadtime值对应条目之间的行
+                listBegin.append(row.Index)
+                endPointTimeStr = aheadtime
+
+        aheadtime = row.time
+    listBegin = list(reversed(listBegin))
+    listEnd = list(reversed(listEnd))
+    print listBegin,listEnd
+    for begin,end in zip(listBegin,listEnd):
+        data.drop(range(begin,end+1),inplace=True)
+    print data
+    #data.to_csv('quote.csv',columns=['period','time','open','high','low','close'],index=False)
+
 if __name__ == '__main__':
+    sort_quote_csv('F:\\000050-quote.csv')
     #yield_caller()
     #csv_test()
     #db_test()
@@ -639,7 +725,7 @@ if __name__ == '__main__':
     #talib_sma_test()
     #query_info()
     #dataframe_transfer_csv()
-    configuration_API_test()
+    #configuration_API_test()
     #configuration_stock()
     #stock_from_eastMoney()
     #get_property()
