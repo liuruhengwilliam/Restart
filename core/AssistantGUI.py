@@ -69,7 +69,8 @@ class UsageFrame ( wx.Frame ):
         sbSizer = wx.StaticBoxSizer( wx.StaticBox( self, wx.ID_ANY ), wx.VERTICAL )
 
         self.m_staticText_usage = wx.StaticText( sbSizer.GetStaticBox(), wx.ID_ANY, \
-                u"1.通过本软件生成的文件保存在所选择的文件目录中；\n2.只有在绘制蜡烛图等指标文件时才需要选择周期；",\
+                u"1.通过本软件生成的文件保存在所选择的文件目录中；\n2.只有在绘制蜡烛图等指标文件时才需要选择周期；\n"\
+                u"3.操作类型1应选择*.db文件，操作类型2和3应选择*quote.csv文件，\n  操作类型4应选择Properties.xml；",\
                 wx.DefaultPosition, wx.DefaultSize, 0 )
         self.m_staticText_usage.Wrap( -1 )
         sbSizer.Add( self.m_staticText_usage, 0, wx.ALL, 5 )
@@ -255,13 +256,15 @@ class ToolsFrame ( wx.Frame ):
 
         if self.operationType == 0:#translate db to csv file
             DataSettleKit.translate_db_into_csv(self.filePath)
-        elif self.operationType == 1:#draw candlestick with quote file
+        elif self.operationType == 1:#sort quote.csv
+            DataSettleKit.sort_quote_csv(self.filePath)
+        elif self.operationType == 2:#draw candlestick with quote file
             target = Configuration.get_field_from_string(self.filePath,'\\')[-1].split('-')[0]
             data = pd.read_csv(self.filePath)
             data = data.iloc[len(Constant.QUOTATION_DB_PERIOD):]
             periodName = Constant.QUOTATION_DB_PREFIX[self.period]
             CandleStick.manual_show_candlestick(target,periodName,data[data['period']==periodName],path)
-        elif self.operationType == 2:#analyse strategy with ser file defined in Properties.xml
+        elif self.operationType == 3:#analyse strategy with ser file defined in Properties.xml
             clientMatchHdl = Statistics(path)
             clientMatchHdl.match_KLineIndicator()
         else:#should be popup toast of ERROR

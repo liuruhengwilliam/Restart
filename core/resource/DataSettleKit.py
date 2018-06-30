@@ -7,6 +7,7 @@ import datetime
 import numpy as np
 import pandas as pd
 from pandas import DataFrame
+from matplotlib.dates import date2num
 from resource import Configuration
 from resource import Constant
 from resource import Trace
@@ -99,3 +100,42 @@ def translate_db_into_csv(dbFile):
     dbCursor.close()
     db.close()
     return True
+
+def sort_quote_csv(quoteCsvFile):
+    """ 外部接口API:行情csv文件排序及条目去重。
+        quoteCsvFile: 行情csv文件（含文件路径）
+    """
+    data = pd.read_csv(quoteCsvFile)
+    #统一时间格式
+    for row in data.itertuples():
+        if data.ix[row.Index,'time'].find('/')!=-1:
+            data.ix[row.Index,'time'] = data.ix[row.Index,'time'].replace('/','-')
+        if len(data.ix[row.Index,'time'].split(':')) == 2:
+            data.ix[row.Index,'time'] = data.ix[row.Index,'time']+':00'
+
+    #增加dt2num列
+    columnDt2num = []
+    for tm in np.array(data['time']):
+        columnDt2num.append(date2num(datetime.datetime.strptime(tm,"%Y-%m-%d %H:%M:%S")))
+    data['clmndt2num']=columnDt2num
+    #第一次排序
+    data = data.sort_index(axis=0,ascending=True,by='clmndt2num')
+
+    pureDf = DataFrame(columns=['period',]+list(Constant.QUOTATION_STRUCTURE)+['clmndt2num'])
+    #按周期筛选
+    for period in Constant.QUOTATION_DB_PREFIX:
+        dataPickup = data[data['period']==period]
+        preTime = ''
+        dataPickup.is_copy = False
+        for row in dataPickup.itertuples():
+            if preTime == row.time:
+                dataPickup.drop(row.Index,inplace=True)
+            else:
+                preTime = row.time
+        pureDf = pureDf.append(dataPickup)#按周期叠加
+
+    #第二次排序
+    pureDf = pureDf.sort_values(axis=0,ascending=True,by='clmndt2num')
+    pureDf.drop(['clmndt2num'],axis=1,inplace=True)#删除附属dt2num列
+    purefile = quoteCsvFile.split('.')[0]+"-pure.csv"
+    pureDf.to_csv(purefile,columns=['period',]+list(Constant.QUOTATION_STRUCTURE),index=False)
