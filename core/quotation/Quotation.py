@@ -23,13 +23,13 @@ class Quotation():
 
         # 构建DF结构
         clmns = ['period']+list(Constant.QUOTATION_STRUCTURE)
-        quoteDF = DataFrame(columns=clmns)
-        # 填充各统计周期行
-        for period in Constant.QUOTATION_DB_PREFIX:
-            quoteDF = quoteDF.append(dict(zip(clmns,[period,' ',0.0,0.0,0.0,0.0])),ignore_index=True)
-
         # 汇总各标的字典项
         for target in self.quoteList:
+            quoteDF = DataFrame(columns=clmns)
+            # 填充各统计周期行
+            for period in Constant.QUOTATION_DB_PREFIX:
+                quoteDF = quoteDF.append(dict(zip(clmns,[period,' ',0.0,0.0,0.0,0.0])),ignore_index=True)
+
             #程序启动时补全当周数据，为后续指标和策略计算做好准备
             file = Configuration.get_working_directory()+'%s-quote.csv'%target
             preWeekFile = Configuration.get_back_week_directory(file,1)+'%s-quote.csv'%target
