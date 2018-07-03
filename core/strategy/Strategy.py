@@ -38,9 +38,9 @@ class Strategy():
             preWeekFile = Configuration.get_back_week_directory(file,1)+'%s-ser.csv'%target
             #补全历史数据
             if os.path.exists(file):
-                self.dictPolRec.update({target:deepcopy(DataSettleKit.process_quotes_supplement(target,file))})
+                self.dictPolRec.update({target:deepcopy(DataSettleKit.process_ser_supplement(target,file))})
             elif os.path.exists(preWeekFile):#周一开盘时接续上周条目
-                self.dictPolRec.update({target:deepcopy(DataSettleKit.process_quotes_supplement(target,preWeekFile))})
+                self.dictPolRec.update({target:deepcopy(DataSettleKit.process_ser_supplement(target,preWeekFile))})
             else:#若本周及上周都无历史数据，则空白
                 self.dictPolRec.update({target:deepcopy(valueDf)})
 

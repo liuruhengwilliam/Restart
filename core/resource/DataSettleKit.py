@@ -6,6 +6,7 @@ import sqlite3
 import datetime
 import numpy as np
 import pandas as pd
+from datetime import timedelta
 from pandas import DataFrame
 from matplotlib.dates import date2num
 from resource import Configuration
@@ -13,7 +14,7 @@ from resource import Constant
 from resource import Trace
 
 def process_quotes_supplement(target,file):
-    """ 内部接口API：补全quotes数据
+    """ 外部接口API：补全quotes数据
         target:标的字符串
         file:行情数据记录文件(含文件路径)
         返回值: dateframe结构数据(period, time, open, high, low, close)
@@ -36,6 +37,28 @@ def process_quotes_supplement(target,file):
     for itemRow in dataSupplement.itertuples(index=False):
         Trace.output('info','    '+(' ').join(map(lambda x:str(x), itemRow)))
     return dataSupplement
+
+def process_ser_supplement(target,file):
+    """ 外部接口API：补全ser数据
+        target:标的字符串
+        file:ser记录文件(含文件路径)
+        返回值: dateframe结构数据
+    """
+    data = pd.read_csv(file)
+    #筛除大于3天时间跨度的条目
+    threshold = datetime.datetime.now()-timedelta(days=3)
+    data.is_copy = False
+    for row in data.itertuples():
+        if len(data.ix[row.Index,'time'].split(':')) == 2:
+            data.ix[row.Index,'time'] = data.ix[row.Index,'time']+':00'
+        if datetime.datetime.strptime(data.ix[row.Index,'time'],"%Y-%m-%d %H:%M:%S") < threshold:
+            data.drop(row.Index,inplace=True)
+
+    # 输出日志记录
+    Trace.output('info',"=== To be continued from %s ==="%Configuration.get_field_from_string(file)[-1])
+    for itemRow in data.itertuples(index=False):
+        Trace.output('info','    '+(' ').join(map(lambda x:str(x), itemRow)))
+    return data
 
 def supplement_items(path,data,supplementCnt):
     """ 外部接口API：补齐某个数目的行情序列。
