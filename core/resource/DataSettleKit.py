@@ -26,8 +26,11 @@ def process_quotes_supplement(target,file):
     else:#异常标的不做补全处理
         return data
 
-    #dataSupplement = supplement_items(file,data,gap)
-    dataSupplement = data
+    if len(data) > gap:
+        dataSupplement = data.iloc[-gap:]
+    else:
+        #dataSupplement = supplement_items(file,data,gap)
+        dataSupplement = data
     # 输出日志记录
     Trace.output('info',"=== To be continued from %s ==="%Configuration.get_field_from_string(file)[-1])
     for itemRow in dataSupplement.itertuples(index=False):
