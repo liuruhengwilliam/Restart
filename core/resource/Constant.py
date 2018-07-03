@@ -143,7 +143,7 @@ SER_DF_STRUCTURE = ('time','price','period','patternName','patternVal','DeadTime
     'H4maxEarn', 'H4maxEarnTime', 'H4maxLoss', 'H4maxLossTime',\
     'H6maxEarn', 'H6maxEarnTime', 'H6maxLoss', 'H6maxLossTime',\
     'H12maxEarn', 'H12maxEarnTime', 'H12maxLoss', 'H12maxLossTime','tmChainIndx','restCnt')
-SER_MAX_PERIOD = (len(QUOTATION_DB_PERIOD)-2)#去掉HB定时器周期和SER刷新周期
+SER_MAX_PERIOD = (len(QUOTATION_DB_PERIOD)-4)
 
 #链式计数:5min/15min/30min/1hour/2hour/4hour/6hour/12hour/1day/1week
 CHAIN_PERIOD = (5*60,15*60-5*60,30*60-15*60,1*3600-30*60,2*3600-1*3600,4*3600-2*3600,6*3600-4*3600,\
