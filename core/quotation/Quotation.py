@@ -78,9 +78,9 @@ class Quotation():
             # 小于计数原子的周期不处理。
             if index < motorPeriodIndx:
                 continue
-            # 不更新驱动定时周期的冗余项。高于驱动定时周期项需要更新且不会冗余（通过闭市时间来保证）
-            if index == motorPeriodIndx and quoteDF.ix[index,'time'] == record['time']:
-                Trace.output('warn',target+' get Cloned info at %s'%record['time'])
+            # 不更新冗余项。驱动定时周期会漂移，通过闭市时间不易保证
+            if quoteDF.ix[index,'time'] == record['time']:
+                Trace.output('warn',target+' get Cloned info at %s for %s'%(record['time'],period))
                 continue
 
             # 更新条目的截止时间/close价格
