@@ -48,11 +48,11 @@ def process_ser_supplement(target,file):
     #筛除大于3天时间跨度的条目
     threshold = datetime.datetime.now()-timedelta(days=3)
     data.is_copy = False
-    for row in data.itertuples():
-        if len(data.ix[row.Index,'time'].split(':')) == 2:
-            data.ix[row.Index,'time'] = data.ix[row.Index,'time']+':00'
-        if datetime.datetime.strptime(data.ix[row.Index,'time'],"%Y-%m-%d %H:%M:%S") < threshold:
-            data.drop(row.Index,inplace=True)
+    for indx,row in zip(data.index,data.itertuples()):
+        if len(data.ix[indx,'time'].split(':')) == 2:
+            data.ix[indx,'time'] = data.ix[indx,'time']+':00'
+        if datetime.datetime.strptime(data.ix[indx,'time'],"%Y-%m-%d %H:%M:%S") < threshold:
+            data.drop(indx,inplace=True)
 
     # 输出日志记录
     Trace.output('info',"=== To be continued from %s ==="%Configuration.get_field_from_string(file)[-1])
