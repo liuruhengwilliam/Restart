@@ -72,41 +72,43 @@ class Quotation():
             return self.quoteCache[target]
         # 驱动定时器列表序号
         motorPeriodIndx = Constant.QUOTATION_DB_PERIOD.index(Constant.UPDATE_BASE_PERIOD)
+        fourHourPeriodIndx = Constant.QUOTATION_DB_PREFIX.index('4hour')
         # 更新基准定时器及高阶定时器的记录缓存
         for index,period in enumerate(Constant.QUOTATION_DB_PREFIX):
+            # 无关周期不处理。
+            if index < motorPeriodIndx or index > fourHourPeriodIndx:
+                continue
             quoteDF = self.quoteCache[target]#在循环体内更新
-            # 小于计数原子的周期不处理。
-            if index < motorPeriodIndx:
-                continue
-            # 不更新冗余项。驱动定时周期会漂移，通过闭市时间不易保证
-            if quoteDF.ix[index,'time'] == record['time']:
-                Trace.output('warn',target+' get Cloned info at %s for %s'%(record['time'],period))
-                continue
 
-            # 更新条目的截止时间/close价格
-            quoteDF.ix[index,'time'] = record['time']
-            quoteDF.ix[index,'close'] = record['close']
-            if self.baseTmCnt == 1:#更新基准定时器首次计数
-                quoteDF.ix[index,'open'] = record['open']
-                quoteDF.ix[index,'high'] = record['high']
-                quoteDF.ix[index,'low'] = record['low']
-
-            # 每次更新DF结构的前若干行len(Constant.QUOTATION_DB_PERIOD)之一
-            remainder = self.remainder_higher_order_tm(period)
-            # 高阶定时器的一个周期完结，先存档旧条目，后更新条目
-            if remainder == 0:
-                # 将待存档的条目附着在本DataFrame结构后面。
+            if self.baseTmCnt == 1 and index == motorPeriodIndx:#更新基准定时器首次计数
+                quoteDF.ix[index,1:] = [record[key] for key in Constant.QUOTATION_STRUCTURE]
                 quoteDF = quoteDF.append(quoteDF.ix[index],ignore_index=True)
-                Trace.output('info',target+':Time out '+' '.join(list(quoteDF.iloc[-1].astype(str))))
-                # 高阶定时器周期内的首次更新。
-                quoteDF.ix[index,'open'] = record['open']
-                quoteDF.ix[index,'high'] = record['high']
-                quoteDF.ix[index,'low'] = record['low']
             else:
-                if quoteDF.ix[index,'high'] < record['high']:
+                # 每次更新DF结构的前若干行len(Constant.QUOTATION_DB_PERIOD)之一
+                remainder = self.remainder_higher_order_tm(period)
+                # 高阶定时器的一个周期完结，先存档旧条目，后更新条目
+                if remainder == 0:
+                    # 不更新冗余项。驱动定时周期会漂移，通过闭市时间不易保证
+                    if quoteDF.ix[index,'time'] == record['time']:
+                        Trace.output('warn',target+' get Cloned info at %s for %s'%(record['time'],period))
+                        continue
+                    # 更新条目的截止时间/close价格
+                    quoteDF.ix[index,'time'] = record['time']
+                    quoteDF.ix[index,'close'] = record['close']
+                    # 将待存档的条目附着在本DataFrame结构后面。
+                    quoteDF = quoteDF.append(quoteDF.ix[index],ignore_index=True)
+                    Trace.output('info',target+':Time out '+' '.join(list(quoteDF.iloc[-1].astype(str))))
+                    # 该Period的下个周期内的首次更新。
+                    quoteDF.ix[index,'open'] = record['open']
                     quoteDF.ix[index,'high'] = record['high']
-                if quoteDF.ix[index,'low'] > record['low'] or quoteDF.ix[index,'low'] == 0.0:
                     quoteDF.ix[index,'low'] = record['low']
+                else:
+                    if quoteDF.ix[index,'open'] == 0.0:
+                        quoteDF.ix[index,'open'] = record['open']
+                    if quoteDF.ix[index,'high'] < record['high']:
+                        quoteDF.ix[index,'high'] = record['high']
+                    if quoteDF.ix[index,'low'] > record['low'] or quoteDF.ix[index,'low'] == 0.0:
+                        quoteDF.ix[index,'low'] = record['low']
             self.quoteCache[target] = quoteDF#数据回写
         #print self.quoteCache[target]#调试点
         self.quoteRecord.reset_target_record(target)
