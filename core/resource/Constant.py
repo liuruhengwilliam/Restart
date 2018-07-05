@@ -251,7 +251,7 @@ def is_stock_closed():
     EXCHANGE_PM_START = datetime.datetime.strptime(year+'-'+month+'-'+day+' 13:00:00',"%Y-%m-%d %H:%M:%S")
     realnumPMStart = time.mktime(EXCHANGE_PM_START.timetuple())
     # 截止时间延后，确保高阶定时器计数能够完成每日的最后一次刷新
-    EXCHANGE_PM_END = datetime.datetime.strptime(year+'-'+month+'-'+day+' 15:49:59',"%Y-%m-%d %H:%M:%S")
+    EXCHANGE_PM_END = datetime.datetime.strptime(year+'-'+month+'-'+day+' 15:14:59',"%Y-%m-%d %H:%M:%S")
     realnumPMEnd = time.mktime(EXCHANGE_PM_END.timetuple())
 
     if realnumAMStart <= realnumNow and realnumNow <= realnumAMEnd:#上午交易时段
