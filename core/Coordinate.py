@@ -69,6 +69,7 @@ class Coordinate():
         """ 外部函数API：股票代码的周期行情数据缓存处理函数
             挂载在基准定时器。根据倍数关系，驱动更新其他大周期行情数据缓存。
         """
+        markStart = datetime.datetime.now()
         for target in self.recordHdl.get_target_list():
             if target == '':#分解出的异常字符
                 continue
@@ -77,7 +78,7 @@ class Coordinate():
             if Constant.is_closed(target):#当前是否为闭市时间
                 return
 
-            markStart = datetime.datetime.now()
+            markStartTarget = datetime.datetime.now()
             # 更新各周期行情数据缓存
             quoteDF = self.quoteHdl.update_quote(target)
 
@@ -104,7 +105,7 @@ class Coordinate():
                     self.strategy.update_strategy(target,infoList)
                     markEnd5min = datetime.datetime.now()
                     Trace.output('debug', "As for %s,Period %s update strategy cost: %s"\
-                             %(target, period, str(markEnd5min-markStart)))
+                             %(target, period, str(markEnd5min-markStartTarget)))
                     continue
 
                 quotePeriodDF = quoteFilterDF[quoteFilterDF['period']==period]#按周期挑选条目
