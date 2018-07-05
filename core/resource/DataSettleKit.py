@@ -33,9 +33,9 @@ def process_quotes_supplement(target,file):
         #dataSupplement = supplement_items(file,data,gap)
         dataSupplement = data
     # 输出日志记录
-    Trace.output('info',"=== To be continued from %s ==="%Configuration.get_field_from_string(file)[-1])
-    for itemRow in dataSupplement.itertuples(index=False):
-        Trace.output('info','    '+(' ').join(map(lambda x:str(x), itemRow)))
+    #Trace.output('info',"=== To be continued from %s ==="%Configuration.get_field_from_string(file)[-1])
+    #for itemRow in dataSupplement.itertuples(index=False):
+    #    Trace.output('info','    '+(' ').join(map(lambda x:str(x), itemRow)))
     return dataSupplement
 
 def process_ser_supplement(target,file):
@@ -55,9 +55,9 @@ def process_ser_supplement(target,file):
             data.drop(indx,inplace=True)
 
     # 输出日志记录
-    Trace.output('info',"=== To be continued from %s ==="%Configuration.get_field_from_string(file)[-1])
-    for itemRow in data.itertuples(index=False):
-        Trace.output('info','    '+(' ').join(map(lambda x:str(x), itemRow)))
+    #Trace.output('info',"=== To be continued from %s ==="%Configuration.get_field_from_string(file)[-1])
+    #for itemRow in data.itertuples(index=False):
+    #    Trace.output('info','    '+(' ').join(map(lambda x:str(x), itemRow)))
     return data
 
 def supplement_items(path,data,supplementCnt):
