@@ -144,12 +144,13 @@ class Strategy():
         for period in Constant.QUOTATION_DB_PREFIX[2:-2]:
             #检查本周期DataFrame结构实例中是否有条目需要插入到数据库文件中。
             dfStrategy = targetDF[targetDF['period']==period]
+            dfStrategy.is_copy = False
 
             for rowNo,itemRow in zip(dfStrategy.index,dfStrategy.itertuples(index=False)):
             #for rowNo,itemRow in zip(range(len(dfStrategy)),dfStrategy.itertuples(index=False)):
                 deadTimeIndx = Constant.SER_DF_STRUCTURE.index('DeadTime')
-                #if itemRow[deadTimeIndx] != '':#DeadTime已经记录，不再更新。
-                #    continue
+                if itemRow[deadTimeIndx] != '1900-01-01 00:00:00':#DeadTime存在有效记录，就不再更新。
+                    continue
                 if itemRow[-2] >= Constant.SER_MAX_PERIOD:#最小周期从0开始计数故不能取MAX值。
                     continue
 
@@ -181,42 +182,35 @@ class Strategy():
                     #itemRow为Pandas元组，开头自带Index项，所以下标要加一。也可以通过index=False去掉最开头的索引。
                     if itemRow[XmaxEarnIndx]==0 or itemRow[XmaxLossIndx]==10000:#初始条目
                         if dirc > 0:#‘多’方向
-                            dfStrategy.ix[rowNo,XmaxEarnIndx] = highPrice
-                            dfStrategy.ix[rowNo,XmaxLossIndx] = lowPrice
+                            dfStrategy.ix[rowNo,[XmaxEarnIndx,XmaxEarnTMIndx,XmaxLossIndx,XmaxLossTMIndx]]\
+                                = [highPrice,closeTimeStr,lowPrice,closeTimeStr]
                         else:#‘空’方向
-                            dfStrategy.ix[rowNo,XmaxEarnIndx] = lowPrice
-                            dfStrategy.ix[rowNo,XmaxLossIndx] = highPrice
-                        dfStrategy.ix[rowNo,XmaxEarnTMIndx] = \
-                        dfStrategy.ix[rowNo,XmaxLossTMIndx] = closeTimeStr
+                            dfStrategy.ix[rowNo,[XmaxEarnIndx,XmaxEarnTMIndx,XmaxLossIndx,XmaxLossTMIndx]]\
+                                = [lowPrice,closeTimeStr,highPrice,closeTimeStr]
                     else:
                         if dirc > 0:#‘多’方向
                             if highPrice > itemRow[XmaxEarnIndx]:#大于最大盈利值
-                                dfStrategy.ix[rowNo,XmaxEarnIndx] = highPrice
-                                dfStrategy.ix[rowNo,XmaxEarnTMIndx] = closeTimeStr
+                                dfStrategy.ix[rowNo,[XmaxEarnIndx,XmaxEarnTMIndx]] = [highPrice,closeTimeStr]
                             if lowPrice < itemRow[XmaxLossIndx]:#小于最大亏损值
-                                dfStrategy.ix[rowNo,XmaxLossIndx] = lowPrice
-                                dfStrategy.ix[rowNo,XmaxLossTMIndx] = closeTimeStr
+                                dfStrategy.ix[rowNo,[XmaxLossIndx,XmaxLossTMIndx]] = [lowPrice,closeTimeStr]
                         else:#‘空’方向 -- maxEarn值小于maxLoss值
                             if lowPrice<itemRow[XmaxEarnIndx]:#大于最大盈利值
-                                dfStrategy.ix[rowNo,XmaxEarnIndx] = lowPrice
-                                dfStrategy.ix[rowNo,XmaxEarnTMIndx] = closeTimeStr
+                                dfStrategy.ix[rowNo,[XmaxEarnIndx,XmaxEarnTMIndx]] = [lowPrice,closeTimeStr]
                             if highPrice>itemRow[XmaxLossIndx]:#小于最大亏损值
-                                dfStrategy.ix[rowNo,XmaxLossIndx] = highPrice
-                                dfStrategy.ix[rowNo,XmaxLossTMIndx] = closeTimeStr
+                                dfStrategy.ix[rowNo,[XmaxLossIndx,XmaxLossTMIndx]] = [highPrice,closeTimeStr]
 
                     #判断是否止损，止损刻度时间的精度是5min。
                     if StrategyMisc.set_dead_price(basePrice,dirc,highPrice,lowPrice)==True:
                         Trace.output('warn','  == In Period %s, item DIED which bsTm %s bsPr %f dirc %d Pattern %s'\
                                      %(period,baseTime,basePrice,dirc,patternStr))
                         dfStrategy.ix[rowNo,deadTimeIndx] = closeTimeStr
-
                     #链式定时计数小于等于0说明有相关周期策略盈亏率统计周期要增加
-                    if itemRow[-1] <= Constant.CHAIN_PERIOD[0]:
-                        dfStrategy.ix[rowNo,-2] += 1 #设置链式定时的下个周期序号
+                    # fix bug :'tuple index out of range'. Noted 20180301
+                    if itemRow[-1] <= Constant.CHAIN_PERIOD[0] and itemRow[-2] < Constant.SER_MAX_PERIOD:
+                        periodIndx = itemRow[-2]+1 #链式定时的下个周期序号
                         #设置计数初值。需要减去前一个周期数值。
                         baseAddr = Constant.QUOTATION_DB_PERIOD.index(15*60)#周期计数值的基址
-                        if itemRow[-2] < Constant.SER_MAX_PERIOD:# fix bug :'tuple index out of range'. Noted 20180301
-                            dfStrategy.ix[rowNo,-1] = Constant.QUOTATION_DB_PERIOD[baseAddr+int(itemRow[-2])]
+                        dfStrategy.ix[rowNo,[-2,-1]] = [periodIndx,Constant.QUOTATION_DB_PERIOD[baseAddr+periodIndx]]
                     else:#链式计数还未到期
                         dfStrategy.ix[rowNo,-1] -= Constant.CHAIN_PERIOD[0]
                     #print "update the following:\n",dfStrategy.ix[rowNo]#调试点
