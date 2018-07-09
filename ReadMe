@@ -128,3 +128,12 @@
   1.编辑setup.py文件，在data_files项中添加(r'mpl-data', [r'C:\ProgramData\Anaconda2\Lib\site-packages\matplotlib\mpl-data\matplotlibrc'])
   2.针对exe程序运行过程的报错“ImportError: No module named backend_Qt5agg”或者“ImportError: No module named backend_tkagg”，
     需要修改matplotlibrc文件。将该文件中的Qt5Agg或者TkAgg项修改成Agg。http://www.mamicode.com/info-detail-1128188.html
+
+2018-07-09
+   Cython安装说明：
+   1.Windows环境下，Anaconda2软件包已经包含。
+   2.Ubuntu环境下，通过sudo apt-get install cython命令安装。
+   以上操作系统都可以在shell或者命令行工具中，通过import Cython来验证是否安装成功。
+   
+   Cython使用初探：
+   1.建议在Ubuntu系统中调试Cython。Windows环境下，运行Cython代码报错。经查需要VS/VC环境并安装相关补丁，而Ubuntu环境下则无此限制。
