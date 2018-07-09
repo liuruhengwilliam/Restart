@@ -10,6 +10,7 @@ from scrape import DataScrape
 from indicator.Indicator import Indicator
 from quotation.Quotation import *
 from quotation.QuotationRecord import *
+from QuotePulse import update_quote
 from strategy.Strategy import Strategy
 from strategy import StrategyMisc
 from indicator import CandleStick
@@ -80,8 +81,8 @@ class Coordinate():
 
             markStartTarget = datetime.datetime.now()
             # 更新各周期行情数据缓存
-            quoteDF = self.quoteHdl.update_quote(target)
-
+            #quoteDF = self.quoteHdl.update_quote(target)
+            quoteDF = QuotePulse.update_quote(self.recordHdl.get_record_dict(target),quoteDF,[0,0,-1])
             if len(quoteDF) <= len(Constant.QUOTATION_DB_PERIOD):#无附着条目直接返回
                 continue
             # 按照时间次序排列，并删除开头的十一行（实时记录行）
