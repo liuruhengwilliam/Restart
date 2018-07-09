@@ -81,8 +81,9 @@ class Coordinate():
 
             markStartTarget = datetime.datetime.now()
             # 更新各周期行情数据缓存
-            #quoteDF = self.quoteHdl.update_quote(target)
-            quoteDF = QuotePulse.update_quote(self.recordHdl.get_record_dict(target),quoteDF,[0,0,-1])
+            record = self.recordHdl.get_record_dict(target)
+            quoteDF = QuotePulse.update_quote(record,quoteDF,self.quoteHdl.mod_period_list(target))
+            self.recordHdl.reset_target_record(target)
             if len(quoteDF) <= len(Constant.QUOTATION_DB_PERIOD):#无附着条目直接返回
                 continue
             # 按照时间次序排列，并删除开头的十一行（实时记录行）

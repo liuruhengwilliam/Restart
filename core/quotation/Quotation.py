@@ -1,5 +1,5 @@
 #coding=utf-8
-
+import re
 import os
 import sqlite3
 import threading
@@ -61,6 +61,22 @@ class Quotation():
             返回值：DataFrame结构数据
         """
         return self.quoteCache[target]
+
+    def mod_period_list(self,target):
+        """ 外部接口API: 获取当前计数对各周期的去模列表
+        """
+        modList = []
+        if re.search(r'[^a-zA-Z]',target) is None:
+            modList.append(-1)
+            for period in Constant.QUOTATION_DB_PREFIX[1:-1]:#from 5min to 1day
+                modList.append(self.remainder_higher_order_tm(period))
+            modList.append(-1)
+        elif re.search(r'[^0-9](.*)',target) is None:#from 5min to 4hour
+            modList.append(-1)
+            for period in Constant.QUOTATION_DB_PREFIX[1:-5]:#from 5min to 4hour
+                modList.append(self.remainder_higher_order_tm(period))
+            modList = modList + [-1]*5
+        return modList
 
     def update_quote(self,target):
         """ 外部接口API: 周期行情数据缓存更新处理函数。基准更新定时器的回调函数。 """
