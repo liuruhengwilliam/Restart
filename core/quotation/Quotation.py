@@ -1,4 +1,5 @@
 #coding=utf-8
+
 import re
 import os
 import sqlite3
@@ -8,7 +9,6 @@ from resource import DataSettleKit
 from resource import Configuration
 from resource import Constant
 from resource import Trace
-import numpy as np
 import pandas as pd
 from pandas import DataFrame
 from copy import deepcopy
@@ -46,6 +46,10 @@ class Quotation():
         """ 外部接口API：基准更新定时器的到期计数值。基准更新定时器的回调函数调用。 """
         self.baseTmCnt+=1
 
+    def get_baseTM_cnt(self):
+        """ 外部接口API：获取基准更新定时器的到期计数值。 """
+        return self.baseTmCnt
+
     def remainder_higher_order_tm(self,HOPeriod):
         """ 内/外部接口API：高阶定时器相对于基准更新定时器的余数。
                     如果余数是0，那么该定时器就到期。如果余数最大，那么是首次更新。
@@ -62,21 +66,11 @@ class Quotation():
         """
         return self.quoteCache[target]
 
-    def mod_period_list(self,target):
-        """ 外部接口API: 获取当前计数对各周期的去模列表
+    def set_quote(self,target,dfQuote):
+        """ 外部接口API: 设置某标的quote缓存。数据回写接口。
+            dfQuote：待回写的DataFrame结构数据
         """
-        modList = []
-        if re.search(r'[^a-zA-Z]',target) is None:
-            modList.append(-1)
-            for period in Constant.QUOTATION_DB_PREFIX[1:-1]:#from 5min to 1day
-                modList.append(self.remainder_higher_order_tm(period))
-            modList.append(-1)
-        elif re.search(r'[^0-9](.*)',target) is None:#from 5min to 4hour
-            modList.append(-1)
-            for period in Constant.QUOTATION_DB_PREFIX[1:-5]:#from 5min to 4hour
-                modList.append(self.remainder_higher_order_tm(period))
-            modList = modList + [-1]*5
-        return modList
+        self.quoteCache[target] = dfQuote
 
     def update_quote(self,target):
         """ 外部接口API: 周期行情数据缓存更新处理函数。基准更新定时器的回调函数。 """
