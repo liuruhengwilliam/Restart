@@ -8,7 +8,7 @@ setup(
     description='Optimizated by liuruheng from 2018-07-09',
     name = 'V2.4.0',
     ext_modules = cythonize(Extension(
-    'QuotePulse',
-    sources=['QuotePulse.pyx']
+    'QuoteUpdate',
+    sources=['QuoteUpdate.pyx']
     ))
 )
