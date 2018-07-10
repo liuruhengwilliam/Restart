@@ -1,6 +1,5 @@
 #coding=utf-8
 
-import numpy as np
 from resource import Constant
 from resource import Configuration
 
