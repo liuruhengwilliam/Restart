@@ -10,7 +10,7 @@ from scrape import DataScrape
 from indicator.Indicator import Indicator
 from quotation.Quotation import *
 from quotation.QuotationRecord import *
-from quotation.QuotePulse import update_quote
+from quotation.QuoteUpdate import update_quote
 from strategy.Strategy import Strategy
 from strategy import StrategyMisc
 from indicator import CandleStick
