@@ -84,6 +84,8 @@ class Coordinate():
             # 更新各周期行情数据缓存
             quoteDF = self.quoteHdl.get_quote(target)
             record = self.recordHdl.get_record_dict(target)
+            if record is None:
+                continue
             quoteDF = update_quote(record,quoteDF,baseTmCnt)
             # 更新之后要回写行情数据
             self.quoteHdl.set_quote(target,quoteDF)

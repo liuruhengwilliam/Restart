@@ -19,7 +19,12 @@ class QuotationRecord():
 
     def get_record_dict(self,target):
         """ 外部接口API: 获取缓冲字典对象 """
-        return self.recordPeriodDict[target]
+        record = self.recordPeriodDict[target]
+        if record['time']==' ' or record['open']==0.0 or \
+            record['high']==0.0 or record['low']==0.0 or record['close']==0.0:
+            return None
+        else:
+            return record
 
     def get_target_list(self):
         """ 外部接口API: 获取标的列表 """
