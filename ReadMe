@@ -137,3 +137,11 @@
    
    Cython使用初探：
    1.建议在Ubuntu系统中调试Cython。Windows环境下，运行Cython代码报错。经查需要VS/VC环境并安装相关补丁，而Ubuntu环境下则无此限制。
+
+2018-07-11
+    Cython程序打包过程注释。
+	1. 使用pyinstaller打包整个程序（含*.pyx文件，该文件有import talib操作）时，报错ImportError: No module name talib。
+	解决方法：pyinstaller打包加入参数。具体命令如下：pyinstaller --hidden-import=talib Stock.py
+    2. 若有多个依赖库程序需要打包，则不能使用--hidden-import参数法。详见https://www.cnblogs.com/yemeng/p/6253097.html
+	
+
