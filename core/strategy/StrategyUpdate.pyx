@@ -3,10 +3,27 @@
 import sys
 import datetime
 import traceback
-import StrategyMisc
 from resource import Constant
 from resource import Trace
 from resource import Configuration
+
+def set_dead_price(basePrice,dirc,highPrice,lowPrice):
+    """外部接口API:检测价格是否超过止损线
+       如果超过，返回True；否则返回False。
+    """
+    if dirc > 0:#“多”方向
+        if float(lowPrice) > float(basePrice):
+            return False
+        deltaPrice = float(basePrice) - float(lowPrice)
+    else:#“空”方向
+        if float(basePrice) > float(highPrice):
+            return False
+        deltaPrice = float(highPrice) - float(basePrice)
+
+    if deltaPrice/float(basePrice) >= Constant.STOP_LOSS_RATE:
+        return True
+    else:
+        return False
 
 def update_strategy(dfStrategy,currentInfo):
     """ 外部接口API: 更新某周期的策略盈亏率数据。更新高阶定时器周期的SER数据。
@@ -77,8 +94,7 @@ def update_strategy(dfStrategy,currentInfo):
                         dfStrategy.ix[rowNo,[XmaxLossIndx,XmaxLossTMIndx]] = [highPrice,closeTimeStr]
 
             #判断是否止损，止损刻度时间的精度是5min。
-            if itemRow[deadTimeIndx] == '1900-01-01 00:00:00' and \
-                            StrategyMisc.set_dead_price(basePrice,dirc,highPrice,lowPrice) == True:
+            if itemRow[deadTimeIndx]=='1900-01-01 00:00:00' and set_dead_price(basePrice,dirc,highPrice,lowPrice)==True:
                 dfStrategy.ix[rowNo,deadTimeIndx] = closeTimeStr
                 Trace.output('warn','It die following item:'+' '.join(list(dfStrategy.ix[rowNo].astype(str))))
 

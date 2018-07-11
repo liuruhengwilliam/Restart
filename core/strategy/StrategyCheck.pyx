@@ -12,7 +12,6 @@ from pandas import DataFrame
 from resource import Constant
 from resource import Trace
 from resource import Configuration
-import StrategyMisc
 
 def mod_period_list(baseTmCnt):
     """ 外部接口API: 获取当前计数对各周期的去模列表。
@@ -119,5 +118,3 @@ def check_strategy(baseTmCnt,dfQuote):
             dataDealed = quotePeriodDF
         # 策略算法计算
         return check_candlestick_pattern(dataDealed)
-
-
