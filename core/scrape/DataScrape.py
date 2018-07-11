@@ -65,7 +65,7 @@ def query_info_stock(stockID):
     dt = datetime.datetime.now()
     date = '%s-%s-%s '%(dt.strftime('%Y'),dt.strftime('%m'),dt.strftime('%d'))
 
-    if len(timeList) == 0 or len(priceList) == 0:
+    if len(timeList)==0 or len(priceList)==0 or float(max(priceList))==0 or float(min(priceList))==0:
         return None
     retList = [date+str(timeList[0]),float(priceList[-1]),float(max(priceList)),float(min(priceList)),float(priceList[0])]
     #Trace.output('debug',stockID+':'+' '.join(map(lambda x:str(x), retList)))
