@@ -109,11 +109,15 @@ def check_strategy(baseTmCnt,dfQuote):
         # 按周期挑选条目
         quotePeriodDF = quoteFilterDF[quoteFilterDF['period']==Constant.QUOTATION_DB_PERIOD[index]]
         # 若无记录，则无法进行模式匹配。
-        if len(quotePeriodDF) == 0:
+        dfLen = len(quotePeriodDF)
+        if dfLen == 0:
             continue
-
+        gap = dfLen - Constant.CANDLESTICK_PATTERN_MATCH_CNT[index]
+        if gap > 0:
+            dataDealed = quotePeriodDF[int(abs(gap)):]
+        else:
+            dataDealed = quotePeriodDF
         # 策略算法计算
-        dataDealed = StrategyMisc.process_quotes_candlestick_pattern(quotePeriodDF)
         return check_candlestick_pattern(dataDealed)
 
 
