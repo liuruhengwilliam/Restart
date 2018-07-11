@@ -17,7 +17,6 @@ from resource import Constant
 from resource import Configuration
 from resource import Trace
 from strategy.Strategy import Strategy
-from strategy.Strategy import StrategyMisc
 
 class Statistics():
     """ 各种方案匹配搜索类
@@ -382,9 +381,8 @@ class Statistics():
                     subsetDF = self.quoteDict[period].iloc[indx:indx+1]
                 else:
                     subsetDF = subsetDF.append(self.quoteDict[period].iloc[indx:indx+1])
-                dataDealed = StrategyMisc.process_quotes_candlestick_pattern(subsetDF)
                 # 逐条进行匹配
-                self.strategyIns.check_strategy(period,dataDealed)
+                self.strategyIns.check_strategy(period,subsetDF)
 
         # 更新策略条目的极值
         quoteM5 = quoteDF[quoteDF['period']=='5min']
