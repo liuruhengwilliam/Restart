@@ -143,5 +143,12 @@
 	1. 使用pyinstaller打包整个程序（含*.pyx文件，该文件有import talib操作）时，报错ImportError: No module name talib。
 	解决方法：pyinstaller打包加入参数。具体命令如下：pyinstaller --hidden-import=talib Stock.py
     2. 若有多个依赖库程序需要打包，则不能使用--hidden-import参数法。详见https://www.cnblogs.com/yemeng/p/6253097.html
-	
+
+2018-07-12
+    Cython程序打包过程问题分析。
+	1.使用Cython重构行情数据抓取模块。为消除层级调用Cython中的错误（程序入口函数调用DataScrape类，然后该类调用Cython封装子模块），
+	简化浓缩了行情数据抓取模块为单一DataScrape包。
+	2.程序运行中报错“Importerror no module named requests”。经分析，pyinstaller打包过程中隐形导入依赖库缺失，需要编辑Stock.spec文件--
+	因为需要隐形导入talib和requests两个库，所以不能使用命令行的方式。具体见optimization分支提交。
+	3.经过测试可知，行情数据抓取模块的Cython重构对于程序运行速度提升无关。应该该模块依赖于网络状况和被抓取的服务器响应，且耗时波动较大。
 
