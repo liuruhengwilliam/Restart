@@ -6,7 +6,8 @@ import datetime
 from resource import Trace
 from resource import Configuration
 from resource import Constant
-from scrape import DataScrape
+from scrape.DataScrape import query_info_futures
+from scrape.DataScrape import query_info_stock
 from indicator.Indicator import Indicator
 from quotation.Quotation import *
 from quotation.QuotationRecord import *
@@ -44,14 +45,14 @@ class Coordinate():
             # 通过正则表达式来区分标的类型：股票（数字） or 大宗商品（英文字母）
             # re.match(r'[a-zA-Z](.*)',target)#re.match在字符串开始处匹配模式
             if re.search(r'[^a-zA-Z]',target) is None:#大宗商品类型全是英文字母
-                infoList = DataScrape.query_info_futures()
+                infoList = query_info_futures()
                 if len(infoList) != 2:
                     Trace.output('warn',"Faile to query:%s"%target)
                     continue
                 # 更新record
                 self.recordHdl.update_futures_record([target]+infoList)
             elif re.search(r'[^0-9](.*)',target) is None:#股票类型全是数字
-                quoteList = DataScrape.query_info_stock(target)
+                quoteList = query_info_stock(target)
                 if quoteList is None or len(quoteList) != len(Constant.QUOTATION_STRUCTURE):
                     Trace.output('warn',"Faile to query:%s"%target)
                     continue
