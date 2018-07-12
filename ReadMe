@@ -150,5 +150,6 @@
 	简化浓缩了行情数据抓取模块为单一DataScrape包。
 	2.程序运行中报错“Importerror no module named requests”。经分析，pyinstaller打包过程中隐形导入依赖库缺失，需要编辑Stock.spec文件--
 	因为需要隐形导入talib和requests两个库，所以不能使用命令行的方式。具体见optimization分支提交。
-	3.经过测试可知，行情数据抓取模块的Cython重构对于程序运行速度提升无关。应该该模块依赖于网络状况和被抓取的服务器响应，且耗时波动较大。
+	3.编辑Stock.spec文件后，pyinstaller打包的命令为pyinstaller -w Stock.spec。而不要使用带参数的命令行方式。
+	4.经过测试可知，行情数据抓取模块的Cython重构对于程序运行速度提升无关。应该该模块依赖于网络状况和被抓取的服务器响应，且耗时波动较大。
 
