@@ -46,7 +46,7 @@ def process_ser_supplement(target,file):
     """
     data = pd.read_csv(file)
     #筛除大于3天时间跨度的条目
-    threshold = datetime.datetime.now()-timedelta(days=3)
+    threshold = datetime.datetime.now()-timedelta(days=7)
     data.is_copy = False
     for indx,row in zip(data.index,data.itertuples()):
         if len(data.ix[indx,'time'].split(':')) == 2:
@@ -55,9 +55,9 @@ def process_ser_supplement(target,file):
             data.drop(indx,inplace=True)
 
     # 输出日志记录
-    #Trace.output('info',"=== To be continued from %s ==="%Configuration.get_field_from_string(file)[-1])
-    #for itemRow in data.itertuples(index=False):
-    #    Trace.output('info','    '+(' ').join(map(lambda x:str(x), itemRow)))
+    Trace.output('info',"=== To be continued from %s ==="%Configuration.get_field_from_string(file)[-1])
+    for itemRow in data.itertuples(index=False):
+        Trace.output('info','    '+(' ').join(map(lambda x:str(x), itemRow)))
     return data
 
 def supplement_items(path,data,supplementCnt):
