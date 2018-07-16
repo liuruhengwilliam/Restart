@@ -106,7 +106,7 @@ def check_strategy(baseTmCnt,dfQuote):
         # 按照时间次序排列，并删除开头的十一行（实时记录行）
         quoteFilterDF = dfQuote.iloc[len(Constant.QUOTATION_DB_PERIOD):]
         # 按周期挑选条目
-        quotePeriodDF = quoteFilterDF[quoteFilterDF['period']==Constant.QUOTATION_DB_PERIOD[index]]
+        quotePeriodDF = quoteFilterDF[quoteFilterDF['period']==Constant.QUOTATION_DB_PREFIX[index]]
         # 若无记录，则无法进行模式匹配。
         dfLen = len(quotePeriodDF)
         if dfLen == 0:
