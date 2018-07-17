@@ -25,36 +25,35 @@ def update_quote(record,data,baseTmCnt):
         data: DataFrame结构的行情数据；
         baseTmCnt: 基础更新定时器的计数值；
     """
+    # 不更新冗余项。此判断条件的前提是每交易日程序运行延迟不能超过5min，即每次操作的平均时间五秒以内。
+    if data.ix[Constant.QUOTATION_DB_PERIOD.index(Constant.UPDATE_BASE_PERIOD)] == record['time']:
+        Trace.output('info','Get Cloned info at %s for update base Period'%(record['time']))
+        return
 
-    # 更新基准定时器及高阶定时器的记录缓存
-    for index,modVal in enumerate(mod_period_list(baseTmCnt)):
-        # 无关周期不处理。
-        if modVal == -1:
-            continue
+    dataPeriod = data.iloc[:len(Constant.UPDATE_BASE_PERIOD)]
+    dataPeriod['mod'] = mod_period_list(baseTmCnt)#增加取余列
 
-        # 高阶定时器的一个周期完结，先存档旧条目，后更新条目
-        if modVal == 0:
-            # 不更新冗余项。驱动定时周期会漂移，通过闭市时间不易保证
-            if data.ix[index,'time'] == record['time']:
-                Trace.output('warn','Get Cloned info at %s for Period %s'%(record['time'],index))
-                continue
-            if data.ix[index,'time'] == ' ':#程序启动后首次到期更新
-                data.ix[index,1:] = [record[key] for key in Constant.QUOTATION_STRUCTURE]
-            else:# 更新条目的截止时间/close价格
-                data.ix[index,'time'] = record['time']
-                data.ix[index,'close'] = record['close']
-            # 将待存档的条目附着在本DataFrame结构后面。
-            data = data.append(data.ix[index],ignore_index=True)
-            Trace.output('info','Time out '+' '.join(list(data.iloc[-1].astype(str))))
-            # 该Period的下个周期内的首次更新open/high/low。
-            data.ix[index,2:5] = [record[key] for key in Constant.QUOTATION_STRUCTURE[1:4]]
-        else:
-            if data.ix[index,'open'] == 0.0:
-                data.ix[index,'open'] = record['open']
-            if data.ix[index,'high'] < record['high']:
-                data.ix[index,'high'] = record['high']
-            if data.ix[index,'low'] > record['low'] or data.ix[index,'low'] == 0.0:
-                data.ix[index,'low'] = record['low']
+    # 到期的周期行处理
+    for item in dataPeriod[dataPeriod.mod==0].itertuples():
+        if item.time == ' ':#程序启动后首次到期更新
+            data.ix[item[0],1:] = [record[key] for key in Constant.QUOTATION_STRUCTURE]
+        else:# 更新条目的截止时间/close价格
+            data.ix[item[0],'time'] = record['time']
+            data.ix[item[0],'close'] = record['close']
+        # 将待存档的条目附着在本DataFrame结构后面。
+        data = data.append(data.ix[item[0]],ignore_index=True)
+        Trace.output('info','Time out '+' '.join(list(data.iloc[-1].astype(str))))
+        # 该Period的下个周期内的首次更新open/high/low。
+        data.ix[item[0],2:5] = [record[key] for key in Constant.QUOTATION_STRUCTURE[1:4]]
+
+    # 非到期的周期行处理
+    for item in dataPeriod[dataPeriod.mod != 0].itertuples():
+        if data.ix[item[0],'open'] == 0.0:
+            data.ix[item[0],'open'] = record['open']
+        if data.ix[item[0],'high'] < record['high']:
+            data.ix[item[0],'high'] = record['high']
+        if data.ix[item[0],'low'] > record['low'] or data.ix[item[0],'low'] == 0.0:
+            data.ix[item[0],'low'] = record['low']
 
     #print data#调试点
     return data
