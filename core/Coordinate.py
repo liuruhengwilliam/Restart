@@ -148,7 +148,11 @@ class Coordinate():
             target: 标的字符串
         """
         #更新行情数据到csv文件中
-        quoteRecord = self.quoteHdl.get_quote(target).iloc[len(Constant.QUOTATION_DB_PERIOD):]
+        quoteDF = self.quoteHdl.get_quote(target)
+        if len(quoteDF) <= len(Constant.QUOTATION_DB_PERIOD):
+            Trace.output('warn','It\'s lack of items during storing %s'%target)
+            return
+        quoteRecord = quoteDF.iloc[len(Constant.QUOTATION_DB_PERIOD):]
         quoteRecord.to_csv(Configuration.get_working_directory()+target+'-quote.csv',\
                             columns=['period',]+list(Constant.QUOTATION_STRUCTURE),index=False)
         # 更新策略匹配数据到csv文件
