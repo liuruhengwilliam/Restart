@@ -16,6 +16,9 @@ class Strategy():
     def __init__(self,targetList):
         """ 初始化 """
         self.targetList = targetList
+        #蜡烛图组合模式DataFrame结构化
+        dictPattern = {'Note':Constant.CANDLESTICK_PATTERN_NOTE, 'Pattern':Constant.CANDLESTICK_PATTERN}
+        self.notePattern = DataFrame(dictPattern,index=range(len(Constant.CANDLESTICK_PATTERN)))
 
         #各周期策略生成后的记录DataFrame对象字典。该对象记录K线组合模式（可能有多条），然后再生成盈亏数据库记录条目，最后进行清理。
         self.dictPolRec = {}
@@ -31,6 +34,9 @@ class Strategy():
                 self.dictPolRec.update({target:deepcopy(DataSettleKit.process_ser_supplement(target,preWeekFile))})
             else:#若本周及上周都无历史数据，则空白
                 self.dictPolRec.update({target:deepcopy(valueDf)})
+
+    def get_notePattern(self):
+        return self.notePattern
 
     def get_strategy(self,target):
         """ 外部接口API: 获取某周期的策略记录
