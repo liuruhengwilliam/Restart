@@ -46,6 +46,18 @@ class Quotation():
         """ 外部接口API：获取基准更新定时器的到期计数值。 """
         return self.baseTmCnt
 
+    def get_mod_period_list(self):
+        """ 外部接口API: 获取当前计数对各周期的去模列表。
+            返回值： 取模之后的列表结构。
+            baseTmCnt: 基础更新定时器的计数值
+        """
+        modList = [-1]
+        #from 15min to 1day对于股票型程序，由于每日自动退出，所以也不可能超过4hour。
+        for period in Constant.QUOTATION_DB_PERIOD[1:-1]:
+            modList.append(self.baseTmCnt%(period/Constant.UPDATE_BASE_PERIOD))
+        modList.append(-1)
+        return modList
+
     def get_quote(self,target):
         """ 外部接口API: 获取某标的quote缓存。
             返回值：DataFrame结构数据
