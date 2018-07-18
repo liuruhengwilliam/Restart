@@ -26,16 +26,16 @@ def update_quote(record,data,baseTmCnt):
         baseTmCnt: 基础更新定时器的计数值；
     """
     # 不更新冗余项。此判断条件的前提是每交易日程序运行延迟不能超过5min，即每次操作的平均时间五秒以内。
-    if data.ix[Constant.QUOTATION_DB_PERIOD.index(Constant.UPDATE_BASE_PERIOD)] == record['time']:
+    if data.ix[Constant.QUOTATION_DB_PERIOD.index(Constant.UPDATE_BASE_PERIOD),'time'] == record['time']:
         Trace.output('info','Get Cloned info at %s for update base Period'%(record['time']))
         return
 
-    dataPeriod = data.iloc[:len(Constant.UPDATE_BASE_PERIOD)]
+    dataPeriod = data.iloc[:len(Constant.QUOTATION_DB_PERIOD)]
     dataPeriod['mod'] = mod_period_list(baseTmCnt)#增加取余列
 
     # 到期的周期行处理
-    for item in dataPeriod[dataPeriod.mod==0].itertuples():
-        if item.time == ' ':#程序启动后首次到期更新
+    for item in dataPeriod[dataPeriod['mod']==0].itertuples():
+        if item[1] == ' ':#程序启动后首次到期'time'项为空，要更新
             data.ix[item[0],1:] = [record[key] for key in Constant.QUOTATION_STRUCTURE]
         else:# 更新条目的截止时间/close价格
             data.ix[item[0],'time'] = record['time']
@@ -47,7 +47,7 @@ def update_quote(record,data,baseTmCnt):
         data.ix[item[0],2:5] = [record[key] for key in Constant.QUOTATION_STRUCTURE[1:4]]
 
     # 非到期的周期行处理
-    for item in dataPeriod[dataPeriod.mod != 0].itertuples():
+    for item in dataPeriod[dataPeriod['mod'] != 0].itertuples():
         if data.ix[item[0],'open'] == 0.0:
             data.ix[item[0],'open'] = record['open']
         if data.ix[item[0],'high'] < record['high']:
