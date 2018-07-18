@@ -71,7 +71,7 @@ class Coordinate():
             挂载在基准定时器。根据倍数关系，驱动更新其他大周期行情数据缓存。
         """
         markStart = datetime.datetime.now()
-        baseTmCnt = self.quoteHdl.get_baseTM_cnt()
+        tmCntModList = self.quoteHdl.get_mod_period_list()
         for target in self.recordHdl.get_target_list():
             if target == '':#分解出的异常字符
                 continue
@@ -87,7 +87,7 @@ class Coordinate():
             record = self.recordHdl.get_record_dict(target)
             if record is None:
                 continue
-            quoteDF = update_quote(record,quoteDF,baseTmCnt)
+            quoteDF = update_quote(record,quoteDF,tmCntModList)
             # 更新之后要回写行情数据
             self.quoteHdl.set_quote(target,quoteDF)
             self.recordHdl.reset_target_record(target)
@@ -107,17 +107,13 @@ class Coordinate():
             Trace.output('debug',"For %s,update strategy cost:%s"%(target,str(markStrgUpd-markQuoteUpd)))
 
             # 策略匹配并生成条目(若有)
-            dfRet = check_strategy(baseTmCnt,quoteDF)
+            dfRet = check_strategy(self.strategy.get_notePattern(),tmCntModList,quoteDF)
             # 策略新条目要回写
             self.strategy.set_strategy(target,dfRet)
 
             markStrgChk = datetime.datetime.now()
             Trace.output('debug',"For %s,check strategy cost:%s"%(target,str(markStrgChk-markStrgUpd)))
 
-            if re.search(r'[^a-zA-Z]',target) is None:#股票转存由专门的线程负责，不再这里处理。
-                # 每小时存储一次
-                if baseTmCnt%(Constant.QUOTATION_DB_PERIOD[4]/Constant.UPDATE_BASE_PERIOD)==0:
-                    self.storage_data(target)#转存数据到csv文件
         # 基准定时器计数自增
         self.quoteHdl.increase_baseTM_cnt()
 
@@ -126,18 +122,24 @@ class Coordinate():
                      (str(markEnd-markStart),' '.join(self.recordHdl.get_target_list()),markStart))
 
     def work_storage(self):
-        """ 外部函数API：数据存档线程的处理函数。30min
+        """ 外部函数API：数据存档线程的处理函数。
         """
         markStart = datetime.datetime.now()
+        baseTmCnt = self.quoteHdl.get_baseTM_cnt()
         for target in self.recordHdl.get_target_list():
             if re.search(r'[^0-9](.*)',target) is None:#股票类型全是数字
                 # 股票类型数据较多，需要加以控制。拟定每半小时存储一次。
-                baseTmCnt = self.quoteHdl.get_baseTM_cnt()
                 if baseTmCnt%(Constant.QUOTATION_DB_PERIOD[3]/Constant.UPDATE_BASE_PERIOD)!=0 \
                         and Constant.is_closed(target)==False:
                     #在非结算期中未到期不记录
                     return
-
+            elif re.search(r'[^a-zA-Z]',target) is None:
+                # 商品期货类型开市期间每个小时/闭市期间15分钟存储一次
+                if baseTmCnt%(Constant.QUOTATION_DB_PERIOD[4]/Constant.UPDATE_BASE_PERIOD)!=0 \
+                        and Constant.is_closed(target)==False:
+                    return
+            else:
+                return
             self.storage_data(target)
         markEnd = datetime.datetime.now()
         Trace.output('info', "It cost %s to store target(%s) at %s"%\
