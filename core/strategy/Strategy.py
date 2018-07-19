@@ -48,5 +48,6 @@ class Strategy():
         """ 外部接口API: 获取某周期的策略记录
             target: 标的字符串
         """
+
         if dfInsert is not None and len(dfInsert) != 0:
-            self.dictPolRec[target].append(dfInsert,ignore_index=True)
+            self.dictPolRec[target] = self.dictPolRec[target].append(dfInsert,ignore_index=True)
