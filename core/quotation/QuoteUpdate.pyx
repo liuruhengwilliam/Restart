@@ -23,7 +23,7 @@ def update_quote(record,data,tmCntModList):
 
     # 到期的周期行处理
     for item in dataPeriod[dataPeriod['mod']==0].itertuples():
-        if item[1] == ' ':#程序启动后首次到期'time'项为空，要更新
+        if item[2] == ' ':#程序启动后首次到期'time'项(item[2])为空，要更新
             data.ix[item[0],1:] = [record[key] for key in Constant.QUOTATION_STRUCTURE]
         else:# 更新条目的截止时间/close价格
             data.ix[item[0],'time'] = record['time']
