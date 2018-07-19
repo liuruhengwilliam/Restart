@@ -57,8 +57,8 @@ def check_candlestick_pattern(notePattern,data):
                     continue
                 #匹配K线组合模式成功后，添加到本周期DataFrame记录对象中。相关统计项暂记为空值。
                 matchItem = [dealTmValue,float(dfLastLine['close'].values),tmName,pattern,int(dfLastLine[pattern].values),\
-                            '1900-01-01 00:00:00']+\
-                            [0.0,'1900-01-01 00:00:00',int(dfLastLine[pattern].values)*10000.0,'1900-01-01 00:00:00']*7+[0,15*60]
+                            '1900-01-01 00:00:00']+[(-100.0)*int(dfLastLine[pattern].values),'1900-01-01 00:00:00',\
+                             int(dfLastLine[pattern].values)*100.0,'1900-01-01 00:00:00']*7+[0,15*60]
                 #最后两项的含义：设置第一个周期是'15min'--序号为0，周期计数为15*60。
                 dfCollect = dfCollect.append(pd.Series(matchItem,index=Constant.SER_DF_STRUCTURE),ignore_index=True)
         except (Exception),e:
