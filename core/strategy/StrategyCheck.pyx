@@ -86,12 +86,12 @@ def check_strategy(notePattern,tmCntModList,dfQuote):
     dfQuotePeriod['mod'] = tmCntModList#增加取余列
     for item in dfQuotePeriod.ix[2:][dfQuotePeriod['mod']==0].itertuples():#ix[2:]可以刨开5min周期
         # 异常数据对应的周期不更新/匹配
-        if item[1] == ' ':
-            Trace.output('warn','Skip Period %s for strategy with zero record'%(item[1]))
+        if item[2] == ' ':#item[2]--'time'项
+            Trace.output('warn','Skip Period %s for strategy with zero record'%(item[2]))
             continue
 
         # 按周期挑选条目
-        quotePeriodDF = quoteFilterDF[quoteFilterDF['period']==item[0]]
+        quotePeriodDF = quoteFilterDF[quoteFilterDF['period']==item[1]]#item[1]--'period'项
         # 若无记录，则无法进行模式匹配。
         if len(quotePeriodDF) == 0:
             continue
