@@ -77,7 +77,7 @@ def update_strategy(dfStrategy,currentInfo):
                 #链式定时计数小于等于0说明有相关周期策略盈亏率统计周期要增加
                 if itemRow[-1] <= Constant.CHAIN_PERIOD[0]:
                     #链式定时的下个周期序号+周期计数值的基址
-                    periodIndx = indx+1+Constant.QUOTATION_DB_PERIOD.index(15*60)
+                    periodIndx = int(indx+1+Constant.QUOTATION_DB_PERIOD.index(15*60))
                     dfStrategy.ix[itemRow[0],[-2,-1]] = [indx+1,Constant.QUOTATION_DB_PERIOD[periodIndx]]
                 else:#链式计数还未到期
                     dfStrategy.ix[itemRow[0],-1] -= Constant.CHAIN_PERIOD[0]
