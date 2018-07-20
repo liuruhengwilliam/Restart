@@ -22,7 +22,7 @@ def get_date_code():
     month,day = dt.strftime('%m'),dt.strftime('%d')
     return MONTH_CODE[int(month)-1]+DAY_CODE[int(day)-1]
 
-VERSION_CODE = 'V2.4.3Q'
+VERSION_CODE = 'V2.4.4Q'
 def get_version_info():
     """ 内/外部接口API: """
     return VERSION_CODE + get_date_code() + "\n" + \
@@ -244,7 +244,7 @@ def is_stock_closed():
                 return True
 
     realnumNow = time.mktime(now.timetuple())
-    EXCHANGE_AM_START = datetime.datetime.strptime(year+'-'+month+'-'+day+' 09:28:00',"%Y-%m-%d %H:%M:%S")
+    EXCHANGE_AM_START = datetime.datetime.strptime(year+'-'+month+'-'+day+' 09:25:00',"%Y-%m-%d %H:%M:%S")
     realnumAMStart = time.mktime(EXCHANGE_AM_START.timetuple())
     EXCHANGE_AM_END = datetime.datetime.strptime(year+'-'+month+'-'+day+' 11:30:59',"%Y-%m-%d %H:%M:%S")
     realnumAMEnd = time.mktime(EXCHANGE_AM_END.timetuple())
