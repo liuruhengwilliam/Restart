@@ -38,9 +38,9 @@ def update_strategy(dfStrategy,currentInfo):
         closeTimeStr = closeTimeStr.replace('/','-')
 
     #后续展开的itemRow为Pandas元组，开头自带Index项，所以下标要加一。也可以通过index=False去掉最开头的索引。
-    basePriceIndx = Constant.SER_DF_STRUCTURE.index('price')+1
-    dirctionIndx = Constant.SER_DF_STRUCTURE.index('patternVal')+1
-    deadTimeIndx = Constant.SER_DF_STRUCTURE.index('DeadTime')+1
+    basePriceIndx = Constant.SER_DF_STRUCTURE.index('price')
+    dirctionIndx = Constant.SER_DF_STRUCTURE.index('patternVal')
+    deadTimeIndx = Constant.SER_DF_STRUCTURE.index('DeadTime')
 
     dfStrategy.is_copy = False
     for indx in set(dfStrategy['tmChainIndx']):#依据周期序列处理
@@ -48,29 +48,29 @@ def update_strategy(dfStrategy,currentInfo):
             continue
         #'M15maxEarn'为记录项基址,itemRow[-2]*4为偏移量--链式定时序号。每四个记录项为一组。
         #注：Pandas元组中开头有自带Index项，所以下标有别于DataFrame结构。
-        XmaxEarnIndx = int(Constant.SER_DF_STRUCTURE.index('M15maxEarn')+1)+int(indx*4)
+        XmaxEarnIndx = int(Constant.SER_DF_STRUCTURE.index('M15maxEarn'))+int(indx*4)
         XmaxEarnTMIndx = XmaxEarnIndx+1
         XmaxLossIndx = XmaxEarnIndx+2
         XmaxLossTMIndx = XmaxEarnIndx+3
 
         for itemRow in dfStrategy[dfStrategy['tmChainIndx']==indx].itertuples():#itemRow[0]就是在dfStrategy中的行号
             try:
-                basePrice = itemRow[basePriceIndx]
-                dirc = itemRow[dirctionIndx]
+                basePrice = itemRow[basePriceIndx+1]
+                dirc = itemRow[dirctionIndx+1]
                 #比对并更新（若需要）极值
                 if dirc > 0:#‘多’方向
-                    if highPrice > itemRow[XmaxEarnIndx]:#大于最大盈利值
+                    if highPrice > itemRow[XmaxEarnIndx+1]:#大于最大盈利值
                         dfStrategy.ix[itemRow[0],[XmaxEarnIndx,XmaxEarnTMIndx]] = [highPrice,closeTimeStr]
-                    if lowPrice < itemRow[XmaxLossIndx]:#小于最大亏损值
+                    if lowPrice < itemRow[XmaxLossIndx+1]:#小于最大亏损值
                         dfStrategy.ix[itemRow[0],[XmaxLossIndx,XmaxLossTMIndx]] = [lowPrice,closeTimeStr]
                 else:#‘空’方向 -- maxEarn值小于maxLoss值
-                    if lowPrice < itemRow[XmaxEarnIndx]:#大于最大盈利值
+                    if lowPrice < itemRow[XmaxEarnIndx+1]:#大于最大盈利值
                         dfStrategy.ix[itemRow[0],[XmaxEarnIndx,XmaxEarnTMIndx]] = [lowPrice,closeTimeStr]
-                    if highPrice > itemRow[XmaxLossIndx]:#小于最大亏损值
+                    if highPrice > itemRow[XmaxLossIndx+1]:#小于最大亏损值
                         dfStrategy.ix[itemRow[0],[XmaxLossIndx,XmaxLossTMIndx]] = [highPrice,closeTimeStr]
 
                 #判断是否止损，止损刻度时间的精度是5min。
-                if itemRow[deadTimeIndx]=='1900-01-01 00:00:00' and set_dead_price(basePrice,dirc,highPrice,lowPrice)==True:
+                if itemRow[deadTimeIndx+1]=='1900-01-01 00:00:00' and set_dead_price(basePrice,dirc,highPrice,lowPrice)==True:
                     dfStrategy.ix[itemRow[0],deadTimeIndx] = closeTimeStr
                     Trace.output('warn','It die following item:'+' '.join(list(dfStrategy.ix[itemRow[0]].astype(str))))
 
