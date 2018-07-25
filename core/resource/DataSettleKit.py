@@ -51,6 +51,8 @@ def process_ser_supplement(target,file):
     for indx,row in zip(data.index,data.itertuples()):
         if len(data.ix[indx,'time'].split(':')) == 2:
             data.ix[indx,'time'] = data.ix[indx,'time']+':00'
+        if data.ix[indx,'time'].find('/') != -1:
+            data.ix[indx,'time'] = data.ix[indx,'time'].replace('/','-')
         if datetime.datetime.strptime(data.ix[indx,'time'],"%Y-%m-%d %H:%M:%S") < threshold:
             data.drop(indx,inplace=True)
 
