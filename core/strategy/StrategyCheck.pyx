@@ -20,6 +20,7 @@ def check_candlestick_pattern(notePattern,data):
     # 获取周期字符串
     tmName = data.period[data.index[0]]
     dfCollect = DataFrame(columns=Constant.SER_DF_STRUCTURE)#收集本周期内新增策略条目
+    nowFloat=time.mktime(time.strptime(str(datetime.datetime.now()).split('.')[0],'%Y-%m-%d %H:%M:%S'))
 
     for indxs in notePattern.index:# 遍历所有已定义的蜡烛图组合模型
         note = notePattern.loc[indxs]['Note']
@@ -49,7 +50,6 @@ def check_candlestick_pattern(notePattern,data):
                 else:
                     targetTime = time.strptime(dealTmValue,"%Y-%m-%d %H:%M:%S")
                 #按照时间进行筛选。只添加不超过一个周期时间的条目。
-                nowFloat=time.mktime(time.strptime(str(datetime.datetime.now()).split('.')[0],'%Y-%m-%d %H:%M:%S'))
                 pttnFloat=time.mktime(targetTime)
 
                 if float(nowFloat-pttnFloat)>float(Constant.QUOTATION_DB_PERIOD[Constant.QUOTATION_DB_PREFIX.index(tmName)]):
