@@ -174,7 +174,7 @@ def query_info_stock(stockID):
     ret = None
     if stockID.startswith('600') or stockID.startswith('601') or stockID.startswith('603'):
         ret = deal_with_stock_query(EASTMONEY_URL_FRAGMENT+'&id=%s'%stockID+'1')
-    elif stockID.startswith('000') or stockID.startswith('002') or stockID.startswith('300'):
+    elif stockID.startswith('000') or stockID.startswith('001') or stockID.startswith('002') or stockID.startswith('300'):
         ret = deal_with_stock_query(EASTMONEY_URL_FRAGMENT+'&id=%s'%stockID+'2')
     if ret is None:
         return None
