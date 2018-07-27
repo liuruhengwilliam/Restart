@@ -13,7 +13,7 @@ class QuotationRecord():
         # QDB中各周期记录字典
         self.recordPeriodDict = {}
 
-        atomicDictItem = dict(zip(Constant.QUOTATION_STRUCTURE+'failedCnt',[' ',0.0,0.0,0.0,0.0,0]))
+        atomicDictItem = dict(zip(Constant.QUOTATION_STRUCTURE+tuple(['failedCnt']),[' ',0.0,0.0,0.0,0.0,0]))
         for name in self.quoteList:# 生成期货/大宗商品/股票代码和TOHLC字典项。周期标记因子在定时器中叠加。
             self.recordPeriodDict.update({name:deepcopy(atomicDictItem)})
 
