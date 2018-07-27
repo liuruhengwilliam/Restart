@@ -22,7 +22,7 @@ def get_date_code():
     month,day = dt.strftime('%m'),dt.strftime('%d')
     return MONTH_CODE[int(month)-1]+DAY_CODE[int(day)-1]
 
-VERSION_CODE = 'V2.4.5Q'
+VERSION_CODE = 'V2.5.0Q'
 def get_version_info():
     """ 内/外部接口API: """
     return VERSION_CODE + get_date_code() + "\n" + \
@@ -125,6 +125,8 @@ BOLLINGER_BANDS = 20
 #=================================================================================
 # 行情数据库中记录项
 QUOTATION_STRUCTURE = ('time','open','high','low','close')
+# 行情查询失败导致无需更新的计数阀值
+SKIP_UPDATE_THRESHOLD = 5
 #循环定时器周期
 # 行情数据库记录项周期: 6sec(不生成db文件),5min,15min,30min,1hour,2hour,4hour,6hour,12hour,1day,1week
 QUOTATION_DB_PREFIX = ('6sec','5min','15min','30min','1hour','2hour','4hour','6hour','12hour','1day','1week')

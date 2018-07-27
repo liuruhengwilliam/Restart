@@ -13,15 +13,15 @@ class QuotationRecord():
         # QDB中各周期记录字典
         self.recordPeriodDict = {}
 
-        atomicDictItem = dict(zip(Constant.QUOTATION_STRUCTURE,[' ',0.0,0.0,0.0,0.0]))
+        atomicDictItem = dict(zip(Constant.QUOTATION_STRUCTURE+'failedCnt',[' ',0.0,0.0,0.0,0.0,0]))
         for name in self.quoteList:# 生成期货/大宗商品/股票代码和TOHLC字典项。周期标记因子在定时器中叠加。
             self.recordPeriodDict.update({name:deepcopy(atomicDictItem)})
 
     def get_record_dict(self,target):
         """ 外部接口API: 获取缓冲字典对象 """
         record = self.recordPeriodDict[target]
-        if record['time']==' ' or record['open']==0.0 or \
-            record['high']==0.0 or record['low']==0.0 or record['close']==0.0:
+        if record['time']==' ' or record['open']==0.0 or record['high']==0.0 or record['low']==0.0\
+                or record['close']==0.0 or record['failedCnt']>=Constant.SKIP_UPDATE_THRESHOLD:
             return None
         else:
             return record
@@ -29,6 +29,10 @@ class QuotationRecord():
     def get_target_list(self):
         """ 外部接口API: 获取标的列表 """
         return self.quoteList
+
+    def increase_failed_cnt(self,target):
+        """ 外部接口API: 增加查询失败的计数值 """
+        self.recordPeriodDict[target]['failedCnt'] = self.recordPeriodDict[target]['failedCnt']+1
 
     def update_stock_record(self,infoList):
         """ 外部接口API: 心跳定时器回调函数。更新缓冲记录。
@@ -43,6 +47,7 @@ class QuotationRecord():
             self.recordPeriodDict[stock]['high']=high
         if self.recordPeriodDict[stock]['low']==0.0 or self.recordPeriodDict[stock]['low']>low:
             self.recordPeriodDict[stock]['low']=low
+        self.recordPeriodDict[stock]['failedCnt'] = 0
 
     def update_futures_record(self,infoList):
         """ 外部接口API: 心跳定时器回调函数。更新缓冲记录。
@@ -57,6 +62,7 @@ class QuotationRecord():
             self.recordPeriodDict[future]['high']=price
         if self.recordPeriodDict[future]['low'] == 0.0 or self.recordPeriodDict[future]['low'] > price:
             self.recordPeriodDict[future]['low']=price
+        self.recordPeriodDict[future]['failedCnt'] = 0
 
     def reset_target_record(self,target):
         self.recordPeriodDict[target]['time']=' '
@@ -64,3 +70,4 @@ class QuotationRecord():
         self.recordPeriodDict[target]['high'] = 0.0
         self.recordPeriodDict[target]['low'] = 0.0
         self.recordPeriodDict[target]['close'] = 0.0
+        self.recordPeriodDict[target]['failedCnt'] = 0
