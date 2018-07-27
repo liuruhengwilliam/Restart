@@ -135,6 +135,7 @@ QUOTATION_DB_PERIOD = (6,5*60,15*60,30*60,1*3600,2*3600,4*3600,6*3600,12*3600,24
 
 # 期货/大宗商品/股票的周期行情数据更新基准定时器是5min，亦是其盈亏策略数据更新定时器。
 UPDATE_BASE_PERIOD = 5*60
+REFRESH_PERIOD = 1*60
 
 # 策略盈亏率数据库文件对应的DataFrame结构。‘id’，‘tmChainIndx’和‘restCnt’是区别于SER数据库特有的字段。
 SER_DF_STRUCTURE = ('time','price','period','patternName','patternVal','DeadTime',\
@@ -155,6 +156,10 @@ TIME_SEGMENT_DICT ={"Gold_saint":["14:00:00","18:59:59"],\
                     "Silver_saint":["19:00:00","23:59:59"],\
                     "Copper_saint":["00:00:00","13:59:59"]}
 #=====================================================================================
+# 状态机定义:工作态--0;暂停态--1;退出态--2;
+STATE_WORKING=0
+STATE_SUSPEND=1
+STATE_QUIT=2
 # 夏令时(Daylight saving time)和冬令时(standard time)
 # 夏令时定义(欧盟国家)：3月最后一个星期日开始，10月最后一个星期日结束。
 # time类中"tm_isdst"貌似有点水土不服！
@@ -263,7 +268,7 @@ def is_stock_closed():
     else:
         return True
 
-def is_closed(target):
+def be_closed(target):
     """ 外部接口API:判断当前时间是否为休市时间
         返回值：True---休/闭市时间；False---交易时间
     """
